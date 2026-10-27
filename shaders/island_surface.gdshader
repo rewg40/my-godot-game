@@ -26,7 +26,7 @@ void fragment() {
 	vec3 forest = texture(forest_tex, world_uv * 0.8).rgb;
 	float forest_mask = clamp(layout.b * 2.7, 0.0, 1.0) * (1.0 - smoothstep(0.45, 0.7, layout.b));
 	grass = mix(grass, forest, forest_mask * 0.62);
-	grass *= mix(vec3(0.78, 0.83, 0.75), vec3(0.92, 0.90, 0.82), macro);
+	grass *= mix(vec3(0.47, 0.56, 0.42), vec3(0.60, 0.65, 0.48), macro);
 
 	vec3 dirt = texture(dirt_tex, world_uv * 0.8).rgb;
 	vec3 sand = texture(sand_tex, world_uv * 0.7).rgb;

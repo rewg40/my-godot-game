@@ -23,6 +23,8 @@
 
 `assets/models/nature_real/pine.glb` и `grass.glb` — облегчённые версии Pine Tree 01 и Grass Medium 01 от Rico Cilliers и Rob Tuytel (Poly Haven, CC0), подготовленные проектом Terrain Studio: https://github.com/HowdyMoto/terrain-tools/blob/main/public/foliage/photoreal/CREDITS.txt. Хвоя использует текстурные карточки; ресурсы изменены по сравнению с оригиналом.
 
+`assets/models/nature_real/broadleaf.glb` основан на **Tree Small 02** от Rico Cilliers (Poly Haven, CC0): https://polyhaven.com/a/tree_small_02. Использована облегчённая версия https://github.com/agrimuitobom/landscape/pull/6 с текстурными листьями; геометрия дополнительно упрощена, текстуры перекодированы, данные распакованы для Godot.
+
 `assets/environment/textures/grass_short.jpg` — уменьшенная и перекодированная версия **Grass 01** от Mykhailo Ohorodnichuk / Game Piggs (CC0), из https://github.com/permabulk69420-pixel/Oasis/blob/main/public/textures/grass/CREDITS.md. Источник: https://game-piggs.com/textures/grass-01/, лицензия: https://game-piggs.com/license/.
 
 ## Заброшенный автомобиль

@@ -68,6 +68,7 @@ func _run() -> void:
 	check(grass is MultiMeshInstance3D and grass.multimesh.instance_count > 500, "3D grass is batched across the island")
 	var forest = world.environment_3d.get_node_or_null("ForestColliders")
 	check(forest is StaticBody3D and forest.get_child_count() > 0, "3D forest trunks have physical collision")
+	check(world.environment_3d.get_node_or_null("ForestBroadleaf") is Node3D, "forest includes photoreal broadleaf trees")
 	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("Walk"), "rigged 3D hero has a walking animation")
 	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("ZombieWalk"), "character rig also contains infected animations")
 	var has_clothing_shader = false

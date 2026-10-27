@@ -44,6 +44,7 @@ func _build_lighting() -> void:
 	environment.fog_light_color = Color("899a94")
 	environment.fog_density = 0.006
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	environment.tonemap_exposure = 0.72
 	environment.adjustment_enabled = true
 	environment.adjustment_saturation = 0.90
 	environment.adjustment_contrast = 1.12
@@ -145,6 +146,7 @@ func _scatter_scenery() -> void:
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 2291
 	var pine_scene = load(PINE_PATH) as PackedScene
+	var broadleaf_scene = load("res://assets/models/nature_real/broadleaf.glb") as PackedScene
 	var fern_scene = load(FERN_PATH) as PackedScene
 	var stump_scene = load("res://assets/models/nature_real/tree_stump_01.glb") as PackedScene
 	var forest_colliders = StaticBody3D.new()
@@ -167,14 +169,15 @@ func _scatter_scenery() -> void:
 				break
 		if not clear or _near_road(p):
 			continue
-		var instance = pine_scene.instantiate() as Node3D
-		instance.name = "ForestPine"
-		var size = rng.randf_range(0.48, 0.63)
+		var broadleaf = rng.randf() < 0.32
+		var instance = (broadleaf_scene if broadleaf else pine_scene).instantiate() as Node3D
+		instance.name = "ForestBroadleaf" if broadleaf else "ForestPine"
+		var size = rng.randf_range(1.1, 1.4) if broadleaf else rng.randf_range(0.48, 0.63)
 		instance.scale = Vector3.ONE * size
 		instance.rotation.y = rng.randf_range(0, TAU)
 		instance.position = Vector3(p.x * SCALE, height_at(p.x * SCALE, p.y * SCALE), p.y * SCALE)
-		instance.set_meta("tree_height", 14.5 * size)
-		instance.set_meta("tree_radius", 3.6 * size)
+		instance.set_meta("tree_height", (4.6 if broadleaf else 14.5) * size)
+		instance.set_meta("tree_radius", (2.3 if broadleaf else 3.6) * size)
 		instance.add_to_group("tall_tree_visual")
 		add_child(instance)
 		var trunk = CollisionShape3D.new()

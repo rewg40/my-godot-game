@@ -34,12 +34,15 @@ func _run() -> void:
 	world.environment_3d.environment.tonemap_exposure = 0.62
 	await create_timer(0.4).timeout
 	await _capture(out_dir + "/dark3d.png")
-	world.environment_3d.environment.tonemap_exposure = 1.0
+	world.environment_3d.environment.tonemap_exposure = 0.72
 	world.player.global_position = world.map_to_world(Vector2(840, 1345)) + Vector3.UP * 0.12
 	world.player.velocity = Vector3.ZERO
 	await create_timer(1.5).timeout
 	await _capture(out_dir + "/camp3d.png")
-	world.player.global_position = world.map_to_world(Vector2(1560, 610)) + Vector3.UP * 0.12
+	var broadleaf = world.environment_3d.get_node("ForestBroadleaf") as Node3D
+	var forest_pos = broadleaf.global_position + Vector3(-4, 0, 4)
+	forest_pos.y = world.environment_3d.height_at(forest_pos.x, forest_pos.z) + 0.12
+	world.player.global_position = forest_pos
 	world.player.velocity = Vector3.ZERO
 	await create_timer(1.5).timeout
 	await _capture(out_dir + "/forest3d.png")
