@@ -60,14 +60,27 @@ func _run() -> void:
 	await process_frame
 	var world = main.current_screen
 	check(world.player != null and world.hud != null, "world, player and HUD start")
+	check(world is Node3D and world.player is CharacterBody3D and world.player.camera is Camera3D, "game world, character and perspective camera are 3D")
+	check(world.environment_3d.get_node_or_null("IslandTerrain") is MeshInstance3D and world.environment_3d.get_node_or_null("IslandCollision") is StaticBody3D, "3D terrain and physics collision exist")
+	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("Walk"), "rigged 3D hero has a walking animation")
 	check(world.quest_stage == 0 and world.hud.is_modal_open(), "new game opens introduction")
 	world.hud.close_modal()
-	var start_pos: Vector2 = world.player.global_position
+	await create_timer(0.35).timeout
+	check(world.player.is_on_floor(), "3D player stands on terrain")
+	var ground_y: float = world.player.global_position.y
+	Input.action_press("jump")
+	await physics_frame
+	await physics_frame
+	Input.action_release("jump")
+	await physics_frame
+	check(world.player.global_position.y > ground_y + 0.01, "jump changes vertical position")
+	await create_timer(0.8).timeout
+	var start_pos: Vector3 = world.player.global_position
 	Input.action_press("move_right")
 	await physics_frame
 	await physics_frame
 	Input.action_release("move_right")
-	check(world.player.global_position.x > start_pos.x, "player moves through the input map")
+	check(world.player.global_position.distance_to(start_pos) > 0.01, "player moves through the input map")
 	world.hud.show_inventory()
 	check(world.hud.is_modal_open() and world.is_paused(), "inventory opens and pauses the world")
 	world.hud.close_modal()
@@ -77,12 +90,12 @@ func _run() -> void:
 	world.hud.show_map()
 	check(world.hud.is_modal_open(), "island map opens")
 	world.hud.close_modal()
-	var target = world.spawn_enemy("test_target", "walker", world.player.global_position + Vector2(45, 0), "test")
-	world.player_attack(Vector2.RIGHT)
+	var target = world.spawn_enemy("test_target", "walker", world.world_to_map(world.player.global_position) + Vector2(45, 0), "test")
+	world.player_attack(Vector3.RIGHT)
 	check(target.health < target.max_health, "directional player attack damages a nearby enemy")
 	target.queue_free()
 	var marta = prop(world, "marta")
-	world.player.global_position = marta.global_position + Vector2(0, -60)
+	world.player.global_position = marta.global_position + Vector3(0, 0, -2.4)
 	check(world.nearest_prop() == marta, "nearby interaction selects Marta")
 	var interact_key = InputEventKey.new()
 	interact_key.keycode = KEY_E
@@ -123,13 +136,13 @@ func _run() -> void:
 	var during_wave = SaveGame.load_data()
 	check(int(during_wave.get("quest_stage", -1)) == 1, "saving during raid restarts it safely")
 	var wave_first = enemy(world, "wave_0")
-	wave_first.global_position = world.tower_positions[0] + Vector2(100, 0)
+	wave_first.global_position = world.map_to_world(world.tower_positions[0] + Vector2(100, 0)) + Vector3.UP * 0.12
 	var old_hp: float = wave_first.health
 	world._update_towers(0.1)
 	check(wave_first.health < old_hp, "built tower damages enemies in range")
 	# Let the actual physics, enemy AI and towers resolve the wave rather than
 	# instantly defeating the enemies. Only protect the idle test player.
-	world.player.global_position = world.camp_position + Vector2(0, 60)
+	world.player.global_position = world.map_to_world(world.camp_position + Vector2(0, 60)) + Vector3.UP * 0.12
 	world.player.invulnerable = 999.0
 	Engine.time_scale = 2.0
 	for i in range(25):
@@ -147,12 +160,16 @@ func _run() -> void:
 	world.hud.close_modal()
 	world.save_progress(false)
 	var pending_boss = SaveGame.load_data()
+	# A 2D-era save stores the same two map coordinates. They are mapped onto
+	# the new 3D X/Z plane rather than discarded or interpreted as height.
+	pending_boss["player"]["position"] = [1320, 860]
 	var restored = WorldScript.new()
 	restored.main = main
 	restored.load_data = pending_boss
 	root.add_child(restored)
 	await process_frame
 	check(restored.quest_stage == 4 and enemy(restored, "boss_hotel") != null, "unfinished boss survives save/load")
+	check(restored.world_to_map(restored.player.global_position).distance_to(Vector2(1320, 860)) < 1.0, "legacy 2D save position maps to 3D terrain")
 	restored.queue_free()
 	await process_frame
 	var boss = enemy(world, "boss_hotel")
@@ -192,7 +209,7 @@ func _run() -> void:
 	world.use_item("bandage")
 	check(world.player.health == 90 and world.count("bandage") == 0, "bandage heals and is consumed")
 	world.player_defeated()
-	check(world.player.health > 0 and world.player.global_position.distance_to(world.camp_position) < 150, "defeated player respawns")
+	check(world.player.health > 0 and world.world_to_map(world.player.global_position).distance_to(world.camp_position) < 150, "defeated player respawns")
 	world.minute = 1201
 	world.day = 2
 	world.last_raid_day = 0

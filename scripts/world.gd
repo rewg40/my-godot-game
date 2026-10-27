@@ -1,15 +1,12 @@
-extends Node2D
+extends Node3D
 
 const PlayerScript = preload("res://scripts/player.gd")
 const EnemyScript = preload("res://scripts/enemy.gd")
 const PropScript = preload("res://scripts/prop.gd")
 const HudScript = preload("res://scripts/hud.gd")
 const SaveGame = preload("res://scripts/save_game.gd")
-const GROUND = preload("res://assets/environment/island_ground.png")
-const TREE_REGION = Rect2(64, 96, 32, 32)
-const ROCK_REGION = Rect2(112, 80, 32, 32)
-const HOUSE_REGION = Rect2(192, 96, 64, 80)
-const RUIN_REGION = Rect2(0, 0, 64, 48)
+const Environment3D = preload("res://scripts/environment_3d.gd")
+const MAP_SCALE := 0.04
 const CAMP = Vector2(850, 1300)
 const SITES = {
 	"marta": Vector2(900, 1240), "grom": Vector2(1050, 1375),
@@ -42,19 +39,21 @@ var minute: float = 480.0
 var elapsed: float = 0.0
 var last_raid_day: int = 0
 var autosave_clock: float = 0.0
-var modulator: CanvasModulate
+var environment_3d: Node3D
+var goal_marker: Node3D
 var sound: AudioStreamPlayer
 var effects: Array = []
 
 func _ready() -> void:
-	name = "ShelterWorld"
-	y_sort_enabled = true
+	name = "ShelterWorld3D"
+	environment_3d = Environment3D.new()
+	add_child(environment_3d)
 	if not load_data.is_empty():
 		_apply_save(load_data)
 	_build_world()
 	player = PlayerScript.new()
 	player.world = self
-	player.position = _saved_position()
+	player.position = map_to_world(_saved_position()) + Vector3.UP * 0.12
 	if not load_data.is_empty():
 		var ps = load_data.get("player", {})
 		if ps is Dictionary:
@@ -63,8 +62,6 @@ func _ready() -> void:
 			player.hunger = clampf(float(ps.get("hunger", 100.0)), 0, 100)
 			player.thirst = clampf(float(ps.get("thirst", 100.0)), 0, 100)
 	add_child(player)
-	modulator = CanvasModulate.new()
-	add_child(modulator)
 	sound = AudioStreamPlayer.new()
 	sound.volume_db = -14
 	add_child(sound)
@@ -72,48 +69,69 @@ func _ready() -> void:
 	hud.world = self
 	add_child(hud)
 	_spawn_initial_enemies()
+	_setup_goal_marker()
 	if load_data.is_empty():
 		hud.dialogue("День обнуления — 200 лет спустя", "Море выбросило вас на берег Приюта. Антенны подавления гаснут, а заражённые снова приближаются к поселениям. Найдите «Очаг» и поговорите со старейшиной Мартой.")
 		save_progress(false)
 	else:
 		hud.toast("С возвращением на остров Приют.")
 
-func _draw() -> void:
-	draw_texture_rect(GROUND, Rect2(0, 0, 3200, 2200), false)
-	for fx in effects:
-		draw_line(fx["from"], fx["to"], Color(1.0, 0.79, 0.40, float(fx["time"]) * 4.0), 4.0, true)
+# Map coordinates remain stable for the journal and old saves; world actors,
+# collisions and the camera all use true 3D metres in X/Y/Z.
+func map_to_world(point: Vector2) -> Vector3:
+	var x = point.x * MAP_SCALE
+	var z = point.y * MAP_SCALE
+	return Vector3(x, environment_3d.height_at(x, z), z)
+
+func world_to_map(point: Vector3) -> Vector2:
+	return Vector2(point.x, point.z) / MAP_SCALE
+
+func _setup_goal_marker() -> void:
+	goal_marker = Node3D.new()
+	goal_marker.name = "ObjectiveBeacon"
+	var material = StandardMaterial3D.new()
+	material.albedo_color = Color("f4c971")
+	material.emission_enabled = true
+	material.emission = Color("f4c971")
+	material.emission_energy_multiplier = 1.3
+	var diamond = BoxMesh.new()
+	diamond.size = Vector3(0.35, 0.35, 0.35)
+	diamond.material = material
+	var mesh = MeshInstance3D.new()
+	mesh.mesh = diamond
+	mesh.rotation_degrees = Vector3(0, 45, 45)
+	goal_marker.add_child(mesh)
+	add_child(goal_marker)
 
 func _build_world() -> void:
-	# Hand-placed landmarks keep navigation and objectives consistent across saves.
-	_deco(Vector2(690, 1110), HOUSE_REGION, 2.0, 28)
-	_deco(Vector2(1025, 1035), HOUSE_REGION, 2.0, 28)
-	_deco(Vector2(600, 1490), HOUSE_REGION, 1.8, 28)
-	_deco(Vector2(1110, 1640), HOUSE_REGION, 1.8, 28)
-	_deco(Vector2(2180, 1390), RUIN_REGION, 3.5, 40)
-	_deco(Vector2(2500, 500), Rect2(176, 0, 48, 48), 3.0, 33)
-	_deco(Vector2(570, 345), RUIN_REGION, 2.5, 30)
-	_deco(Vector2(1550, 380), Rect2(128, 0, 48, 48), 2.4, 24)
-	_make("marta", "npc", "Старейшина Марта", SITES.marta, {"texture": "res://assets/sprites/marta.png", "frames_y": 2, "scale": 4.0, "collision": 12})
-	_make("grom", "npc", "Старик Гром", SITES.grom, {"texture": "res://assets/sprites/grom.png", "scale": 4.0, "collision": 12})
-	_make("borg", "npc", "Кузнец Борг", Vector2(655, 1365), {"texture": "res://assets/sprites/borg.png", "scale": 4.0, "collision": 12})
-	_make("lina", "npc", "Лина-Травница", Vector2(960, 1390), {"texture": "res://assets/sprites/lina.png", "scale": 4.0, "collision": 12})
-	_make("tim", "npc", "Мальчик Тим", Vector2(720, 1290), {"texture": "res://assets/sprites/tim.png", "scale": 3.5, "collision": 10})
-	_make("fire", "fire", "Костёр «Очага»", CAMP, {"texture": "res://assets/environment/fire.png", "scale": 3.0, "collision": 14})
-	_make("well", "well", "Колодец", Vector2(785, 1410), {"texture": "res://assets/environment/well.png", "scale": 2.5, "collision": 15})
+	# The first-island landmarks now use actual 3D geometry. Their map
+	# coordinates match the original quest, which also keeps old saves usable.
+	_deco(Vector2(690, 1110), "res://assets/models/kenney/city-suburban/building-type-a.glb", 5.0, 34)
+	_deco(Vector2(1025, 1035), "res://assets/models/kenney/city-suburban/building-type-c.glb", 4.7, 34)
+	_deco(Vector2(600, 1490), "res://assets/models/kenney/city-suburban/building-type-g.glb", 4.3, 31)
+	_deco(Vector2(1110, 1640), "res://assets/models/kenney/survival/structure.glb", 6.0, 28)
+	_deco(Vector2(2200, 1360), "res://assets/models/kenney/city-industrial/building-a.glb", 3.5, 35)
+	_deco(Vector2(2500, 500), "res://assets/models/kenney/city-industrial/building-a.glb", 3.8, 33)
+	_deco(Vector2(570, 345), "res://assets/models/kenney/nature/cliff_cave_rock.glb", 5.0, 30)
+	_deco(Vector2(1550, 380), "res://assets/models/kenney/survival/structure-metal.glb", 4.8, 24)
+	_make("marta", "npc", "Старейшина Марта", SITES.marta, {"collision": 12})
+	_make("grom", "npc", "Старик Гром", SITES.grom, {"collision": 12})
+	_make("borg", "npc", "Кузнец Борг", Vector2(655, 1365), {"collision": 12})
+	_make("lina", "npc", "Лина-Травница", Vector2(960, 1390), {"collision": 12})
+	_make("tim", "npc", "Мальчик Тим", Vector2(720, 1290), {"collision": 10})
+	_make("fire", "fire", "Костёр «Очага»", CAMP, {"collision": 14})
+	_make("well", "well", "Колодец", Vector2(785, 1410), {"collision": 15})
 	for i in range(3):
-		var plot = _make("plot_%d" % i, "plot", "Место для башни", tower_positions[i], {"texture": "res://assets/environment/plot.png", "scale": 2.0, "index": i, "built": towers[i]})
-		if towers[i]:
-			plot.set_built()
-	_make("hotel", "hotel", "Руины отеля «Аврора»", SITES.hotel, {"texture": "res://assets/environment/sign.png", "scale": 2.0})
-	_make("safe", "safe", "Сейф в руинах «Авроры»", SITES.safe, {"texture": "res://assets/environment/safe.png", "scale": 2.6, "collision": 15})
-	_make("keycard", "keycard", "Ключ-карта на аэродроме", SITES.keycard, {"texture": "res://assets/environment/keycard.png", "scale": 2.3})
-	_make("chip", "chip", "Микросхема на аэродроме", SITES.chip, {"texture": "res://assets/environment/cache.png", "scale": 2.4, "collision": 14})
-	_make("coil", "coil", "Медная катушка у пещеры", SITES.coil, {"texture": "res://assets/environment/cache.png", "scale": 2.4, "collision": 14})
-	_make("cell", "cell", "Энергоячейка в лесу", SITES.cell, {"texture": "res://assets/environment/cache.png", "scale": 2.4, "collision": 14})
-	_make("teddy", "teddy", "Потерянный медвежонок", SITES.teddy, {"texture": "res://assets/environment/teddy.png", "scale": 1.7})
-	_make("lighthouse", "lighthouse", "Старый маяк", SITES.lighthouse, {"texture": "res://assets/environment/lighthouse.png", "scale": 3.2, "collision": 23})
-	_make("", "deco", "", SITES.lighthouse + Vector2(95, -15), {"texture": "res://assets/environment/antenna.png", "scale": 2.5})
-	_make("boat", "boat", "Лодка у причала", SITES.boat, {"texture": "res://assets/environment/boat.png", "scale": 3.2, "collision": 15})
+		_make("plot_%d" % i, "plot", "Место для башни", tower_positions[i], {"index": i, "built": towers[i]})
+	_make("hotel", "hotel", "Руины отеля «Аврора»", SITES.hotel)
+	_make("safe", "safe", "Сейф в руинах «Авроры»", SITES.safe, {"collision": 15})
+	_make("keycard", "keycard", "Ключ-карта на аэродроме", SITES.keycard)
+	_make("chip", "chip", "Микросхема на аэродроме", SITES.chip, {"collision": 14})
+	_make("coil", "coil", "Медная катушка у пещеры", SITES.coil, {"collision": 14})
+	_make("cell", "cell", "Энергоячейка в лесу", SITES.cell, {"collision": 14})
+	_make("teddy", "teddy", "Потерянный медвежонок", SITES.teddy)
+	_make("lighthouse", "lighthouse", "Старый маяк", SITES.lighthouse, {"collision": 23})
+	_make("boat", "boat", "Лодка у причала", SITES.boat, {"collision": 15})
 	var trees = [Vector2(330,1530),Vector2(460,1515),Vector2(535,1580),Vector2(290,1320),Vector2(445,1260),Vector2(1160,1010),Vector2(1220,1170),Vector2(1330,1200),Vector2(1300,850),Vector2(1440,720),Vector2(1535,665),Vector2(1600,540),Vector2(1420,350),Vector2(1280,430),Vector2(1140,470),Vector2(860,420),Vector2(780,590),Vector2(350,600),Vector2(480,700),Vector2(1790,940),Vector2(1850,1150),Vector2(1850,1730),Vector2(2400,1750),Vector2(900,1820),Vector2(650,1830)]
 	for i in range(trees.size()):
 		_make("tree_%d" % i, "tree", "Дерево", trees[i], {"region": TREE_REGION, "scale": 3.0, "collision": 14})
@@ -122,32 +140,32 @@ func _build_world() -> void:
 		_make("rock_%d" % i, "rock", "Камни", rocks[i], {"region": ROCK_REGION, "scale": 2.4, "collision": 15})
 	var scrap = [Vector2(2200,1630),Vector2(2350,1380),Vector2(2510,800),Vector2(2700,540),Vector2(2770,850),Vector2(2440,680),Vector2(1270,1700),Vector2(650,1740)]
 	for i in range(scrap.size()):
-		_make("scrap_%d" % i, "scrap", "Металлолом", scrap[i], {"texture": "res://assets/environment/scrap.png", "scale": 2.0, "collision": 12})
+		_make("scrap_%d" % i, "scrap", "Металлолом", scrap[i], {"collision": 12})
 	var crates = [Vector2(310,1760),Vector2(500,1710),Vector2(570,1320),Vector2(1150,1320),Vector2(1940,1490),Vector2(2300,1310),Vector2(2500,710),Vector2(2760,740),Vector2(510,980),Vector2(1650,500)]
 	for i in range(crates.size()):
-		_make("crate_%d" % i, "crate", "Ящик с тканью", crates[i], {"texture": "res://assets/environment/crate.png", "scale": 4.0, "collision": 12})
+		_make("crate_%d" % i, "crate", "Ящик с тканью", crates[i], {"collision": 12})
 	var bushes = [Vector2(530,1830),Vector2(650,1550),Vector2(1190,1580),Vector2(1230,760),Vector2(1540,820),Vector2(1040,660),Vector2(400,820),Vector2(510,540),Vector2(1720,1300),Vector2(1950,1750)]
 	for i in range(bushes.size()):
-		_make("bush_%d" % i, "bush", "Ягоды и травы", bushes[i], {"texture": "res://assets/environment/bush.png", "scale": 2.0})
+		_make("bush_%d" % i, "bush", "Ягоды и травы", bushes[i])
 	# Extra scenery is non-interactive, leaving clear routes to objectives.
 	for p in [Vector2(220,840),Vector2(280,750),Vector2(190,1000),Vector2(1710,290),Vector2(1850,500),Vector2(1900,650),Vector2(2000,800),Vector2(2050,1000),Vector2(3020,1020),Vector2(2920,1150),Vector2(1700,1920),Vector2(1450,1850),Vector2(730,1960)]:
-		_deco(p, TREE_REGION, 3.2, 12)
+		_deco(p, "res://assets/models/kenney/nature/tree_pineTallA.glb", 4.0, 12)
 	# Groves add silhouettes without obstructing the marked routes.
 	for p in [Vector2(240,390), Vector2(900,180), Vector2(1150,250), Vector2(1750,190), Vector2(1950,350), Vector2(1850,850), Vector2(1850,1850), Vector2(1550,2050), Vector2(1100,2000), Vector2(2880,1300), Vector2(3000,520), Vector2(280,2010)]:
-		_deco(p, Rect2(0, 96, 64, 48), 2.5, 16)
+		_deco(p, "res://assets/models/kenney/nature/tree_oak.glb", 5.0, 16)
 
 func _make(identity: String, kind: String, title: String, pos: Vector2, detail: Dictionary = {}):
 	var prop = PropScript.new()
 	prop.configure(self, identity, kind, title, detail)
-	prop.position = pos
+	prop.position = map_to_world(pos)
 	add_child(prop)
 	if kind in ["keycard", "chip", "coil", "cell", "teddy"] and flags.get(kind, false):
 		prop.visible = false
 	props.append(prop)
 	return prop
 
-func _deco(pos: Vector2, region: Rect2, size: float, radius: float) -> void:
-	_make("", "deco", "", pos, {"region": region, "scale": size, "collision": radius})
+func _deco(pos: Vector2, model_path: String, size: float, radius: float) -> void:
+	_make("", "deco", "", pos, {"model": model_path, "model_scale": size, "collision": radius})
 
 func _spawn_initial_enemies() -> void:
 	var data = [
@@ -169,7 +187,7 @@ func _spawn_initial_enemies() -> void:
 func spawn_enemy(identity: String, kind: String, pos: Vector2, group_name: String):
 	var enemy = EnemyScript.new()
 	enemy.configure(self, identity, kind, group_name)
-	enemy.position = pos
+	enemy.position = map_to_world(pos) + Vector3.UP * 0.12
 	add_child(enemy)
 	enemies.append(enemy)
 	return enemy
@@ -189,7 +207,6 @@ func _process(delta: float) -> void:
 		player.health = maxf(0.0, player.health - delta * 1.2)
 		if player.health <= 0.0:
 			player_defeated()
-	var night_color = Color(0.49, 0.58, 0.68)
 	var light = 0.0
 	if minute >= 1140 and minute < 1200:
 		light = (minute - 1140.0) / 60.0
@@ -197,7 +214,7 @@ func _process(delta: float) -> void:
 		light = 1.0
 	elif minute < 360:
 		light = 1.0 - (minute - 300.0) / 60.0
-	modulator.color = Color.WHITE.lerp(night_color, clampf(light, 0.0, 1.0))
+	environment_3d.set_night(light)
 	if is_night() and quest_stage >= 3 and last_raid_day != day:
 		last_raid_day = day
 		_start_night_raid()
@@ -205,8 +222,12 @@ func _process(delta: float) -> void:
 	for i in range(effects.size() - 1, -1, -1):
 		effects[i]["time"] -= delta
 		if effects[i]["time"] <= 0:
+			if is_instance_valid(effects[i]["node"]):
+				effects[i]["node"].queue_free()
 			effects.remove_at(i)
-	queue_redraw()
+	if is_instance_valid(goal_marker):
+		goal_marker.position = map_to_world(objective_position()) + Vector3.UP * (3.0 + 0.18 * sin(elapsed * 3.0))
+		goal_marker.rotation.y += delta * 0.8
 	if autosave_clock >= 45.0:
 		autosave_clock = 0.0
 		save_progress(false)
@@ -285,7 +306,7 @@ func nearest_prop():
 			continue
 		if prop.kind in ["keycard", "chip", "coil", "cell", "teddy"] and flags.get(prop.kind, false):
 			continue
-		var d: float = player.global_position.distance_to(prop.global_position)
+		var d: float = world_to_map(player.global_position).distance_to(world_to_map(prop.global_position))
 		if d < distance:
 			distance = d
 			nearest = prop
@@ -432,23 +453,50 @@ func _update_towers(delta: float) -> void:
 		for enemy in enemies:
 			if not is_instance_valid(enemy) or enemy.is_dead:
 				continue
-			var distance: float = tower_positions[i].distance_to(enemy.global_position)
+			var distance: float = tower_positions[i].distance_to(world_to_map(enemy.global_position))
 			if distance < best_distance:
 				best_distance = distance
 				target = enemy
 		if target:
 			tower_timers[i] = 1.25
-			effects.append({"from": tower_positions[i] + Vector2(0, -90), "to": target.global_position + Vector2(0, -24), "time": 0.25})
-			target.take_damage(13.0, tower_positions[i])
+			var from = map_to_world(tower_positions[i]) + Vector3.UP * 3.2
+			var to: Vector3 = target.global_position + Vector3.UP * 1.0
+			_spawn_tracer(from, to)
+			target.take_damage(13.0, from)
 
-func player_attack(direction: Vector2) -> void:
+func _spawn_tracer(from: Vector3, to: Vector3) -> void:
+	var difference = to - from
+	if difference.length() < 0.01:
+		return
+	var material = StandardMaterial3D.new()
+	material.albedo_color = Color("f4cf87")
+	material.emission_enabled = true
+	material.emission = Color("f4cf87")
+	var beam = CylinderMesh.new()
+	beam.top_radius = 0.035
+	beam.bottom_radius = 0.035
+	beam.height = difference.length()
+	beam.radial_segments = 6
+	beam.material = material
+	var instance = MeshInstance3D.new()
+	instance.mesh = beam
+	var up = difference.normalized()
+	var reference = Vector3.FORWARD if absf(up.dot(Vector3.FORWARD)) < 0.95 else Vector3.RIGHT
+	var right = up.cross(reference).normalized()
+	instance.basis = Basis(right, up, right.cross(up).normalized())
+	instance.position = (from + to) * 0.5
+	add_child(instance)
+	effects.append({"node": instance, "time": 0.25})
+
+func player_attack(direction: Vector3) -> void:
 	var damage = 28.0 if flags.get("spear", false) else (20.0 if flags.get("club", false) else 12.0)
 	var hit = false
 	for enemy in enemies:
 		if not is_instance_valid(enemy) or enemy.is_dead:
 			continue
-		var offset: Vector2 = enemy.global_position - player.global_position
-		if offset.length() <= 85.0 and (offset.length() < 12.0 or offset.normalized().dot(direction) > -0.05):
+		var offset: Vector3 = enemy.global_position - player.global_position
+		offset.y = 0
+		if offset.length() <= 3.4 and (offset.length() < 0.48 or offset.normalized().dot(direction) > -0.05):
 			enemy.take_damage(damage, player.global_position)
 			hit = true
 	if hit:
@@ -498,13 +546,13 @@ func damage_camp(amount: float) -> void:
 		hud.toast("Поселение отбилось, но костёр пришлось восстановить.", 5.0)
 	save_progress(false)
 
-func screamer_call(pos: Vector2) -> void:
+func screamer_call(pos: Vector3) -> void:
 	var active = 0
 	for enemy in enemies:
 		if is_instance_valid(enemy) and not enemy.is_dead and enemy.group_name == "summon":
 			active += 1
 	if active < 3:
-		spawn_enemy("summon_%d" % int(elapsed * 1000), "walker", pos + Vector2(95, 30), "summon")
+		spawn_enemy("summon_%d" % int(elapsed * 1000), "walker", world_to_map(pos) + Vector2(95, 30), "summon")
 		hud.toast("Крикун зовёт заражённых!", 2.5)
 
 func player_defeated() -> void:
@@ -512,8 +560,8 @@ func player_defeated() -> void:
 	player.stamina = 100.0
 	player.hunger = maxf(player.hunger, 25.0)
 	player.thirst = maxf(player.thirst, 25.0)
-	player.global_position = CAMP + Vector2(-40, 100)
-	player.velocity = Vector2.ZERO
+	player.global_position = map_to_world(CAMP + Vector2(-40, 100)) + Vector3.UP * 0.12
+	player.velocity = Vector3.ZERO
 	player.invulnerable = 3.0
 	hud.toast("Вы потеряли сознание и очнулись у костра Очага.", 5.0)
 	save_progress(false)
@@ -686,7 +734,7 @@ func _objective() -> Dictionary:
 			var best = INF
 			for i in range(3):
 				if not towers[i]:
-					var d: float = player.global_position.distance_to(tower_positions[i])
+					var d: float = world_to_map(player.global_position).distance_to(tower_positions[i])
 					if d < best:
 						best = d; chosen = i
 			if chosen >= 0: return {"name":"Площадка башни", "position":tower_positions[chosen]}
@@ -701,7 +749,7 @@ func _objective() -> Dictionary:
 			var best_dist = INF
 			for key in ["coil", "chip", "cell"]:
 				if not flags.get(key, false):
-					var d: float = player.global_position.distance_to(SITES[key])
+					var d: float = world_to_map(player.global_position).distance_to(SITES[key])
 					if d < best_dist:
 						best_dist = d; best_key = key
 			if best_key != "":
@@ -767,7 +815,7 @@ func save_progress(show_message: bool = false) -> bool:
 		"side_stage": side_stage, "inventory": inventory.duplicate(), "flags": flags.duplicate(),
 		"towers": towers.duplicate(), "dead_ids": dead_ids.duplicate(), "day": day,
 		"minute": minute, "last_raid_day": last_raid_day,
-		"player": {"position": [player.global_position.x, player.global_position.y], "health":player.health, "stamina":player.stamina, "hunger":player.hunger, "thirst":player.thirst},
+		"player": {"position": [world_to_map(player.global_position).x, world_to_map(player.global_position).y], "health":player.health, "stamina":player.stamina, "hunger":player.hunger, "thirst":player.thirst},
 	}
 	var ok = SaveGame.save_data(data)
 	if show_message and is_instance_valid(hud):

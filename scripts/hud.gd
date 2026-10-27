@@ -110,14 +110,18 @@ func _process(delta: float) -> void:
 	clock_label.text = "ОСТРОВ ПРИЮТ    /    ДЕНЬ %02d   %s" % [world.day, world.clock_string()]
 	quest_name.text = world.quest_title()
 	quest_text.text = world.quest_description()
-	var delta_to_goal: Vector2 = world.objective_position() - world.player.global_position
+	var delta_to_goal: Vector3 = world.map_to_world(world.objective_position()) - world.player.global_position
+	delta_to_goal.y = 0
 	var arrow = "•"
-	if delta_to_goal.length() > 35:
-		if absf(delta_to_goal.x) > absf(delta_to_goal.y):
-			arrow = "→" if delta_to_goal.x > 0 else "←"
+	if delta_to_goal.length() > 1.4:
+		var camera_basis: Basis = world.player.camera_pivot.global_transform.basis
+		var right = delta_to_goal.dot(camera_basis.x)
+		var forward = -delta_to_goal.dot(camera_basis.z)
+		if absf(right) > absf(forward):
+			arrow = "→" if right > 0 else "←"
 		else:
-			arrow = "↓" if delta_to_goal.y > 0 else "↑"
-	objective_direction.text = "%s  %s  ·  %d м" % [arrow, world.objective_name(), int(delta_to_goal.length() / 10.0)]
+			arrow = "↑" if forward > 0 else "↓"
+	objective_direction.text = "%s  %s  ·  %d м" % [arrow, world.objective_name(), int(delta_to_goal.length())]
 	quick_label.text = "[ 1 ] Еда %d      [ 2 ] Вода %d      [ 3 ] Бинт %d      ◈ %d / 7" % [world.count("food"), world.count("water"), world.count("bandage"), 1 if world.flags.get("fragment", false) else 0]
 	var nearest = world.nearest_prop()
 	interact_panel.visible = nearest != null and not is_modal_open()
@@ -291,5 +295,5 @@ func show_pause() -> void:
 		else:
 			toast("Не удалось сохранить. Выход отменён.")
 	)
-	content.add_child(UI.label("WASD — движение  •  Shift — бег  •  ЛКМ/пробел — удар\nE — взаимодействие  •  M — карта  •  C — крафт", 14, UI.MUTED))
+	content.add_child(UI.label("WASD — движение  •  Shift — бег  •  Пробел — прыжок\nЛКМ/F — удар  •  E — взаимодействие\nПКМ + мышь — камера  •  M — карта  •  C — крафт", 14, UI.MUTED))
 	resume.grab_focus()

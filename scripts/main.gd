@@ -22,7 +22,7 @@ func _setup_input() -> void:
 	var actions = {
 		"move_up": [KEY_W, KEY_UP], "move_down": [KEY_S, KEY_DOWN],
 		"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
-		"sprint": [KEY_SHIFT], "attack": [KEY_SPACE]
+		"sprint": [KEY_SHIFT], "jump": [KEY_SPACE], "attack": [KEY_F]
 	}
 	for action in actions:
 		if not InputMap.has_action(action):
@@ -136,14 +136,14 @@ func _show_menu_help(menu: Control) -> void:
 	veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	menu.add_child(veil)
 	var panel = UI.panel()
-	panel.position = Vector2(345, 135)
-	panel.size = Vector2(590, 430)
+	panel.position = Vector2(345, 105)
+	panel.size = Vector2(590, 490)
 	veil.add_child(panel)
 	var content = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 16)
 	panel.add_child(content)
 	content.add_child(UI.label("УПРАВЛЕНИЕ", 23, UI.GOLD, true))
-	var info = UI.label("WASD / стрелки  —  движение\nShift  —  бег\nЛКМ или пробел  —  удар\nE  —  взаимодействие\nC  —  крафт     Tab  —  рюкзак\nM  —  карта     1 / 2 / 3  —  еда / вода / бинт\nEsc  —  пауза     F5  —  сохранить", 16, UI.TEXT)
+	var info = UI.label("WASD / стрелки  —  движение относительно камеры\nПКМ + мышь  —  поворот камеры; колесо  —  приближение\nShift  —  бег     Пробел  —  прыжок\nЛКМ или F  —  удар     E  —  взаимодействие\nC  —  крафт     Tab  —  рюкзак\nM  —  карта     1 / 2 / 3  —  еда / вода / бинт\nEsc  —  пауза     F5  —  сохранить", 15, UI.TEXT)
 	info.add_theme_constant_override("line_spacing", 8)
 	content.add_child(info)
 	var close = UI.button("ПОНЯТНО", Vector2(240, 46))

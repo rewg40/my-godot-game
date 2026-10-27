@@ -19,7 +19,7 @@ func _draw() -> void:
 		draw_string(UI.FONT_BOLD, point + Vector2(10, -6), mark["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("fff2cf"))
 	var goal = _map_point(world.objective_position())
 	draw_arc(goal, 12.0, 0, TAU, 20, Color("f7d171"), 3.0)
-	var player_pos = _map_point(world.player.global_position)
+	var player_pos = _map_point(world.world_to_map(world.player.global_position))
 	draw_circle(player_pos, 6.0, Color("e66e53"))
 	draw_arc(player_pos, 9.0, 0, TAU, 20, Color.WHITE, 2.0)
 
