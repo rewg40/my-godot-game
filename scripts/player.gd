@@ -2,7 +2,6 @@ extends CharacterBody3D
 
 const ActorVisual = preload("res://scripts/model_3d.gd")
 const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
-const WeaponGrip = preload("res://scripts/weapon_grip.gd")
 const HERO_MODEL = "res://assets/models/characters/Casual_Male.glb"
 const BAT_MODEL = preload("res://Bloody Baseball Bat with Nails.glb")
 const BAT_SWING_DURATION := 0.52
@@ -26,7 +25,6 @@ var camera_arm: SpringArm3D
 var camera: Camera3D
 var orbit_dragging := false
 var hand_attachment: BoneAttachment3D
-var weapon_grip: SkeletonModifier3D
 var weapon_root: Node3D
 var current_weapon := ""
 
@@ -59,7 +57,8 @@ func _setup_weapon_hand() -> void:
 		push_error("Не найдена правая рука игрока")
 		return
 	# BoneAttachment3D follows the animated hand through idle, movement and
-	# attacks. Its child origin is placed in the centre of the palm.
+	# attacks. The existing clips already curl the fingers; keep their pose
+	# and put the attachment's child origin in the centre of the palm.
 	hand_attachment = BoneAttachment3D.new()
 	hand_attachment.name = "WeaponHand"
 	hand_attachment.bone_name = "hand_r"
@@ -68,10 +67,6 @@ func _setup_weapon_hand() -> void:
 	weapon_root.name = "WeaponGripPoint"
 	weapon_root.position = Vector3(-0.027, 0.11, 0.0)
 	hand_attachment.add_child(weapon_root)
-	weapon_grip = WeaponGrip.new()
-	weapon_grip.name = "CloseFingers"
-	weapon_grip.active = false
-	skeleton.add_child(weapon_grip)
 
 func _setup_camera() -> void:
 	camera_pivot = Node3D.new()
@@ -185,7 +180,6 @@ func _update_weapon() -> void:
 		MeshCleanup.before_free(child)
 		weapon_root.remove_child(child)
 		child.queue_free()
-	weapon_grip.active = not equipped.is_empty()
 	if equipped.is_empty():
 		return
 	if equipped == "club":

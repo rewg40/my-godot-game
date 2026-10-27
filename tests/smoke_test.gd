@@ -215,18 +215,13 @@ func _run() -> void:
 	var bat_model = world.player.weapon_root.get_node_or_null("SuppliedBat")
 	check(world.flags.get("club", false) and bat_model != null and bat_model.scene_file_path == "res://Bloody Baseball Bat with Nails.glb", "crafted bat uses the model supplied by the user")
 	check(world.player.hand_attachment is BoneAttachment3D and world.player.hand_attachment.bone_name == "hand_r" and world.player.weapon_root.get_parent() == world.player.hand_attachment, "weapon is attached to the animated right hand")
-	check(world.player.weapon_grip.active and world.player.weapon_grip.finger_bones.size() == 12, "equipped weapon enables the finger grip")
 	var hand_skeleton = world.player.hand_attachment.get_parent() as Skeleton3D
 	var index_bone = hand_skeleton.find_bone("index_02_r")
-	var original_finger: Quaternion = hand_skeleton.get_bone_pose_rotation(index_bone)
-	var grip_sample = {"seen": false, "rotation": Quaternion.IDENTITY}
-	var observe_grip = func():
-		grip_sample.seen = true
-		grip_sample.rotation = hand_skeleton.get_bone_pose_rotation(index_bone)
-	world.player.weapon_grip.modification_processed.connect(observe_grip)
-	await create_timer(0.12).timeout
-	world.player.weapon_grip.modification_processed.disconnect(observe_grip)
-	check(grip_sample.seen and absf(original_finger.dot(grip_sample.rotation)) < 0.99, "finger modifier actually adjusts the grip")
+	check(index_bone >= 0, "survivor rig has a finger bone")
+	if index_bone >= 0:
+		var finger_pose: Quaternion = hand_skeleton.get_bone_pose_rotation(index_bone)
+		var finger_rest: Quaternion = hand_skeleton.get_bone_rest(index_bone).basis.get_rotation_quaternion()
+		check(absf(finger_pose.dot(finger_rest)) < 0.98, "the survivor's animation closes the hand around the bat")
 	world.player.facing = Vector3.RIGHT
 	world.player.visual.rotation.y = PI / 2.0
 	var bat_target = world.spawn_enemy("bat_target", "walker", world.world_to_map(world.player.global_position) + Vector2(45, 0), "test")
@@ -258,7 +253,7 @@ func _run() -> void:
 	bat_target.queue_free()
 	world.flags["club"] = false
 	world.player._update_weapon()
-	check(world.player.weapon_root.get_child_count() == 0 and not world.player.weapon_grip.active, "unequipping restores the open hand")
+	check(world.player.weapon_root.get_child_count() == 0, "unequipping removes the bat from the hand")
 	world.flags["club"] = true
 	world.player._update_weapon()
 	world.craft("axe")

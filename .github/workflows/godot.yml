@@ -75,9 +75,6 @@ jobs:
       - name: Inspect hand grip
         if: always()
         run: python3 tests/encode_bat_probe.py "$RUNNER_TEMP/bat_close.png" BAT_CLOSE
-      - name: Inspect original grip
-        if: always()
-        run: python3 tests/encode_bat_probe.py "$RUNNER_TEMP/bat_no_modifier.png" BAT_NO_MODIFIER
       - name: Inspect bat wind-up
         if: always()
         run: python3 tests/encode_bat_probe.py "$RUNNER_TEMP/bat_windup.png" BAT_WINDUP

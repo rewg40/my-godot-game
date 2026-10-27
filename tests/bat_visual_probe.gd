@@ -64,13 +64,6 @@ func _run() -> void:
 	camera.fov = 25.0
 	camera.look_at(player.weapon_root.global_position + Vector3(0, 0.08, 0))
 	await _capture(out + "/bat_close.png")
-	player.weapon_grip.active = false
-	player.visual.animation.seek(0.4, true)
-	await create_timer(0.15).timeout
-	await _capture(out + "/bat_no_modifier.png")
-	player.weapon_grip.active = true
-	player.visual.animation.seek(0.4, true)
-	await process_frame
 	camera.transform = old_transform
 	camera.fov = old_fov
 	player.visual.play("SwordSlash", 1.0, 0.0)
