@@ -78,14 +78,14 @@ jobs:
         if: always()
         shell: bash
         run: python3 tests/encode_probe.py "$RUNNER_TEMP/beach3d.png" BEACH 1
-      - name: Inspect close-up (1)
+      - name: Inspect lower exposure (1)
         if: always()
         shell: bash
-        run: python3 tests/encode_probe.py "$RUNNER_TEMP/beach3d.png" CLOSE 0
-      - name: Inspect close-up (2)
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/dark3d.png" DARK 0
+      - name: Inspect lower exposure (2)
         if: always()
         shell: bash
-        run: python3 tests/encode_probe.py "$RUNNER_TEMP/beach3d.png" CLOSE 1
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/dark3d.png" DARK 1
       - name: Inspect camp (1)
         if: always()
         shell: bash
@@ -94,3 +94,11 @@ jobs:
         if: always()
         shell: bash
         run: python3 tests/encode_probe.py "$RUNNER_TEMP/camp3d.png" CAMP 1
+      - name: Inspect forest (1)
+        if: always()
+        shell: bash
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/forest3d.png" FOREST 0
+      - name: Inspect forest (2)
+        if: always()
+        shell: bash
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/forest3d.png" FOREST 1

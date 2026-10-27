@@ -12,7 +12,7 @@ if label == "CLOSE":
 else:
     image.thumbnail((640, 360))
 output = io.BytesIO()
-image.save(output, format="JPEG", quality=75, optimize=True)
+image.save(output, format="JPEG", quality=58, optimize=True)
 data = base64.b64encode(output.getvalue()).decode("ascii")
 chunks = [data[i:i + 3800] for i in range(0, len(data), 3800)]
 if len(chunks) > 20:

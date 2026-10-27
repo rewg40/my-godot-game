@@ -31,10 +31,18 @@ func _run() -> void:
 		" mesh_aabb=", grass.multimesh.mesh.get_aabb(), " combined_aabb=", grass.get_aabb(),
 		" material=", first_material.resource_name if first_material else "none")
 	await _capture(out_dir + "/beach3d.png")
+	world.environment_3d.environment.tonemap_exposure = 0.62
+	await create_timer(0.4).timeout
+	await _capture(out_dir + "/dark3d.png")
+	world.environment_3d.environment.tonemap_exposure = 1.0
 	world.player.global_position = world.map_to_world(Vector2(840, 1345)) + Vector3.UP * 0.12
 	world.player.velocity = Vector3.ZERO
 	await create_timer(1.5).timeout
 	await _capture(out_dir + "/camp3d.png")
+	world.player.global_position = world.map_to_world(Vector2(1560, 610)) + Vector3.UP * 0.12
+	world.player.velocity = Vector3.ZERO
+	await create_timer(1.5).timeout
+	await _capture(out_dir + "/forest3d.png")
 	world.sound.stop()
 	main.music.stop()
 	main.queue_free()
