@@ -6,6 +6,7 @@ const PropScript = preload("res://scripts/prop.gd")
 const HudScript = preload("res://scripts/hud.gd")
 const SaveGame = preload("res://scripts/save_game.gd")
 const Environment3D = preload("res://scripts/environment_3d.gd")
+const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
 const MAP_SCALE := 0.04
 const CAMP = Vector2(850, 1300)
 const SITES = {
@@ -75,6 +76,9 @@ func _ready() -> void:
 		save_progress(false)
 	else:
 		hud.toast("С возвращением на остров Приют.")
+
+func _exit_tree() -> void:
+	MeshCleanup.before_free(self)
 
 # Map coordinates remain stable for the journal and old saves; world actors,
 # collisions and the camera all use true 3D metres in X/Y/Z.
@@ -223,6 +227,7 @@ func _process(delta: float) -> void:
 		effects[i]["time"] -= delta
 		if effects[i]["time"] <= 0:
 			if is_instance_valid(effects[i]["node"]):
+				MeshCleanup.before_free(effects[i]["node"])
 				effects[i]["node"].queue_free()
 			effects.remove_at(i)
 	if is_instance_valid(goal_marker):

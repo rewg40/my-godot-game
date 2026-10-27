@@ -61,14 +61,18 @@ jobs:
           export SHARDS_PREVIEW_DIR="$RUNNER_TEMP"
           xvfb-run -a -s '-screen 0 1280x720x24' godot --path . --rendering-method gl_compatibility --audio-driver Dummy --script res://tests/visual_probe.gd
       - name: Inspect beach (1)
+        if: always()
         shell: bash
         run: python3 tests/encode_probe.py "$RUNNER_TEMP/beach3d.png" BEACH 0
       - name: Inspect beach (2)
+        if: always()
         shell: bash
         run: python3 tests/encode_probe.py "$RUNNER_TEMP/beach3d.png" BEACH 1
       - name: Inspect camp (1)
+        if: always()
         shell: bash
         run: python3 tests/encode_probe.py "$RUNNER_TEMP/camp3d.png" CAMP 0
       - name: Inspect camp (2)
+        if: always()
         shell: bash
         run: python3 tests/encode_probe.py "$RUNNER_TEMP/camp3d.png" CAMP 1

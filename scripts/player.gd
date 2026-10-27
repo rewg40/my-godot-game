@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 const ActorVisual = preload("res://scripts/model_3d.gd")
+const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
 const HERO_MODEL = "res://assets/models/characters/Casual_Male.glb"
 
 var world
@@ -129,6 +130,7 @@ func _update_weapon() -> void:
 		return
 	current_weapon = equipped
 	for child in weapon_root.get_children():
+		MeshCleanup.before_free(child)
 		child.queue_free()
 	if equipped.is_empty():
 		return

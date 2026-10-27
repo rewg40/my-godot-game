@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 const ActorVisual = preload("res://scripts/model_3d.gd")
+const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
 const ZOMBIE_MODEL = "res://assets/models/characters/Zombie_Male.glb"
 const FONT = preload("res://assets/fonts/DejaVuSans-Bold.ttf")
 
@@ -64,6 +65,9 @@ func _ready() -> void:
 		name_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		name_label.position.y = 3.0 if kind == "bloated" else 2.5
 		add_child(name_label)
+
+func _exit_tree() -> void:
+	MeshCleanup.before_free(self)
 
 func _physics_process(delta: float) -> void:
 	if world.is_paused() or is_dead:

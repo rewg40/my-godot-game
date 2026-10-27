@@ -1,6 +1,7 @@
 extends Node3D
 
 const ActorVisual = preload("res://scripts/model_3d.gd")
+const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
 const FONT = preload("res://assets/fonts/DejaVuSans-Bold.ttf")
 const NATURE = "res://assets/models/kenney/nature/"
 const SURVIVAL = "res://assets/models/kenney/survival/"
@@ -226,6 +227,7 @@ func set_built() -> void:
 	detail["built"] = true
 	title = "Оборонительная башня"
 	for child in visual.get_children():
+		MeshCleanup.before_free(child)
 		child.queue_free()
 	_build_tower()
 
