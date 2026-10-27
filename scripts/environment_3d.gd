@@ -261,8 +261,12 @@ func _build_sorrel(rng: RandomNumberGenerator) -> void:
 	var weed_mesh = (candidates[0] as MeshInstance3D).mesh
 	var mask = SURFACE_MASK.get_image()
 	var transforms: Array[Transform3D] = []
+	var patches: Array[Vector2] = []
+	for i in range(460):
+		patches.append(Vector2(rng.randf_range(150, 3050), rng.randf_range(130, 2070)))
 	for i in range(2300):
-		var p = Vector2(rng.randf_range(150, 3050), rng.randf_range(130, 2070))
+		var center = patches[int(i / 5.0)]
+		var p = center + Vector2(rng.randf_range(-35, 35), rng.randf_range(-35, 35))
 		var uv = Vector2i(clampi(int(p.x / 3200.0 * mask.get_width()), 0, mask.get_width() - 1), clampi(int(p.y / 2200.0 * mask.get_height()), 0, mask.get_height() - 1))
 		var pixel = mask.get_pixelv(uv)
 		if pixel.a < 0.95 or pixel.r > 0.06 or pixel.g > 0.12 or pixel.b > 0.45:
@@ -280,6 +284,11 @@ func _build_sorrel(rng: RandomNumberGenerator) -> void:
 	var weeds = MultiMeshInstance3D.new()
 	weeds.name = "GroundWeeds"
 	weeds.multimesh = multi
+	var weed_material = weed_mesh.surface_get_material(0)
+	if weed_material is BaseMaterial3D:
+		var tinted = weed_material.duplicate() as BaseMaterial3D
+		tinted.albedo_color = Color(0.84, 0.88, 0.78)
+		weeds.material_override = tinted
 	weeds.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(weeds)
 	MeshCleanup.before_free(source)

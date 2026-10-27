@@ -72,6 +72,8 @@ func _run() -> void:
 	check(forest is StaticBody3D and forest.get_child_count() > 0, "3D forest trunks have physical collision")
 	check(world.environment_3d.get_node_or_null("ForestBroadleaf") is Node3D, "forest includes photoreal broadleaf trees")
 	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("Walk"), "rigged 3D hero has a walking animation")
+	check(world.player.visual.animation.get_animation("Walk").get_track_count() > 10, "walking animation contains skeletal tracks")
+	check(not world.player.visual.model.find_children("*", "Skeleton3D", true, false).is_empty(), "survivor has a 3D skeleton")
 	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("ZombieWalk"), "character rig also contains infected animations")
 	var has_clothing_shader = false
 	for instance in world.player.visual.model.find_children("*", "MeshInstance3D", true, false):
@@ -117,6 +119,7 @@ func _run() -> void:
 	Input.action_press("move_right")
 	await physics_frame
 	await physics_frame
+	check(world.player.visual.animation.current_animation == "Walk", "moving the survivor plays the walk animation")
 	Input.action_release("move_right")
 	var displacement: Vector3 = world.player.global_position - start_pos
 	check(displacement.dot(camera_right) > 0.01, "player moves relative to the camera through the input map")
@@ -130,10 +133,12 @@ func _run() -> void:
 	check(world.hud.is_modal_open(), "island map opens")
 	world.hud.close_modal()
 	var target = world.spawn_enemy("test_target", "walker", world.world_to_map(world.player.global_position) + Vector2(45, 0), "test")
+	check(target.visual.animation.has_animation("ZombieAttack") and target.visual.animation.current_animation == "ZombieIdle", "infected use their own idle and attack animations")
 	world.player_attack(Vector3.RIGHT)
 	check(target.health < target.max_health, "directional player attack damages a nearby enemy")
 	target.queue_free()
 	var marta = prop(world, "marta")
+	check(marta.idle_actor.animation != null and marta.idle_actor.animation.has_animation("Walk"), "female survivor rig imports its animations")
 	world.player.global_position = marta.global_position + Vector3(0, 0, -2.4)
 	check(world.nearest_prop() == marta, "nearby interaction selects Marta")
 	var interact_key = InputEventKey.new()
