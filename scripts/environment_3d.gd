@@ -171,6 +171,9 @@ func _build_lighting() -> void:
 	sun.light_color = Color("f1e7d4")
 	sun.light_energy = 0.78
 	sun.shadow_enabled = true
+	# The imported island has much taller cliffs than the old ground plane.
+	# Soften their shadows to keep the camp readable in daylight.
+	sun.shadow_opacity = 0.55
 	sun.shadow_blur = 1.2
 	sun.directional_shadow_max_distance = 55.0
 	add_child(sun)

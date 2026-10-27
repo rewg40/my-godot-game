@@ -41,6 +41,34 @@ func enemy(world, identity: String):
 			return e
 	return null
 
+func has_interaction_space(world, landmark: Node3D, island_body: StaticBody3D) -> bool:
+	# Check there is connected, collision-free ground from which E selects this
+	# landmark. This also detects relocated props buried in an old building.
+	var sphere = SphereShape3D.new()
+	sphere.radius = 0.37
+	var query = PhysicsShapeQueryParameters3D.new()
+	query.shape = sphere
+	query.collision_mask = 1
+	query.exclude = [island_body.get_rid()]
+	var saved_position: Vector3 = world.player.global_position
+	for radius in [1.4, 2.4, 3.2]:
+		for i in range(20):
+			var angle = TAU * float(i) / 20.0
+			var x = landmark.global_position.x + cos(angle) * radius
+			var z = landmark.global_position.z + sin(angle) * radius
+			if not world.environment_3d.is_walkable(x, z):
+				continue
+			var y: float = world.environment_3d.height_at(x, z)
+			query.transform = Transform3D(Basis.IDENTITY, Vector3(x, y + 0.85, z))
+			if not world.get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty():
+				continue
+			world.player.global_position = Vector3(x, y, z)
+			if world.nearest_prop() == landmark:
+				world.player.global_position = saved_position
+				return true
+	world.player.global_position = saved_position
+	return false
+
 func button(parent: Node, text: String) -> Button:
 	for node in parent.find_children("*", "Button", true, false):
 		if node.text == text:
@@ -117,6 +145,11 @@ func _run() -> void:
 		var ray = PhysicsRayQueryParameters3D.create(Vector3(point.x, 40.0, point.z), Vector3(point.x, -3.0, point.z), 1, excluded)
 		var hit = world.get_world_3d().direct_space_state.intersect_ray(ray)
 		check(not hit.is_empty() and hit.collider == island_body and absf(hit.position.y - point.y) < 0.25, "sampled placement height matches island collision at " + str(sample))
+	for identity in ["marta", "grom", "hotel", "safe", "keycard", "chip", "coil", "cell", "teddy", "lighthouse", "boat", "plot_0", "plot_1", "plot_2"]:
+		check(has_interaction_space(world, prop(world, identity), island_body), "landmark has a clear, usable interaction approach: " + identity)
+	var rescued: Vector3 = world._safe_player_spawn(Vector2(1300, 850))
+	var tree_position: Vector3 = prop(world, "tree_8").global_position
+	check(Vector2(rescued.x, rescued.z).distance_to(Vector2(tree_position.x, tree_position.z)) > 0.95, "a saved position inside an old tree is moved out of its collision")
 	check(world.player.is_on_floor(), "3D player stands on terrain")
 	var ground_y: float = world.player.global_position.y
 	Input.action_press("jump")
@@ -360,7 +393,7 @@ func _run() -> void:
 	var pending_boss = SaveGame.load_data()
 	# A 2D-era save stores the same two map coordinates. They are mapped onto
 	# the new 3D X/Z plane rather than discarded or interpreted as height.
-	pending_boss["player"]["position"] = [1300, 850]
+	pending_boss["player"]["position"] = [1200, 800]
 	var restored = WorldScript.new()
 	restored.main = main
 	restored.load_data = pending_boss
@@ -368,9 +401,10 @@ func _run() -> void:
 	await process_frame
 	check(restored.quest_stage == 4 and enemy(restored, "boss_hotel") != null, "unfinished boss survives save/load")
 	var restored_map_position: Vector2 = restored.world_to_map(restored.player.global_position)
-	if restored_map_position.distance_to(Vector2(1300, 850)) >= 5.0:
-		print("Legacy position: expected (1300, 850), got ", restored_map_position)
-	check(restored_map_position.distance_to(Vector2(1300, 850)) < 5.0, "legacy save keeps its position when it is safe on the new island")
+	var safe_legacy: Vector2 = restored.world_to_map(restored._safe_player_spawn(Vector2(1200, 800)))
+	if restored_map_position.distance_to(safe_legacy) >= 5.0:
+		print("Legacy position: expected ", safe_legacy, ", got ", restored_map_position)
+	check(restored_map_position.distance_to(safe_legacy) < 5.0, "legacy save restores its safe position on the new island")
 	restored.queue_free()
 	await process_frame
 	pending_boss["player"]["position"] = [1675, 550] # inside the imported structure

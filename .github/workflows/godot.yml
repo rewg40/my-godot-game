@@ -44,7 +44,8 @@ jobs:
           result=${PIPESTATUS[0]}
           set -e
           if [ "$result" -ne 0 ] || ! grep -q 'ALL SMOKE TESTS PASSED' "$RUNNER_TEMP/smoke.log" || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:|ObjectDB instances leaked' "$RUNNER_TEMP/smoke.log"; then
-            log="$(tail -n 100 "$RUNNER_TEMP/smoke.log")"
+            log="$(grep -E '^(ERROR:|SCRIPT ERROR|Parse Error|SMOKE TESTS FAILED|Wave diagnostics:|Legacy position:)' "$RUNNER_TEMP/smoke.log" | tail -n 60 || true)"
+            if [ -z "$log" ]; then log="$(tail -n 60 "$RUNNER_TEMP/smoke.log")"; fi
             log="${log//'%'/'%25'}"; log="${log//$'\r'/'%0D'}"; log="${log//$'\n'/'%0A'}"
             echo "::error::Godot smoke test exited with code $result%0A$log"
             exit 1

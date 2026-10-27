@@ -60,7 +60,7 @@ func _ready() -> void:
 	roadside.build(self)
 	player = PlayerScript.new()
 	player.world = self
-	player.position = map_to_world(_saved_position()) + Vector3.UP * 0.12
+	player.position = _safe_player_spawn(_saved_position()) + Vector3.UP * 0.12
 	if not load_data.is_empty():
 		var ps = load_data.get("player", {})
 		if ps is Dictionary:
@@ -95,6 +95,54 @@ func map_to_world(point: Vector2, clearance: float = 1.0) -> Vector3:
 func world_to_map(point: Vector3) -> Vector2:
 	return Vector2(point.x, point.z) / MAP_SCALE
 
+func _safe_player_spawn(point: Vector2) -> Vector3:
+	# Besides the island's baked-in rocks, old saves can land inside a tree,
+	# building, fence or a previously built tower. Check the current static
+	# colliders before spawning rather than relying on physics to push the
+	# character out of an enclosed object.
+	var origin = map_to_world(point)
+	var circles: Array[Vector3] = [] # x / z / conservative horizontal radius
+	var island_body = environment_3d.get_node("IslandCollision")
+	for body in find_children("*", "StaticBody3D", true, false):
+		if body == island_body:
+			continue
+		for item in body.find_children("*", "CollisionShape3D", true, false):
+			var shape = item as CollisionShape3D
+			if shape.disabled or shape.shape == null:
+				continue
+			var radius = 0.0
+			if shape.shape is CylinderShape3D:
+				radius = (shape.shape as CylinderShape3D).radius
+			elif shape.shape is CapsuleShape3D:
+				radius = (shape.shape as CapsuleShape3D).radius
+			elif shape.shape is SphereShape3D:
+				radius = (shape.shape as SphereShape3D).radius
+			elif shape.shape is BoxShape3D:
+				var size = (shape.shape as BoxShape3D).size
+				radius = Vector2(size.x, size.z).length() * 0.5
+			if radius > 0.0:
+				var scale = shape.global_basis.get_scale()
+				radius *= maxf(absf(scale.x), absf(scale.z))
+				circles.append(Vector3(shape.global_position.x, shape.global_position.z, radius + 0.42))
+	var horizontal = Vector2(origin.x, origin.z)
+	if _spawn_clear(horizontal, circles):
+		return origin
+	for ring in range(1, 51):
+		var radius = float(ring) * 0.4
+		var steps = clampi(ceili(TAU * radius / 0.4), 16, 160)
+		for i in range(steps):
+			var angle = TAU * float(i) / float(steps)
+			var candidate = horizontal + Vector2(cos(angle), sin(angle)) * radius
+			if environment_3d.is_walkable(candidate.x, candidate.y) and _spawn_clear(candidate, circles):
+				return Vector3(candidate.x, environment_3d.height_at(candidate.x, candidate.y), candidate.y)
+	return origin
+
+func _spawn_clear(point: Vector2, circles: Array[Vector3]) -> bool:
+	for obstacle in circles:
+		if point.distance_squared_to(Vector2(obstacle.x, obstacle.y)) < obstacle.z * obstacle.z:
+			return false
+	return true
+
 func _setup_goal_marker() -> void:
 	goal_marker = Node3D.new()
 	goal_marker.name = "ObjectiveBeacon"
@@ -116,17 +164,17 @@ func _build_world() -> void:
 	# The first-island landmarks now use actual 3D geometry. Their map
 	# coordinates match the original quest, which also keeps old saves usable.
 	_deco(Vector2(690, 1110), "res://assets/models/kenney/city-suburban/building-type-a.glb", 5.0, 34)
-	_deco(Vector2(1025, 1035), "res://assets/models/kenney/city-suburban/building-type-c.glb", 4.7, 34)
+	_deco(Vector2(997, 1178), "res://assets/models/kenney/city-suburban/building-type-c.glb", 4.7, 34)
 	_deco(Vector2(600, 1490), "res://assets/models/kenney/city-suburban/building-type-g.glb", 4.3, 31)
 	_deco(Vector2(1110, 1640), "res://assets/models/kenney/survival/structure.glb", 6.0, 28)
-	_deco(Vector2(2200, 1360), "res://assets/models/kenney/city-industrial/building-a.glb", 3.5, 35)
+	_deco(Vector2(2314, 1443), "res://assets/models/kenney/city-industrial/building-a.glb", 3.5, 35)
 	_deco(Vector2(2500, 500), "res://assets/models/kenney/city-industrial/building-a.glb", 3.8, 33)
 	_deco(Vector2(570, 345), "res://assets/models/kenney/nature/cliff_cave_rock.glb", 5.0, 30)
 	_deco(Vector2(1550, 380), "res://assets/models/kenney/survival/structure-metal.glb", 4.8, 24)
 	# Abandoned cars sit beside old routes without replacing quest objects.
 	_deco(Vector2(500, 1770), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, -0.45)
 	_deco(Vector2(1530, 1510), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, 0.35)
-	_deco(Vector2(2050, 1500), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, 2.4)
+	_deco(Vector2(2128, 1589), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, 2.4)
 	_deco(Vector2(2460, 960), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, -0.6)
 	_make("marta", "npc", "Старейшина Марта", SITES.marta, {"collision": 12})
 	_make("grom", "npc", "Старик Гром", SITES.grom, {"collision": 12})
@@ -581,7 +629,7 @@ func player_defeated() -> void:
 	player.stamina = 100.0
 	player.hunger = maxf(player.hunger, 25.0)
 	player.thirst = maxf(player.thirst, 25.0)
-	player.global_position = map_to_world(CAMP + Vector2(-40, 100)) + Vector3.UP * 0.12
+	player.global_position = _safe_player_spawn(CAMP + Vector2(-40, 100)) + Vector3.UP * 0.12
 	player.velocity = Vector3.ZERO
 	player.invulnerable = 3.0
 	hud.toast("Вы потеряли сознание и очнулись у костра Очага.", 5.0)
