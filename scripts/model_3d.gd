@@ -6,7 +6,7 @@ var model: Node3D
 var animation: AnimationPlayer
 var active_clip := ""
 
-func setup(path: String, model_scale: float = 0.55) -> void:
+func setup(path: String, model_scale: float = 0.55, skin_tone: Variant = null) -> void:
 	var scene := load(path) as PackedScene
 	if scene == null:
 		push_error("Не удалось загрузить 3D-модель: " + path)
@@ -14,6 +14,16 @@ func setup(path: String, model_scale: float = 0.55) -> void:
 	model = scene.instantiate() as Node3D
 	model.scale = Vector3.ONE * model_scale
 	add_child(model)
+	if skin_tone is Color:
+		for instance in model.find_children("*", "MeshInstance3D", true, false):
+			if instance.mesh == null:
+				continue
+			for surface in range(instance.mesh.get_surface_count()):
+				var material = instance.get_active_material(surface)
+				if material is BaseMaterial3D and material.resource_name.to_lower() == "skin":
+					var tinted = material.duplicate()
+					tinted.albedo_color = skin_tone
+					instance.set_surface_override_material(surface, tinted)
 	var players = model.find_children("*", "AnimationPlayer", true, false)
 	if not players.is_empty():
 		animation = players[0] as AnimationPlayer

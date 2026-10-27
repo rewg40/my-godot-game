@@ -35,7 +35,8 @@ func _ready() -> void:
 	visual = ActorVisual.new()
 	visual.name = "AnimatedHero"
 	add_child(visual)
-	visual.setup(HERO_MODEL, 0.55)
+	visual.setup(HERO_MODEL, 0.55, Color("b98060"))
+	visual.rotation.y = atan2(facing.x, facing.z)
 	weapon_root = Node3D.new()
 	weapon_root.position = Vector3(0.43, 0.9, 0.20)
 	visual.add_child(weapon_root)
@@ -49,14 +50,14 @@ func _setup_camera() -> void:
 	add_child(camera_pivot)
 	camera_arm = SpringArm3D.new()
 	camera_arm.name = "CameraArm"
-	camera_arm.rotation.x = -0.52
-	camera_arm.spring_length = 8.0
+	camera_arm.rotation.x = -0.30
+	camera_arm.spring_length = 6.5
 	camera_arm.margin = 0.15
 	camera_arm.collision_mask = 1
 	camera_pivot.add_child(camera_arm)
 	camera = Camera3D.new()
 	camera.name = "FollowCamera"
-	camera.fov = 52.0
+	camera.fov = 58.0
 	camera.near = 0.08
 	camera.far = 350.0
 	camera_arm.add_child(camera)

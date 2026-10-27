@@ -47,9 +47,10 @@ func _build_visual() -> void:
 	match kind:
 		"npc":
 			var paths = {"marta": "OldClassy_Female.glb", "grom": "OldClassy_Male.glb", "borg": "Worker_Male.glb", "lina": "Casual_Female.glb", "tim": "Casual2_Male.glb"}
+			var skin_tones = {"marta": Color("cf9f7e"), "grom": Color("b88d6f"), "borg": Color("815844"), "lina": Color("c79170"), "tim": Color("a16b50")}
 			idle_actor = ActorVisual.new()
 			visual.add_child(idle_actor)
-			idle_actor.setup(CHARACTERS + String(paths.get(prop_id, "Casual_Male.glb")), 0.42 if prop_id == "tim" else 0.55)
+			idle_actor.setup(CHARACTERS + String(paths.get(prop_id, "Casual_Male.glb")), 0.42 if prop_id == "tim" else 0.55, skin_tones.get(prop_id, Color("b98060")))
 			_add_name_tag()
 		"tree":
 			_add_model(NATURE + ("tree_oak.glb" if prop_id.hash() % 3 == 0 else "tree_pineTallB.glb"), 4.1)
