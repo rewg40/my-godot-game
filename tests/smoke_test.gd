@@ -70,6 +70,12 @@ func _run() -> void:
 	check(forest is StaticBody3D and forest.get_child_count() > 0, "3D forest trunks have physical collision")
 	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("Walk"), "rigged 3D hero has a walking animation")
 	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("ZombieWalk"), "character rig also contains infected animations")
+	var has_clothing_shader = false
+	for instance in world.player.visual.model.find_children("*", "MeshInstance3D", true, false):
+		for surface in range(instance.mesh.get_surface_count()):
+			if instance.get_surface_override_material(surface) is ShaderMaterial:
+				has_clothing_shader = true
+	check(has_clothing_shader, "survivor body has the clothing material")
 	check(world.player.camera_arm.rotation.x < deg_to_rad(-50.0) and world.player.camera_arm.spring_length >= 12.0, "default perspective camera provides a high survival-game overview")
 	check(world.get_node_or_null("RoadsideDetails/RoadDebris") is MultiMeshInstance3D, "roadside debris is present")
 	check(world.quest_stage == 0 and world.hud.is_modal_open(), "new game opens introduction")

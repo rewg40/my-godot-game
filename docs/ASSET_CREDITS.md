@@ -19,7 +19,7 @@
 
 ## Poly Haven и Game Piggs — окружение
 
-**Лицензия: CC0 1.0.** Фотоматериалы Poly Haven: Leafy Grass (Charlotte Baglioni), Forest Leaves 02, Brown Mud 02, Concrete Wall 008, Weathered Planks, Red Brick 03, Rusty Metal 02, Asphalt 02 и Aerial Beach 01; 3D-модели Fern 02, Rock 07 и Tree Stump 01. Источники и лицензия: https://polyhaven.com/license и страницы соответствующих материалов / моделей. Зеркала: https://github.com/xustevexu/zombie-game, https://github.com/thedoncancel/kimchi-city и https://github.com/ssboroo/Rainy-portfolio.
+**Лицензия: CC0 1.0.** Фотоматериалы Poly Haven: Leafy Grass (Charlotte Baglioni), Forest Leaves 02, Brown Mud 02, Concrete Wall 008, Weathered Planks, Red Brick 03, Rusty Metal 02, Asphalt 02 и Aerial Beach 01; 3D-модели Fern 02, Rock 07 и Tree Stump 01 (геометрия распакована для совместимости с Godot). Источники и лицензия: https://polyhaven.com/license и страницы соответствующих материалов / моделей. Зеркала: https://github.com/xustevexu/zombie-game, https://github.com/thedoncancel/kimchi-city и https://github.com/ssboroo/Rainy-portfolio.
 
 `assets/models/nature_real/pine.glb` и `grass.glb` — облегчённые версии Pine Tree 01 и Grass Medium 01 от Rico Cilliers и Rob Tuytel (Poly Haven, CC0), подготовленные проектом Terrain Studio: https://github.com/HowdyMoto/terrain-tools/blob/main/public/foliage/photoreal/CREDITS.txt. Хвоя использует текстурные карточки; ресурсы изменены по сравнению с оригиналом.
 
