@@ -59,15 +59,21 @@ jobs:
           python3 -m pip install --quiet pillow
           export SHARDS_PREVIEW_DIR="$RUNNER_TEMP"
           xvfb-run -a -s '-screen 0 1280x720x24' godot --path . --rendering-method gl_compatibility --audio-driver Dummy --script res://tests/visual_probe.gd
-      - name: Inspect menu image
+      - name: Inspect menu image (1)
         shell: bash
-        run: |
-          python3 -c 'import sys,base64,io; from PIL import Image; im=Image.open(sys.argv[1]).convert("RGB"); im.thumbnail((640,360)); out=io.BytesIO(); im.save(out,format="JPEG",quality=82,optimize=True); data=base64.b64encode(out.getvalue()).decode(); print("\n".join("::notice::MENU:"+str(i//24000)+":"+data[i:i+24000] for i in range(0,len(data),24000)))' "$RUNNER_TEMP/menu.png"
-      - name: Inspect world image
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/menu.png" MENU 0
+      - name: Inspect menu image (2)
         shell: bash
-        run: |
-          python3 -c 'import sys,base64,io; from PIL import Image; im=Image.open(sys.argv[1]).convert("RGB"); im.thumbnail((640,360)); out=io.BytesIO(); im.save(out,format="JPEG",quality=82,optimize=True); data=base64.b64encode(out.getvalue()).decode(); print("\n".join("::notice::WORLD:"+str(i//24000)+":"+data[i:i+24000] for i in range(0,len(data),24000)))' "$RUNNER_TEMP/world.png"
-      - name: Inspect map image
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/menu.png" MENU 1
+      - name: Inspect world image (1)
         shell: bash
-        run: |
-          python3 -c 'import sys,base64,io; from PIL import Image; im=Image.open(sys.argv[1]).convert("RGB"); im.thumbnail((640,360)); out=io.BytesIO(); im.save(out,format="JPEG",quality=82,optimize=True); data=base64.b64encode(out.getvalue()).decode(); print("\n".join("::notice::MAP:"+str(i//24000)+":"+data[i:i+24000] for i in range(0,len(data),24000)))' "$RUNNER_TEMP/map.png"
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/world.png" WORLD 0
+      - name: Inspect world image (2)
+        shell: bash
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/world.png" WORLD 1
+      - name: Inspect map image (1)
+        shell: bash
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/map.png" MAP 0
+      - name: Inspect map image (2)
+        shell: bash
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/map.png" MAP 1
