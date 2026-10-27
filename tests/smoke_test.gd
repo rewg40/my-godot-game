@@ -178,6 +178,12 @@ func _run() -> void:
 	DirAccess.remove_absolute(save_abs + ".bak")
 	check(SaveGame.load_data().is_empty(), "malformed save is rejected")
 	DirAccess.remove_absolute(save_abs)
+	# Free every node and let deferred deletion finish before quitting so the
+	# headless runner does not report resources held by the active game scene.
+	main.queue_free()
+	await process_frame
+	await process_frame
+	check(not is_instance_valid(main), "test scene cleans up")
 	if failures.is_empty():
 		_trace("ALL SMOKE TESTS PASSED")
 		print("ALL SMOKE TESTS PASSED")
