@@ -62,6 +62,8 @@ func _run() -> void:
 	check(world.player != null and world.hud != null, "world, player and HUD start")
 	check(world is Node3D and world.player is CharacterBody3D and world.player.camera is Camera3D, "game world, character and perspective camera are 3D")
 	check(world.environment_3d.get_node_or_null("IslandTerrain") is MeshInstance3D and world.environment_3d.get_node_or_null("IslandCollision") is StaticBody3D, "3D terrain and physics collision exist")
+	var forest = world.environment_3d.get_node_or_null("ForestColliders")
+	check(forest is StaticBody3D and forest.get_child_count() > 0, "3D forest trunks have physical collision")
 	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("Walk"), "rigged 3D hero has a walking animation")
 	check(world.quest_stage == 0 and world.hud.is_modal_open(), "new game opens introduction")
 	world.hud.close_modal()
@@ -148,6 +150,7 @@ func _run() -> void:
 	for i in range(3):
 		world.interact(prop(world, "plot_%d" % i))
 	check(world.tower_count() == 3, "three towers can be built")
+	check(prop(world, "plot_0").find_children("*", "StaticBody3D", true, false).size() > 0, "built tower has 3D collision")
 	world.interact(marta)
 	var begin_defense = button(world.hud.modal, "НАЧАТЬ ОБОРОНУ")
 	check(begin_defense != null, "Marta offers the defense after three towers")

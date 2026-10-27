@@ -135,6 +135,14 @@ func _scatter_scenery() -> void:
 	var grass = load("res://assets/models/kenney/survival/grass.glb")
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 2291
+	var forest_colliders = StaticBody3D.new()
+	forest_colliders.name = "ForestColliders"
+	forest_colliders.collision_layer = 1
+	forest_colliders.collision_mask = 0
+	add_child(forest_colliders)
+	var trunk_shape = CylinderShape3D.new()
+	trunk_shape.radius = 0.24
+	trunk_shape.height = 2.0
 	# Trees cluster away from the village, roads and named quest locations.
 	var exclusion = [Vector2(850, 1300), Vector2(2150, 1440), Vector2(2570, 625), Vector2(2750, 1800), Vector2(590, 430), Vector2(360, 1830)]
 	for i in range(115):
@@ -153,6 +161,10 @@ func _scatter_scenery() -> void:
 		instance.rotation.y = rng.randf_range(0, TAU)
 		instance.position = Vector3(p.x * SCALE, height_at(p.x * SCALE, p.y * SCALE), p.y * SCALE)
 		add_child(instance)
+		var trunk = CollisionShape3D.new()
+		trunk.shape = trunk_shape
+		trunk.position = instance.position + Vector3.UP
+		forest_colliders.add_child(trunk)
 	for i in range(100):
 		var p = Vector2(rng.randf_range(250, 2950), rng.randf_range(220, 1980))
 		if _near_road(p):

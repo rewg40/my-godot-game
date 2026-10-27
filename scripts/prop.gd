@@ -32,7 +32,16 @@ func _ready() -> void:
 	_build_visual()
 	var radius = float(detail.get("collision", 0.0)) * world.MAP_SCALE
 	if radius > 0.0:
-		_add_collision(radius, 1.8 if kind == "npc" else 1.5)
+		var height = 1.5
+		if kind in ["npc", "well"]:
+			height = 2.0
+		elif kind == "tree":
+			height = 3.0
+		elif kind == "lighthouse":
+			height = 6.0
+		elif kind == "deco" and "building-" in String(detail.get("model", "")):
+			height = 3.8
+		_add_collision(radius, height)
 
 func _process(_delta: float) -> void:
 	if not usable and respawn_at > 0.0 and world.elapsed >= respawn_at:
@@ -194,6 +203,7 @@ func _build_plot() -> void:
 	_glow(Vector3(0, 0.55, 0), Color("e8c778"))
 
 func _build_tower() -> void:
+	_add_collision(0.95, 3.6)
 	_box(Vector3(2.2, 0.20, 2.2), Vector3(0, 0.1, 0), Color("604c37"))
 	for x in [-0.85, 0.85]:
 		for z in [-0.85, 0.85]:
