@@ -1,0 +1,38 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Godot-specific ignores
+.import/
+export.cfg
+export_presets.cfg
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# Mono-specific ignores
+.mono/
+data_*/
+mono_crash.*.json
+
+# ---- общие ----
+# Вложенные проекты Godot (кэш в подпапках, напр. Ostrov/godot/.godot)
+**/.godot/
+**/.import/
+
+# Системный мусор
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Локальные настройки редактора
+.vscode/
+.idea/
+*.swp
+
+# Экспортированные сборки — не храните в git
+/build/
+/exports/
+*.exe
+*.pck
+*.zip
