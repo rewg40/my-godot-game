@@ -49,6 +49,19 @@ jobs:
             printf '::notice title=hero-%02d::%s\n' "$index" "${encoded:offset:3800}"
             index=$((index+1))
           done
+      - name: Visual probe attack
+        continue-on-error: true
+        shell: bash
+        run: |
+          xvfb-run -a godot --path . --rendering-method gl_compatibility --script res://tests/visual_probe.gd -- --view=attack > "$RUNNER_TEMP/probe-attack.log" 2>&1
+          encoded="$(sed -n 's/^JPEG://p' "$RUNNER_TEMP/probe-attack.log" | head -n1)"
+          echo "Encoded length: ${#encoded}"
+          if [ -z "$encoded" ]; then tail -n 40 "$RUNNER_TEMP/probe-attack.log"; exit 1; fi
+          index=0
+          for ((offset=0; offset<${#encoded}; offset+=3800)); do
+            printf '::notice title=attack-%02d::%s\n' "$index" "${encoded:offset:3800}"
+            index=$((index+1))
+          done
       - name: Visual probe camp
         continue-on-error: true
         shell: bash

@@ -240,6 +240,8 @@ func _build_terrain() -> void:
 	material.set_shader_parameter("normal_tex", source_material.get_texture(BaseMaterial3D.TEXTURE_NORMAL))
 	material.set_shader_parameter("metal_rough_tex", source_material.get_texture(BaseMaterial3D.TEXTURE_ROUGHNESS))
 	material.set_shader_parameter("layout_mask", SURFACE_MASK)
+	material.set_shader_parameter("grass_tex", load("res://assets/environment/textures/grass_short.jpg"))
+	material.set_shader_parameter("litter_tex", load("res://assets/environment/textures/leafy_grass.jpg"))
 	material.set_shader_parameter("dirt_tex", load("res://assets/environment/textures/dirt_diff_1k.jpg"))
 	material.set_shader_parameter("sand_tex", load("res://assets/environment/textures/sand.jpg"))
 	material.set_shader_parameter("asphalt_tex", load("res://assets/environment/textures/asphalt.jpg"))

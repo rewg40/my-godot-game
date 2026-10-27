@@ -25,11 +25,15 @@ func _run() -> void:
 	camera.name = "VisualProbeCamera"
 	root.add_child(camera)
 	camera.far = 500.0
-	if mode == "hero":
+	if mode == "hero" or mode == "attack":
 		var pos = world.player.global_position
-		camera.position = pos + Vector3(2.6, 2.15, 4.5)
-		camera.fov = 32.0
-		camera.look_at(pos + Vector3(0.0, 1.02, 0.0), Vector3.UP)
+		camera.position = pos + Vector3(0.8, 1.65, 3.4)
+		camera.fov = 36.0
+		camera.look_at(pos + Vector3(0.0, 1.0, 0.0), Vector3.UP)
+		if mode == "attack":
+			world.player.visual.play("SwordSlash", 1.0, 0.0)
+			world.player.visual.animation.seek(0.32, true)
+			world.player.visual.animation.pause()
 	elif mode == "camp":
 		var target: Vector3 = world.map_to_world(world.CAMP)
 		camera.position = target + Vector3(8, 10, 14)
