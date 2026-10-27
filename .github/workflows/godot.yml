@@ -9,11 +9,11 @@ permissions:
 
 jobs:
   smoke-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - name: Install Godot 4.3
         shell: bash
         run: |
@@ -24,6 +24,24 @@ jobs:
           mv "$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64" "$RUNNER_TEMP/godot/godot"
           echo "$RUNNER_TEMP/godot" >> "$GITHUB_PATH"
       - name: Import project resources
-        run: godot --headless --editor --path . --quit
+        shell: bash
+        run: |
+          set +e
+          godot --headless --editor --path . --quit 2>&1 | tee "$RUNNER_TEMP/import.log"
+          result=${PIPESTATUS[0]}
+          set -e
+          if [ "$result" -ne 0 ] || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:' "$RUNNER_TEMP/import.log"; then
+            tail -n 80 "$RUNNER_TEMP/import.log" | while IFS= read -r line; do echo "::error::$line"; done
+            exit 1
+          fi
       - name: Test the playable chapter
-        run: godot --headless --path . --script res://tests/smoke_test.gd
+        shell: bash
+        run: |
+          set +e
+          godot --headless --path . --script res://tests/smoke_test.gd 2>&1 | tee "$RUNNER_TEMP/smoke.log"
+          result=${PIPESTATUS[0]}
+          set -e
+          if [ "$result" -ne 0 ] || ! grep -q 'ALL SMOKE TESTS PASSED' "$RUNNER_TEMP/smoke.log" || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:' "$RUNNER_TEMP/smoke.log"; then
+            tail -n 100 "$RUNNER_TEMP/smoke.log" | while IFS= read -r line; do echo "::error::$line"; done
+            exit 1
+          fi
