@@ -2,7 +2,7 @@ extends CharacterBody3D
 
 const ActorVisual = preload("res://scripts/model_3d.gd")
 const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
-const ZOMBIE_MODEL = "res://assets/models/characters/Zombie_Male.glb"
+const ZOMBIE_MODEL = "res://assets/models/zombie/user_zombie.glb"
 const FONT = preload("res://assets/fonts/DejaVuSans-Bold.ttf")
 
 var world
