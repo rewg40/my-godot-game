@@ -3,26 +3,15 @@ extends SceneTree
 const SaveGame = preload("res://scripts/save_game.gd")
 const WorldScript = preload("res://scripts/world.gd")
 var failures: Array[String] = []
-var trace_file: FileAccess
-
-func _trace(message: String) -> void:
-	if trace_file:
-		trace_file.store_line(message)
-		trace_file.flush()
 
 func _initialize() -> void:
 	# Never touch a player's normal save, even when this test is run manually.
 	OS.set_environment("SHARDS_TEST_SAVE", "1")
-	var trace_path = OS.get_environment("SHARDS_TEST_TRACE")
-	if not trace_path.is_empty():
-		trace_file = FileAccess.open(trace_path, FileAccess.WRITE)
-	_trace("initialized")
 	for suffix in ["", ".bak", ".tmp"]:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SaveGame.TEST_PATH + suffix))
 	_run.call_deferred()
 
 func check(condition: bool, message: String) -> void:
-	_trace(("PASS: " if condition else "FAIL: ") + message)
 	if condition:
 		print("PASS: ", message)
 	else:
@@ -72,18 +61,10 @@ func _run() -> void:
 	target.queue_free()
 	world.interact(prop(world, "marta"))
 	check(world.quest_stage == 1, "Marta starts the defense quest")
-	_trace("closing Marta dialogue")
-	print("TRACE: closing Marta dialogue")
 	world.hud.close_modal()
-	_trace("locating the first tree")
-	print("TRACE: locating the first tree")
 	var wood_before = world.count("wood")
 	var first_tree = prop(world, "tree_0")
-	_trace("harvesting tree: %s" % str(first_tree != null))
-	print("TRACE: harvesting tree, found=", first_tree != null)
 	world.interact(first_tree)
-	_trace("harvest returned")
-	print("TRACE: harvest returned")
 	check(world.count("wood") > wood_before and not prop(world, "tree_0").usable, "resource harvesting and cooldown")
 	var stone_before = world.count("stone")
 	world.craft("axe")
@@ -189,7 +170,6 @@ func _run() -> void:
 	await process_frame
 	check(not is_instance_valid(main), "test scene cleans up")
 	if failures.is_empty():
-		_trace("ALL SMOKE TESTS PASSED")
 		print("ALL SMOKE TESTS PASSED")
 		quit(0)
 	else:

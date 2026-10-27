@@ -31,22 +31,43 @@ jobs:
           result=${PIPESTATUS[0]}
           set -e
           if [ "$result" -ne 0 ] || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:' "$RUNNER_TEMP/import.log"; then
-            tail -n 80 "$RUNNER_TEMP/import.log" | while IFS= read -r line; do echo "::error::$line"; done
+            log="$(tail -n 80 "$RUNNER_TEMP/import.log")"
+            log="${log//'%'/'%25'}"; log="${log//$'\r'/'%0D'}"; log="${log//$'\n'/'%0A'}"
+            echo "::error::Godot import exited with code $result%0A$log"
             exit 1
           fi
       - name: Test the playable chapter
         shell: bash
         run: |
-          export SHARDS_TEST_TRACE="$RUNNER_TEMP/smoke-trace.txt"
           set +e
-          godot --headless --verbose --path . --script res://tests/smoke_test.gd 2>&1 | tee "$RUNNER_TEMP/smoke.log"
+          godot --headless --path . --script res://tests/smoke_test.gd 2>&1 | tee "$RUNNER_TEMP/smoke.log"
           result=${PIPESTATUS[0]}
           set -e
-          if [ "$result" -ne 0 ] || ! grep -q 'ALL SMOKE TESTS PASSED' "$RUNNER_TEMP/smoke.log" || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:' "$RUNNER_TEMP/smoke.log"; then
-            echo "::error::Godot exited with code $result"
-            if [ -f "$SHARDS_TEST_TRACE" ]; then
-              echo "::error::TRACE $(tail -n 60 "$SHARDS_TEST_TRACE" | tr '\n' '|')"
-            fi
-            echo "::error::OUTPUT $(tail -n 60 "$RUNNER_TEMP/smoke.log" | tr '\n' '|')"
+          if [ "$result" -ne 0 ] || ! grep -q 'ALL SMOKE TESTS PASSED' "$RUNNER_TEMP/smoke.log" || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:|ObjectDB instances leaked' "$RUNNER_TEMP/smoke.log"; then
+            log="$(tail -n 100 "$RUNNER_TEMP/smoke.log")"
+            log="${log//'%'/'%25'}"; log="${log//$'\r'/'%0D'}"; log="${log//$'\n'/'%0A'}"
+            echo "::error::Godot smoke test exited with code $result%0A$log"
             exit 1
           fi
+      - name: Render visual diagnostics
+        shell: bash
+        run: |
+          if ! command -v xvfb-run >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq xvfb
+          fi
+          python3 -m pip install --quiet pillow
+          export SHARDS_PREVIEW_DIR="$RUNNER_TEMP"
+          xvfb-run -a -s '-screen 0 1280x720x24' godot --path . --rendering-method gl_compatibility --audio-driver Dummy --script res://tests/visual_probe.gd
+      - name: Inspect menu image
+        shell: bash
+        run: |
+          python3 -c 'import sys,base64,io; from PIL import Image; im=Image.open(sys.argv[1]).convert("RGB"); im.thumbnail((640,360)); out=io.BytesIO(); im.save(out,format="JPEG",quality=82,optimize=True); data=base64.b64encode(out.getvalue()).decode(); print("\n".join("::notice::MENU:"+str(i//24000)+":"+data[i:i+24000] for i in range(0,len(data),24000)))' "$RUNNER_TEMP/menu.png"
+      - name: Inspect world image
+        shell: bash
+        run: |
+          python3 -c 'import sys,base64,io; from PIL import Image; im=Image.open(sys.argv[1]).convert("RGB"); im.thumbnail((640,360)); out=io.BytesIO(); im.save(out,format="JPEG",quality=82,optimize=True); data=base64.b64encode(out.getvalue()).decode(); print("\n".join("::notice::WORLD:"+str(i//24000)+":"+data[i:i+24000] for i in range(0,len(data),24000)))' "$RUNNER_TEMP/world.png"
+      - name: Inspect map image
+        shell: bash
+        run: |
+          python3 -c 'import sys,base64,io; from PIL import Image; im=Image.open(sys.argv[1]).convert("RGB"); im.thumbnail((640,360)); out=io.BytesIO(); im.save(out,format="JPEG",quality=82,optimize=True); data=base64.b64encode(out.getvalue()).decode(); print("\n".join("::notice::MAP:"+str(i//24000)+":"+data[i:i+24000] for i in range(0,len(data),24000)))' "$RUNNER_TEMP/map.png"
