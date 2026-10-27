@@ -3,13 +3,24 @@ extends SceneTree
 const SaveGame = preload("res://scripts/save_game.gd")
 const WorldScript = preload("res://scripts/world.gd")
 var failures: Array[String] = []
+var watchdog: Timer
 
 func _initialize() -> void:
 	# Never touch a player's normal save, even when this test is run manually.
 	OS.set_environment("SHARDS_TEST_SAVE", "1")
 	for suffix in ["", ".bak", ".tmp"]:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SaveGame.TEST_PATH + suffix))
+	watchdog = Timer.new()
+	watchdog.one_shot = true
+	watchdog.autostart = true
+	watchdog.wait_time = 20.0
+	watchdog.timeout.connect(_on_timeout)
+	root.add_child(watchdog)
 	_run.call_deferred()
+
+func _on_timeout() -> void:
+	push_error("Smoke test did not finish within 20 seconds")
+	quit(1)
 
 func check(condition: bool, message: String) -> void:
 	if condition:
@@ -30,11 +41,22 @@ func enemy(world, identity: String):
 			return e
 	return null
 
+func button(parent: Node, text: String) -> Button:
+	for node in parent.find_children("*", "Button", true, false):
+		if node.text == text:
+			return node
+	return null
+
 func _run() -> void:
 	var main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
-	main.start_game(false)
+	var start = button(main.current_screen, "НОВАЯ ИГРА")
+	check(start != null, "new-game button is available")
+	if start == null:
+		quit(1)
+		return
+	start.pressed.emit()
 	await process_frame
 	var world = main.current_screen
 	check(world.player != null and world.hud != null, "world, player and HUD start")
@@ -59,8 +81,22 @@ func _run() -> void:
 	world.player_attack(Vector2.RIGHT)
 	check(target.health < target.max_health, "directional player attack damages a nearby enemy")
 	target.queue_free()
-	world.interact(prop(world, "marta"))
-	check(world.quest_stage == 1, "Marta starts the defense quest")
+	var marta = prop(world, "marta")
+	world.player.global_position = marta.global_position + Vector2(0, -60)
+	check(world.nearest_prop() == marta, "nearby interaction selects Marta")
+	var interact_key = InputEventKey.new()
+	interact_key.keycode = KEY_E
+	interact_key.physical_keycode = KEY_E
+	interact_key.pressed = true
+	Input.parse_input_event(interact_key)
+	Input.flush_buffered_events()
+	var release_key = InputEventKey.new()
+	release_key.keycode = KEY_E
+	release_key.physical_keycode = KEY_E
+	release_key.pressed = false
+	Input.parse_input_event(release_key)
+	Input.flush_buffered_events()
+	check(world.quest_stage == 1 and world.hud.is_modal_open(), "E opens Marta's defense quest")
 	world.hud.close_modal()
 	var wood_before = world.count("wood")
 	var first_tree = prop(world, "tree_0")
@@ -78,8 +114,12 @@ func _run() -> void:
 	for i in range(3):
 		world.interact(prop(world, "plot_%d" % i))
 	check(world.tower_count() == 3, "three towers can be built")
-	world.start_wave()
-	check(world.quest_stage == 2 and world.save_progress(false), "scripted wave starts and can be saved")
+	world.interact(marta)
+	var begin_defense = button(world.hud.modal, "НАЧАТЬ ОБОРОНУ")
+	check(begin_defense != null, "Marta offers the defense after three towers")
+	if begin_defense:
+		begin_defense.pressed.emit()
+	check(world.quest_stage == 2 and world.save_progress(false), "dialogue starts the scripted wave and it can be saved")
 	var during_wave = SaveGame.load_data()
 	check(int(during_wave.get("quest_stage", -1)) == 1, "saving during raid restarts it safely")
 	var wave_first = enemy(world, "wave_0")
@@ -150,6 +190,25 @@ func _run() -> void:
 	check(world.save_progress(false), "save writes successfully")
 	var saved = SaveGame.load_data()
 	check(int(saved.get("quest_stage", -1)) == 10 and bool(saved.get("flags", {}).get("boat", false)), "completed story persists")
+	# Exercise menu signal wiring and make sure cancellation doesn't overwrite a save.
+	main.show_menu()
+	await process_frame
+	var menu = main.current_screen
+	start = button(menu, "НОВАЯ ИГРА")
+	start.pressed.emit()
+	var cancel = button(menu, "ОТМЕНА")
+	check(cancel != null, "new game asks before replacing a save")
+	if cancel:
+		cancel.pressed.emit()
+	await process_frame
+	check(int(SaveGame.load_data().get("quest_stage", -1)) == 10, "cancelling new game keeps the save")
+	var resume = button(menu, "ПРОДОЛЖИТЬ")
+	check(resume != null and not resume.disabled, "continue is enabled for an existing save")
+	if resume:
+		resume.pressed.emit()
+	await process_frame
+	world = main.current_screen
+	check(world.quest_stage == 10 and world.flags.get("boat", false), "continue restores completed chapter")
 	var save_abs = ProjectSettings.globalize_path(SaveGame.TEST_PATH)
 	DirAccess.copy_absolute(save_abs, save_abs + ".bak")
 	var broken = FileAccess.open(SaveGame.TEST_PATH, FileAccess.WRITE)
@@ -158,12 +217,26 @@ func _run() -> void:
 	check(int(SaveGame.load_data().get("quest_stage", -1)) == 10, "backup is used if the primary save is damaged")
 	DirAccess.remove_absolute(save_abs + ".bak")
 	check(SaveGame.load_data().is_empty(), "malformed save is rejected")
+	# An existing file still requires confirmation, even if it is unreadable.
+	main.show_menu()
+	await process_frame
+	menu = main.current_screen
+	start = button(menu, "НОВАЯ ИГРА")
+	start.pressed.emit()
+	var confirm = button(menu, "НАЧАТЬ ЗАНОВО")
+	check(confirm != null, "overwrite confirmation is available")
+	if confirm:
+		confirm.pressed.emit()
+	await process_frame
+	world = main.current_screen
+	check(world.quest_stage == 0 and int(SaveGame.load_data().get("quest_stage", -1)) == 0, "confirmed new game creates a fresh save")
 	DirAccess.remove_absolute(save_abs)
 	# Free every node and let deferred deletion finish before quitting so the
 	# headless runner does not report resources held by the active game scene.
 	world.sound.stop()
 	main.music.stop()
 	main.queue_free()
+	watchdog.queue_free()
 	# AudioServer releases stopped playbacks on its mixing thread; allow it to
 	# run before exiting instead of terminating immediately after this fast test.
 	await create_timer(0.75).timeout
