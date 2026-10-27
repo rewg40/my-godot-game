@@ -11,6 +11,19 @@ uniform sampler2D dirt_tex : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D sand_tex : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D asphalt_tex : source_color, filter_linear_mipmap, repeat_enable;
 
+float ground_hash(vec2 cell) {
+	return fract(sin(dot(cell, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+float ground_noise(vec2 p) {
+	vec2 cell = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	float a = mix(ground_hash(cell), ground_hash(cell + vec2(1.0, 0.0)), f.x);
+	float b = mix(ground_hash(cell + vec2(0.0, 1.0)), ground_hash(cell + vec2(1.0, 1.0)), f.x);
+	return mix(a, b, f.y);
+}
+
 void fragment() {
 	vec4 layout = texture(layout_mask, UV);
 	vec2 world_uv = UV * vec2(64.0, 44.0); // roughly 2 m per grass tile
@@ -19,16 +32,17 @@ void fragment() {
 	// Large-scale variations break up the repeating detail into uneven patches
 	// of green growth and dry leaf litter, rather than a single flat lawn.
 	float macro = 0.5 + 0.5 * sin(UV.x * 47.0 + sin(UV.y * 21.0)) * sin(UV.y * 37.0);
-	float patches = smoothstep(0.18, 0.48, texture(litter_tex, UV * vec2(5.3, 3.7)).r);
+	float patches = smoothstep(0.28, 0.72, ground_noise(world_uv * 0.72));
 	vec3 grass = mix(grass_a, grass_b, 0.25 + macro * 0.20);
 	vec3 litter = texture(litter_tex, world_uv * 0.83 + vec2(0.37, 0.2)).rgb;
-	grass = mix(grass, litter, 0.32 + patches * 0.35);
+	vec3 dirt = texture(dirt_tex, world_uv * 0.8).rgb;
+	vec3 dry_ground = mix(litter, dirt, 0.40);
+	grass = mix(grass, dry_ground, 0.18 + patches * 0.65);
 	vec3 forest = texture(forest_tex, world_uv * 0.8).rgb;
 	float forest_mask = clamp(layout.b * 2.7, 0.0, 1.0) * (1.0 - smoothstep(0.45, 0.7, layout.b));
 	grass = mix(grass, forest, forest_mask * 0.62);
 	grass *= mix(vec3(0.47, 0.56, 0.42), vec3(0.60, 0.65, 0.48), macro);
 
-	vec3 dirt = texture(dirt_tex, world_uv * 0.8).rgb;
 	vec3 sand = texture(sand_tex, world_uv * 0.7).rgb;
 	float sand_mask = smoothstep(0.42, 0.75, layout.b);
 	float dirt_mask = smoothstep(0.05, 0.85, layout.g);

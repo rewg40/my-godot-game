@@ -225,8 +225,11 @@ func _build_grass(rng: RandomNumberGenerator) -> void:
 		var pixel = mask.get_pixelv(uv)
 		if pixel.a < 0.95 or pixel.r > 0.06 or pixel.g > 0.12 or pixel.b > 0.45:
 			continue
-		var size = rng.randf_range(1.15, 2.5)
-		var basis = Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * size)
+		# Spread each tuft sideways while keeping its height natural. Thin alpha
+		# blades otherwise disappear at the elevated gameplay camera distance.
+		var width = rng.randf_range(1.8, 4.0)
+		var height = rng.randf_range(0.9, 1.6)
+		var basis = Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(width, height, width))
 		var origin = Vector3(p.x * SCALE, height_at(p.x * SCALE, p.y * SCALE) - 0.02, p.y * SCALE)
 		positions.append(Transform3D(basis, origin))
 	var multi = MultiMesh.new()
