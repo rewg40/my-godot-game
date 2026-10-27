@@ -7,6 +7,8 @@ class PreviewWorld extends Node3D:
 	var flags = {"club": true}
 	func is_paused() -> bool:
 		return false
+	func weapon_id() -> String:
+		return "club"
 
 func _initialize() -> void:
 	_run.call_deferred()

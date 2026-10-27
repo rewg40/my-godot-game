@@ -143,7 +143,7 @@ func _show_menu_help(menu: Control) -> void:
 	content.add_theme_constant_override("separation", 16)
 	panel.add_child(content)
 	content.add_child(UI.label("УПРАВЛЕНИЕ", 23, UI.GOLD, true))
-	var info = UI.label("WASD / стрелки  —  движение относительно камеры\nПКМ + мышь  —  поворот камеры; колесо  —  приближение\nShift  —  бег     Пробел  —  прыжок\nЛКМ или F  —  удар     E  —  взаимодействие\nC  —  крафт     Tab  —  рюкзак\nM  —  карта     1 / 2 / 3  —  еда / вода / бинт\nEsc  —  пауза     F5  —  сохранить", 15, UI.TEXT)
+	var info = UI.label("WASD / стрелки  —  движение относительно камеры\nПКМ + мышь  —  поворот камеры; колесо  —  приближение\nShift  —  бег     Пробел  —  прыжок\nЛКМ или F  —  удар     E  —  взаимодействие\nQ  —  сменить биту / копьё\nC  —  крафт     Tab  —  рюкзак\nM  —  карта     1 / 2 / 3  —  еда / вода / бинт\nEsc  —  пауза     F5  —  сохранить", 15, UI.TEXT)
 	info.add_theme_constant_override("line_spacing", 8)
 	content.add_child(info)
 	var close = UI.button("ПОНЯТНО", Vector2(240, 46))

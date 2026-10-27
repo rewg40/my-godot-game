@@ -28,6 +28,7 @@ var props: Array = []
 var enemies: Array = []
 var inventory: Dictionary = {"wood": 0, "stone": 0, "iron": 0, "cloth": 1, "food": 2, "water": 2, "herbs": 0, "bandage": 1}
 var flags: Dictionary = {}
+var equipped_weapon: String = ""
 var dead_ids: Array = []
 var towers: Array = [false, false, false]
 var tower_timers: Array = [0.0, 0.0, 0.0]
@@ -270,6 +271,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_C: hud.show_crafting()
 		KEY_TAB: hud.show_inventory()
 		KEY_M: hud.show_map()
+		KEY_Q: switch_weapon()
 		KEY_1: use_item("food")
 		KEY_2: use_item("water")
 		KEY_3: use_item("bandage")
@@ -504,7 +506,8 @@ func _spawn_tracer(from: Vector3, to: Vector3) -> void:
 	effects.append({"node": instance, "time": 0.25})
 
 func player_attack(direction: Vector3) -> void:
-	var damage = 28.0 if flags.get("spear", false) else (20.0 if flags.get("club", false) else 12.0)
+	var weapon = weapon_id()
+	var damage = 28.0 if weapon == "spear" else (20.0 if weapon == "club" else 12.0)
 	var hit = false
 	for enemy in enemies:
 		if not is_instance_valid(enemy) or enemy.is_dead:
@@ -572,8 +575,7 @@ func screamer_call(pos: Vector3) -> void:
 
 func player_defeated() -> void:
 	# A queued bat strike must not land from the respawn location.
-	player.bat_hit_pending = false
-	player.attack_flash = 0.0
+	player.cancel_attack()
 	player.health = 65.0
 	player.stamina = 100.0
 	player.hunger = maxf(player.hunger, 25.0)
@@ -682,17 +684,41 @@ func craft(recipe: String) -> void:
 		hud.toast("Не хватает ресурсов для создания.")
 		return
 	match recipe:
-		"club", "spear", "axe": flags[recipe] = true
+		"club", "spear":
+			flags[recipe] = true
+			equipped_weapon = recipe
+			player.cancel_attack()
+		"axe": flags[recipe] = true
 		"bandage": give("bandage", 1)
 		"salve": player.health = minf(100.0, player.health + 35.0)
 	play_sound("pickup")
 	hud.toast("Предмет создан.")
 	save_progress(false)
 
+# Old saves have no equipped weapon field: prefer the spear as before, then
+# fall back to the bat. Invalid or unavailable saved choices are ignored.
+func weapon_id() -> String:
+	if equipped_weapon in ["club", "spear"] and flags.get(equipped_weapon, false):
+		return equipped_weapon
+	if flags.get("spear", false): return "spear"
+	if flags.get("club", false): return "club"
+	return ""
+
 func weapon_name() -> String:
-	if flags.get("spear", false): return "каменное копьё"
-	if flags.get("club", false): return "бейсбольная бита"
-	return "руки"
+	match weapon_id():
+		"spear": return "каменное копьё"
+		"club": return "бейсбольная бита"
+		_: return "руки"
+
+func switch_weapon() -> void:
+	if not flags.get("club", false) or not flags.get("spear", false):
+		hud.toast("Создайте биту и копьё, чтобы менять оружие.")
+		return
+	equipped_weapon = "club" if weapon_id() == "spear" else "spear"
+	player.cancel_attack()
+	player._update_weapon()
+	hud.toast("Оружие: " + weapon_name())
+	save_progress(false)
 
 func use_item(item: String) -> void:
 	if count(item) <= 0:
@@ -810,6 +836,12 @@ func _apply_save(data: Dictionary) -> void:
 	if saved_flags is Dictionary:
 		for key in ["club", "spear", "axe", "keycard", "chip", "coil", "cell", "teddy", "fragment", "lighthouse", "boat"]:
 			flags[key] = bool(saved_flags.get(key, false))
+	equipped_weapon = ""
+	var saved_weapon = data.get("equipped_weapon", "")
+	if saved_weapon is String and saved_weapon in ["club", "spear"] and flags.get(saved_weapon, false):
+		equipped_weapon = saved_weapon
+	else:
+		equipped_weapon = weapon_id()
 	var saved_towers = data.get("towers", [])
 	if saved_towers is Array and saved_towers.size() == 3:
 		for i in range(3): towers[i] = bool(saved_towers[i])
@@ -831,6 +863,7 @@ func save_progress(show_message: bool = false) -> bool:
 	var data = {
 		"quest_stage": 1 if quest_stage == 2 else quest_stage,
 		"side_stage": side_stage, "inventory": inventory.duplicate(), "flags": flags.duplicate(),
+		"equipped_weapon": weapon_id(),
 		"towers": towers.duplicate(), "dead_ids": dead_ids.duplicate(), "day": day,
 		"minute": minute, "last_raid_day": last_raid_day,
 		"player": {"position": [world_to_map(player.global_position).x, world_to_map(player.global_position).y], "health":player.health, "stamina":player.stamina, "hunger":player.hunger, "thirst":player.thirst},

@@ -90,7 +90,7 @@ func _build_hud() -> void:
 	controls.position = Vector2(865, 655)
 	controls.size = Vector2(393, 43)
 	root.add_child(controls)
-	controls.add_child(UI.label("[ C ] Крафт     [ Tab ] Рюкзак     [ M ] Карта", 12, UI.MUTED))
+	controls.add_child(UI.label("[ C ] Крафт   [ Tab ] Рюкзак   [ M ] Карта   [ Q ] Оружие", 12, UI.MUTED))
 	toast_label = UI.label("", 15, UI.TEXT, true)
 	toast_label.position = Vector2(320, 90)
 	toast_label.size = Vector2(640, 55)
@@ -238,7 +238,7 @@ func show_inventory() -> void:
 	close.pressed.connect(close_modal)
 
 func show_crafting() -> void:
-	var content = _window("КРАФТ", "Созданное оружие экипируется автоматически. Каменный топор увеличивает добычу древесины и камня.")
+	var content = _window("КРАФТ", "Созданное оружие экипируется автоматически. Биту и копьё можно менять клавишей Q. Каменный топор увеличивает добычу древесины и камня.")
 	var resources = UI.label("Дерево %d    Камень %d    Ткань %d    Травы %d    Вода %d" % [world.count("wood"), world.count("stone"), world.count("cloth"), world.count("herbs"), world.count("water")], 14, UI.GOLD, true)
 	content.add_child(resources)
 	for recipe in world.recipe_list():
@@ -295,5 +295,5 @@ func show_pause() -> void:
 		else:
 			toast("Не удалось сохранить. Выход отменён.")
 	)
-	content.add_child(UI.label("WASD — движение  •  Shift — бег  •  Пробел — прыжок\nЛКМ/F — удар  •  E — взаимодействие\nПКМ + мышь — камера  •  M — карта  •  C — крафт", 14, UI.MUTED))
+	content.add_child(UI.label("WASD — движение  •  Shift — бег  •  Пробел — прыжок\nЛКМ/F — удар  •  E — взаимодействие  •  Q — сменить оружие\nПКМ + мышь — камера  •  M — карта  •  C — крафт", 14, UI.MUTED))
 	resume.grab_focus()

@@ -246,10 +246,11 @@ func _run() -> void:
 	Input.action_release("attack")
 	check(world.player.bat_hit_pending, "another bat swing can begin after its cooldown")
 	world.flags["spear"] = true
-	world.player._update_weapon()
+	world.switch_weapon()
 	await create_timer(0.2).timeout
 	check(not world.player.bat_hit_pending and is_equal_approx(bat_target.health, bat_hp - 20.0), "changing weapons cancels a queued bat hit")
 	world.flags["spear"] = false
+	world.equipped_weapon = "club"
 	bat_target.queue_free()
 	world.flags["club"] = false
 	world.player._update_weapon()
@@ -260,7 +261,30 @@ func _run() -> void:
 	world.craft("spear")
 	world.player._update_weapon()
 	check(world.flags.get("axe", false) and world.flags.get("spear", false), "tools and weapons craft successfully")
-	check(world.player.current_weapon == "spear" and world.player.weapon_root.get_node_or_null("SpearShaft") != null and world.player.weapon_root.get_node_or_null("SuppliedBat") == null, "crafting the spear replaces the bat without breaking its hand attachment")
+	check(world.player.current_weapon == "spear" and world.player.weapon_root.get_node_or_null("SpearShaft") != null and world.player.weapon_root.get_node_or_null("SuppliedBat") == null, "crafting the spear equips it in the hand")
+	var switch_key = InputEventKey.new()
+	switch_key.keycode = KEY_Q
+	switch_key.physical_keycode = KEY_Q
+	switch_key.pressed = true
+	world._unhandled_input(switch_key)
+	check(world.weapon_id() == "club" and world.player.weapon_root.get_node_or_null("SuppliedBat") != null, "Q switches from the spear back to the supplied bat")
+	var selected_save = SaveGame.load_data()
+	check(selected_save.get("equipped_weapon", "") == "club", "selected bat is saved")
+	var choice_restore = WorldScript.new()
+	choice_restore._apply_save(selected_save)
+	check(choice_restore.weapon_id() == "club", "saved weapon selection is restored")
+	selected_save.erase("equipped_weapon")
+	choice_restore._apply_save(selected_save)
+	check(choice_restore.weapon_id() == "spear", "old saves without weapon selection keep the previous spear priority")
+	choice_restore.free()
+	var choice_target = world.spawn_enemy("weapon_choice_target", "walker", world.world_to_map(world.player.global_position) + Vector2(45, 0), "test")
+	choice_target.set_physics_process(false)
+	world.player_attack(Vector3.RIGHT)
+	check(is_equal_approx(choice_target.health, choice_target.max_health - 20.0), "selected bat deals bat damage even when a spear is owned")
+	world._unhandled_input(switch_key)
+	check(world.weapon_id() == "spear" and world.player.weapon_root.get_node_or_null("SpearShaft") != null, "Q switches back to the spear")
+	world.player_attack(Vector3.RIGHT)
+	check(choice_target.is_dead, "selected spear deals spear damage")
 	for i in range(3):
 		world.interact(prop(world, "plot_%d" % i))
 	check(world.tower_count() == 3, "three towers can be built")

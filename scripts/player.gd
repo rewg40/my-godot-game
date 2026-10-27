@@ -116,7 +116,7 @@ func _physics_process(delta: float) -> void:
 			bat_hit_pending = false
 			# The swing reaches its target after the wind-up, not on the input
 			# frame. Changing weapons before impact cancels the queued hit.
-			if attack_flash > 0.0 and world.flags.get("club", false) and not world.flags.get("spear", false):
+			if attack_flash > 0.0 and world.weapon_id() == "club":
 				world.player_attack(facing)
 	invulnerable = maxf(0.0, invulnerable - delta)
 	var axis = Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -147,7 +147,7 @@ func _physics_process(delta: float) -> void:
 	global_position.z = clampf(global_position.z, 110.0 * world.MAP_SCALE, 2080.0 * world.MAP_SCALE)
 	if global_position.y < -5.0:
 		world.player_defeated()
-	var has_bat: bool = world.flags.get("club", false) and not world.flags.get("spear", false)
+	var has_bat: bool = world.weapon_id() == "club"
 	if Input.is_action_just_pressed("attack") and attack_cooldown <= 0.0:
 		if has_bat:
 			attack_cooldown = 0.58
@@ -162,7 +162,7 @@ func _physics_process(delta: float) -> void:
 		if has_bat:
 			visual.play("SwordSlash", BAT_ANIMATION_SPEED, 0.08)
 		else:
-			visual.play("SwordSlash" if world.flags.get("spear", false) else "Punch")
+			visual.play("SwordSlash" if world.weapon_id() == "spear" else "Punch")
 	elif not is_on_floor():
 		visual.play("Jump")
 	elif direction.length() > 0.1:
@@ -172,7 +172,7 @@ func _physics_process(delta: float) -> void:
 	_update_weapon()
 
 func _update_weapon() -> void:
-	var equipped = "spear" if world.flags.get("spear", false) else ("club" if world.flags.get("club", false) else "")
+	var equipped: String = world.weapon_id()
 	if equipped == current_weapon:
 		return
 	current_weapon = equipped
@@ -220,6 +220,10 @@ func _update_weapon() -> void:
 	point.position.z = 1.475
 	point.rotation.x = PI / 2.0
 	weapon_root.add_child(point)
+
+func cancel_attack() -> void:
+	bat_hit_pending = false
+	attack_flash = 0.0
 
 func take_damage(amount: float) -> void:
 	if invulnerable > 0.0 or world.is_paused():
