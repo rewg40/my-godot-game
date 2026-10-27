@@ -37,12 +37,16 @@ jobs:
       - name: Test the playable chapter
         shell: bash
         run: |
+          export SHARDS_TEST_TRACE="$RUNNER_TEMP/smoke-trace.txt"
           set +e
           godot --headless --path . --script res://tests/smoke_test.gd 2>&1 | tee "$RUNNER_TEMP/smoke.log"
           result=${PIPESTATUS[0]}
           set -e
           if [ "$result" -ne 0 ] || ! grep -q 'ALL SMOKE TESTS PASSED' "$RUNNER_TEMP/smoke.log" || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:' "$RUNNER_TEMP/smoke.log"; then
             echo "::error::Godot exited with code $result"
+            if [ -f "$SHARDS_TEST_TRACE" ]; then
+              while IFS= read -r line; do echo "::error::TRACE $line"; done < "$SHARDS_TEST_TRACE"
+            fi
             tail -n 100 "$RUNNER_TEMP/smoke.log" | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
           fi
