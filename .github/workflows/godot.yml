@@ -1,0 +1,29 @@
+name: Godot smoke test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Install Godot 4.3
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip \
+            --output "$RUNNER_TEMP/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          mv "$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64" "$RUNNER_TEMP/godot/godot"
+          echo "$RUNNER_TEMP/godot" >> "$GITHUB_PATH"
+      - name: Import project resources
+        run: godot --headless --editor --path . --quit
+      - name: Test the playable chapter
+        run: godot --headless --path . --script res://tests/smoke_test.gd
