@@ -21,6 +21,15 @@ func _run() -> void:
 	var world = main.current_screen
 	world.hud.close_modal()
 	await create_timer(1.5).timeout
+	var grass = world.environment_3d.get_node("GrassCover") as MultiMeshInstance3D
+	var nearby = 0
+	for i in range(grass.multimesh.instance_count):
+		if grass.multimesh.get_instance_transform(i).origin.distance_to(world.player.global_position) < 10.0:
+			nearby += 1
+	var first_material = grass.multimesh.mesh.surface_get_material(0)
+	print("GRASS_REPORT instances=", grass.multimesh.instance_count, " nearby=", nearby,
+		" mesh_aabb=", grass.multimesh.mesh.get_aabb(), " combined_aabb=", grass.get_aabb(),
+		" material=", first_material.resource_name if first_material else "none")
 	await _capture(out_dir + "/beach3d.png")
 	world.player.global_position = world.map_to_world(Vector2(840, 1345)) + Vector3.UP * 0.12
 	world.player.velocity = Vector3.ZERO

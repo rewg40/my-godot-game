@@ -2,12 +2,12 @@
 
 The map coordinates match generate_original_art.py and world.gd. Requires
 Pillow; run from the repository root. Not required to play the game.
-R: paved road / lane paint, G: sand and dirt paths, B: forest floor,
-A: island silhouette. Photographic surface textures are separately credited.
+R: paved road / lane paint, G: dirt paths, B: forest floor or sand,
+A: island silhouette. The blue channel reserves its upper half for sand. Photographic surface textures are separately credited.
 """
 from pathlib import Path
 from math import hypot
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 W, H = 1600, 1100
 shore = [(105,60),(330,23),(720,38),(1115,25),(1455,75),(1530,198),(1555,444),(1536,742),(1514,1010),(1372,1068),(980,1053),(656,1077),(307,1065),(70,1007),(45,795),(55,540),(40,303)]
@@ -16,14 +16,18 @@ land = [(121,78),(345,52),(720,65),(1100,53),(1430,99),(1500,222),(1517,445),(15
 def channel():
     return Image.new('L', (W, H), 0)
 
-# Island silhouette and the narrow sandy perimeter.
+# Island silhouette. Sand is encoded separately from dirt so a blurred path
+# edge does not accidentally turn into a bright, unrealistic strip of beach.
 a = channel()
 ImageDraw.Draw(a).polygon(shore, fill=255)
 a = a.filter(ImageFilter.GaussianBlur(2))
+sand = channel()
+sd = ImageDraw.Draw(sand)
+sd.polygon(shore, fill=255)
+sd.polygon(land, fill=0)
+sand = sand.filter(ImageFilter.GaussianBlur(2))
 g = channel()
 gd = ImageDraw.Draw(g)
-gd.polygon(shore, fill=120)
-gd.polygon(land, fill=0)
 
 # Worn footpaths through the forest and along the shore.
 footpaths = [
@@ -76,9 +80,10 @@ r = r.filter(ImageFilter.GaussianBlur(1.0))
 
 b = channel()
 bd = ImageDraw.Draw(b)
-bd.ellipse((300,60,930,510), fill=170)
-bd.ellipse((290,115,735,440), fill=190)
+bd.ellipse((300,60,930,510), fill=68)
+bd.ellipse((290,115,735,440), fill=76)
 b = b.filter(ImageFilter.GaussianBlur(55))
+b = ImageChops.lighter(b, sand)
 
 out = Path('assets/environment/terrain_mask.png')
 out.parent.mkdir(parents=True, exist_ok=True)

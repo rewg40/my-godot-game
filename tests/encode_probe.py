@@ -5,7 +5,12 @@ from PIL import Image
 
 path, label, group = sys.argv[1], sys.argv[2], int(sys.argv[3])
 image = Image.open(path).convert("RGB")
-image.thumbnail((640, 360))
+if label == "CLOSE":
+    x = (image.width - 640) // 2
+    y = (image.height - 360) // 2
+    image = image.crop((x, y, x + 640, y + 360))
+else:
+    image.thumbnail((640, 360))
 output = io.BytesIO()
 image.save(output, format="JPEG", quality=75, optimize=True)
 data = base64.b64encode(output.getvalue()).decode("ascii")

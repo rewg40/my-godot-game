@@ -39,21 +39,21 @@ func _build_lighting() -> void:
 	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("d1d8cd")
-	environment.ambient_light_energy = 0.57
+	environment.ambient_light_energy = 0.40
 	environment.fog_enabled = true
 	environment.fog_light_color = Color("899a94")
 	environment.fog_density = 0.006
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment.adjustment_enabled = true
-	environment.adjustment_saturation = 0.84
-	environment.adjustment_contrast = 1.05
+	environment.adjustment_saturation = 0.90
+	environment.adjustment_contrast = 1.12
 	var atmosphere = WorldEnvironment.new()
 	atmosphere.environment = environment
 	add_child(atmosphere)
 	sun = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48, -34, 0)
 	sun.light_color = Color("f1e7d4")
-	sun.light_energy = 0.95
+	sun.light_energy = 0.78
 	sun.shadow_enabled = true
 	sun.shadow_blur = 1.2
 	sun.directional_shadow_max_distance = 55.0
@@ -61,9 +61,9 @@ func _build_lighting() -> void:
 
 func set_night(amount: float) -> void:
 	var t = clampf(amount, 0.0, 1.0)
-	sun.light_energy = lerpf(0.95, 0.25, t)
+	sun.light_energy = lerpf(0.78, 0.20, t)
 	sun.light_color = Color("f1e7d4").lerp(Color("94abc1"), t)
-	environment.ambient_light_energy = lerpf(0.57, 0.34, t)
+	environment.ambient_light_energy = lerpf(0.40, 0.24, t)
 	environment.fog_light_color = Color("899a94").lerp(Color("394e5b"), t)
 	sky_material.sky_top_color = Color("3c5059").lerp(Color("162536"), t)
 	sky_material.sky_horizon_color = Color("a1aca4").lerp(Color("485c6d"), t)
@@ -216,13 +216,13 @@ func _build_grass(rng: RandomNumberGenerator) -> void:
 	var grass_mesh = (candidates[0] as MeshInstance3D).mesh
 	var mask = SURFACE_MASK.get_image()
 	var positions: Array[Transform3D] = []
-	for i in range(4700):
+	for i in range(10500):
 		var p = Vector2(rng.randf_range(150, 3050), rng.randf_range(130, 2070))
 		var uv = Vector2i(clampi(int(p.x / 3200.0 * mask.get_width()), 0, mask.get_width() - 1), clampi(int(p.y / 2200.0 * mask.get_height()), 0, mask.get_height() - 1))
 		var pixel = mask.get_pixelv(uv)
-		if pixel.a < 0.95 or pixel.r > 0.06 or pixel.g > 0.12:
+		if pixel.a < 0.95 or pixel.r > 0.06 or pixel.g > 0.12 or pixel.b > 0.45:
 			continue
-		var size = rng.randf_range(0.85, 1.9)
+		var size = rng.randf_range(1.15, 2.5)
 		var basis = Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * size)
 		var origin = Vector3(p.x * SCALE, height_at(p.x * SCALE, p.y * SCALE) - 0.02, p.y * SCALE)
 		positions.append(Transform3D(basis, origin))
