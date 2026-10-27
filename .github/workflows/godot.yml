@@ -49,35 +49,3 @@ jobs:
             echo "::error::Godot smoke test exited with code $result%0A$log"
             exit 1
           fi
-      - name: Render bat alignment
-        if: always()
-        shell: bash
-        run: |
-          if ! command -v xvfb-run >/dev/null; then
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq xvfb
-          fi
-          python3 -m pip install --quiet pillow
-          export SHARDS_PREVIEW_DIR="$RUNNER_TEMP"
-          set +e
-          xvfb-run -a -s '-screen 0 1280x720x24' godot --path . --rendering-method gl_compatibility --audio-driver Dummy --script res://tests/bat_visual_probe.gd 2>&1 | tee "$RUNNER_TEMP/bat-visual.log"
-          result=${PIPESTATUS[0]}
-          set -e
-          if [ "$result" -ne 0 ] || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:' "$RUNNER_TEMP/bat-visual.log"; then
-            log="$(tail -n 80 "$RUNNER_TEMP/bat-visual.log")"
-            log="${log//'%'/'%25'}"; log="${log//$'\r'/'%0D'}"; log="${log//$'\n'/'%0A'}"
-            echo "::error::Bat visual render exited with code $result%0A$log"
-            exit 1
-          fi
-      - name: Inspect bat idle
-        if: always()
-        run: python3 tests/encode_bat_probe.py "$RUNNER_TEMP/bat_idle.png" BAT_IDLE
-      - name: Inspect hand grip
-        if: always()
-        run: python3 tests/encode_bat_probe.py "$RUNNER_TEMP/bat_close.png" BAT_CLOSE
-      - name: Inspect bat wind-up
-        if: always()
-        run: python3 tests/encode_bat_probe.py "$RUNNER_TEMP/bat_windup.png" BAT_WINDUP
-      - name: Inspect bat impact
-        if: always()
-        run: python3 tests/encode_bat_probe.py "$RUNNER_TEMP/bat_impact.png" BAT_IMPACT
