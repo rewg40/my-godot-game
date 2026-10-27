@@ -6,7 +6,16 @@
 
 `assets/models/zombie/user_zombie.glb` создана из файла `ZOMBI.glb`, предоставленного пользователем. Автор и условия лицензии исходной модели не указаны; не следует считать её CC0. Для игры сетка упрощена с 1 500 000 до 37 500 треугольников, три текстуры уменьшены с 4096×4096 до 2048×2048 и перекодированы. Исходник был статичным, без скелета и анимаций: для него самостоятельно добавлены скелет и простые анимации ожидания, ходьбы, бега и атаки. Все игровые варианты заражённых используют эту модель с разным масштабом.
 
-Скрипты `tools/optimize_user_zombie.cjs` и `tools/rig_user_zombie.py` позволяют повторить подготовку при наличии исходного GLB. Оригинал и архивы в игровой ветке не хранятся.
+Скрипты `tools/optimize_user_zombie.cjs` и `tools/rig_user_zombie.py` позволяют повторить подготовку при наличии исходного GLB. Оригинал и архивы в игровой ветке не хранятся. Например, в Linux с установленными Python 3 и Node.js:
+
+```sh
+python3 -m venv /tmp/shards-zombie-python
+. /tmp/shards-zombie-python/bin/activate
+pip install numpy==2.4.6 scipy==1.17.1 Pillow==13.0.0
+npm install --prefix /tmp/shards-zombie-node @gltf-transform/core@4.2.1 @gltf-transform/extensions@4.2.1 @gltf-transform/functions@4.2.1 meshoptimizer@0.22.0 mikktspace@1.1.1
+NODE_PATH=/tmp/shards-zombie-node/node_modules node tools/optimize_user_zombie.cjs /путь/к/ZOMBI.glb /tmp/zombie-optimized.glb
+python3 tools/rig_user_zombie.py /tmp/zombie-optimized.glb assets/models/zombie/user_zombie.glb
+```
 
 ## Quaternius — анимированные 3D-персонажи
 

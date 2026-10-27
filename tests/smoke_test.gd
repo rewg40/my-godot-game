@@ -159,10 +159,19 @@ func _run() -> void:
 			var first_pose = skeleton.get_bone_pose_rotation(leg)
 			zombie_animation.seek(0.825, true)
 			var second_pose = skeleton.get_bone_pose_rotation(leg)
-			print("ZOMBIE_POSES first=", first_pose, " second=", second_pose)
 			check(absf(first_pose.dot(second_pose)) < 0.999, "zombie walk actually moves its leg bones")
 			target.visual.play("Punch")
 			check(zombie_animation.current_animation == "ZombieAttack", "zombie attack plays the supplied-model animation")
+			var arm = skeleton.find_bone("UpperArmL")
+			if arm >= 0:
+				zombie_animation.advance(0.2)
+				zombie_animation.seek(0.0, true)
+				var resting_arm = skeleton.get_bone_pose_rotation(arm)
+				zombie_animation.seek(0.15, true)
+				var reaching_arm = skeleton.get_bone_pose_rotation(arm)
+				check(absf(resting_arm.dot(reaching_arm)) < 0.995, "zombie attack reaches with its arm")
+			else:
+				check(false, "zombie attack has an arm bone")
 	for zombie_kind in ["runner", "bloated", "screamer"]:
 		var variant = world.spawn_enemy("visual_" + zombie_kind, zombie_kind, Vector2(1200, 900), "test")
 		check(variant.visual.model != null and variant.visual.model.scene_file_path == user_zombie, zombie_kind + " also uses the supplied zombie model")

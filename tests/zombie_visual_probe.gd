@@ -51,10 +51,14 @@ func _run() -> void:
 	visual.animation.seek(0.5, true)
 	await _capture(out + "/zombie_idle.png")
 	visual.play("Walk")
+	visual.animation.advance(0.2)
 	visual.animation.seek(0.275, true)
+	await process_frame
 	await _capture(out + "/zombie_walk.png")
 	visual.play("Punch")
+	visual.animation.advance(0.2)
 	visual.animation.seek(0.15, true)
+	await process_frame
 	await _capture(out + "/zombie_attack.png")
 	stage.queue_free()
 	await create_timer(0.5).timeout

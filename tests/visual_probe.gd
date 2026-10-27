@@ -31,6 +31,18 @@ func _run() -> void:
 		" mesh_aabb=", grass.multimesh.mesh.get_aabb(), " combined_aabb=", grass.get_aabb(),
 		" material=", first_material.resource_name if first_material else "none")
 	await _capture(out_dir + "/beach3d.png")
+	# Place one real infected beside the player for an in-world scale check.
+	var offset: Vector3 = world.player.camera_pivot.global_transform.basis.x * 2.8
+	var position: Vector3 = world.player.global_position + offset
+	var zombie = world.spawn_enemy("preview_zombie", "walker", world.world_to_map(position), "test")
+	zombie.set_physics_process(false)
+	var toward_camera: Vector3 = world.player.camera.global_position - zombie.global_position
+	zombie.visual.rotation.y = atan2(toward_camera.x, toward_camera.z)
+	world.player.camera_arm.spring_length = 8.0
+	await create_timer(0.5).timeout
+	await _capture(out_dir + "/zombie_ingame.png")
+	zombie.queue_free()
+	world.player.camera_arm.spring_length = 16.0
 	world.environment_3d.environment.tonemap_exposure = 0.62
 	await create_timer(0.4).timeout
 	await _capture(out_dir + "/dark3d.png")
