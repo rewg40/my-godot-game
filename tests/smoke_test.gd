@@ -180,8 +180,12 @@ func _run() -> void:
 	DirAccess.remove_absolute(save_abs)
 	# Free every node and let deferred deletion finish before quitting so the
 	# headless runner does not report resources held by the active game scene.
+	world.sound.stop()
+	main.music.stop()
 	main.queue_free()
-	await process_frame
+	# AudioServer releases stopped playbacks on its mixing thread; allow it to
+	# run before exiting instead of terminating immediately after this fast test.
+	await create_timer(0.75).timeout
 	await process_frame
 	check(not is_instance_valid(main), "test scene cleans up")
 	if failures.is_empty():
