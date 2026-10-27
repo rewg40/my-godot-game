@@ -45,8 +45,8 @@ jobs:
           if [ "$result" -ne 0 ] || ! grep -q 'ALL SMOKE TESTS PASSED' "$RUNNER_TEMP/smoke.log" || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:' "$RUNNER_TEMP/smoke.log"; then
             echo "::error::Godot exited with code $result"
             if [ -f "$SHARDS_TEST_TRACE" ]; then
-              while IFS= read -r line; do echo "::error::TRACE $line"; done < "$SHARDS_TEST_TRACE"
+              echo "::error::TRACE $(tail -n 60 "$SHARDS_TEST_TRACE" | tr '\n' '|')"
             fi
-            tail -n 100 "$RUNNER_TEMP/smoke.log" | while IFS= read -r line; do echo "::error::$line"; done
+            echo "::error::OUTPUT $(tail -n 60 "$RUNNER_TEMP/smoke.log" | tr '\n' '|')"
             exit 1
           fi
