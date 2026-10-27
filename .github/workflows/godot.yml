@@ -71,6 +71,7 @@ jobs:
             exit 1
           fi
       - name: Render supplied zombie poses
+        if: always()
         shell: bash
         run: |
           export SHARDS_PREVIEW_DIR="$RUNNER_TEMP"
@@ -85,6 +86,7 @@ jobs:
             exit 1
           fi
       - name: Inspect zombie poses
+        if: always()
         shell: bash
         run: |
           for pose in idle walk attack; do

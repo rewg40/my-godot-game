@@ -153,10 +153,13 @@ func _run() -> void:
 		check(leg >= 0 and zombie_animation.get_animation("ZombieWalk").get_track_count() > 5, "zombie walk contains multiple skeletal tracks")
 		if leg >= 0:
 			target.visual.play("Walk")
+			# Finish the normal cross-fade before sampling the new clip.
+			zombie_animation.advance(0.2)
 			zombie_animation.seek(0.275, true)
 			var first_pose = skeleton.get_bone_pose_rotation(leg)
 			zombie_animation.seek(0.825, true)
 			var second_pose = skeleton.get_bone_pose_rotation(leg)
+			print("ZOMBIE_POSES first=", first_pose, " second=", second_pose)
 			check(absf(first_pose.dot(second_pose)) < 0.999, "zombie walk actually moves its leg bones")
 			target.visual.play("Punch")
 			check(zombie_animation.current_animation == "ZombieAttack", "zombie attack plays the supplied-model animation")
