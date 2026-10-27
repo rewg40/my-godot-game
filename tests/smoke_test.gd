@@ -133,7 +133,40 @@ func _run() -> void:
 	check(world.hud.is_modal_open(), "island map opens")
 	world.hud.close_modal()
 	var target = world.spawn_enemy("test_target", "walker", world.world_to_map(world.player.global_position) + Vector2(45, 0), "test")
-	check(target.visual.animation.has_animation("ZombieAttack") and target.visual.animation.current_animation == "ZombieIdle", "infected use their own idle and attack animations")
+	var user_zombie = "res://assets/models/zombie/user_zombie.glb"
+	check(target.visual.model != null and target.visual.model.scene_file_path == user_zombie, "walker uses the supplied zombie rather than the survivor model")
+	var zombie_skeletons = target.visual.model.find_children("*", "Skeleton3D", true, false)
+	var zombie_meshes = target.visual.model.find_children("*", "MeshInstance3D", true, false)
+	check(not zombie_skeletons.is_empty(), "supplied zombie has a skinning skeleton")
+	check(not zombie_meshes.is_empty(), "supplied zombie has its own mesh")
+	if not zombie_meshes.is_empty():
+		var zombie_mesh = zombie_meshes[0] as MeshInstance3D
+		var material = zombie_mesh.get_active_material(0)
+		var arrays = zombie_mesh.mesh.surface_get_arrays(0)
+		check(material is BaseMaterial3D and material.albedo_texture != null, "supplied zombie keeps its textured material")
+		check(arrays[Mesh.ARRAY_INDEX].size() / 3 <= 40000 and arrays[Mesh.ARRAY_BONES].size() > 0, "supplied zombie is optimized and skinned")
+	var zombie_animation: AnimationPlayer = target.visual.animation
+	check(zombie_animation != null and zombie_animation.has_animation("ZombieWalk") and zombie_animation.has_animation("ZombieAttack") and zombie_animation.current_animation == "ZombieIdle", "infected have idle, walk and attack clips")
+	if zombie_animation != null and zombie_animation.has_animation("ZombieWalk") and not zombie_skeletons.is_empty():
+		var skeleton = zombie_skeletons[0] as Skeleton3D
+		var leg = skeleton.find_bone("UpperLegL")
+		check(leg >= 0 and zombie_animation.get_animation("ZombieWalk").get_track_count() > 5, "zombie walk contains multiple skeletal tracks")
+		if leg >= 0:
+			target.visual.play("Walk")
+			zombie_animation.seek(0.275, true)
+			var first_pose = skeleton.get_bone_pose_rotation(leg)
+			zombie_animation.seek(0.825, true)
+			var second_pose = skeleton.get_bone_pose_rotation(leg)
+			check(absf(first_pose.dot(second_pose)) < 0.999, "zombie walk actually moves its leg bones")
+			target.visual.play("Punch")
+			check(zombie_animation.current_animation == "ZombieAttack", "zombie attack plays the supplied-model animation")
+	for zombie_kind in ["runner", "bloated", "screamer"]:
+		var variant = world.spawn_enemy("visual_" + zombie_kind, zombie_kind, Vector2(1200, 900), "test")
+		check(variant.visual.model != null and variant.visual.model.scene_file_path == user_zombie, zombie_kind + " also uses the supplied zombie model")
+		if zombie_kind == "runner":
+			variant.visual.play("Run")
+			check(variant.visual.animation.current_animation == "Run", "runner plays the supplied-model run clip")
+		variant.queue_free()
 	world.player_attack(Vector3.RIGHT)
 	check(target.health < target.max_health, "directional player attack damages a nearby enemy")
 	target.queue_free()

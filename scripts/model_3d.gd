@@ -15,9 +15,12 @@ var infected := false
 func setup(path: String, model_scale: float = 0.55, skin_tone: Variant = null) -> void:
 	var female = "female" in path.to_lower()
 	infected = "zombie" in path.to_lower()
-	var scene := load(FEMALE if female else MALE) as PackedScene
+	# Survivors use the shared clothing-ready rigs; infected use their own
+	# textured, skinned model instead of silently substituting a survivor.
+	var resource_path = path if infected else (FEMALE if female else MALE)
+	var scene := load(resource_path) as PackedScene
 	if scene == null:
-		push_error("Не удалось загрузить 3D-модель персонажа")
+		push_error("Не удалось загрузить 3D-модель персонажа: " + resource_path)
 		return
 	model = scene.instantiate() as Node3D
 	# Previous characters were ~3.3 m before their 0.55 scale. These new

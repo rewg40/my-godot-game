@@ -114,7 +114,8 @@ func _physics_process(delta: float) -> void:
 	if kind == "screamer" and aggressive and call_timer <= 0.0:
 		call_timer = 11.0
 		world.screamer_call(global_position)
-	if attack_timer > 0.83:
+	# The custom attack clip lasts 0.55 s; the damage cooldown stays unchanged.
+	if attack_timer > 0.60:
 		visual.play("Punch")
 	elif aggressive and distance > 1.52:
 		visual.play("Run" if kind == "runner" else "Walk")
