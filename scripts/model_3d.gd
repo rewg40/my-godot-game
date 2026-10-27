@@ -76,12 +76,13 @@ func setup(path: String, model_scale: float = 0.55, skin_tone: Variant = null) -
 				animation.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
 		play("Idle")
 
-func play(clip: String) -> void:
+func play(clip: String, speed: float = 1.0, blend: float = 0.15) -> void:
 	if infected:
 		var zombie_clips = {"Idle": "ZombieIdle", "Walk": "ZombieWalk", "Punch": "ZombieAttack"}
 		clip = zombie_clips.get(clip, clip)
 	if not is_instance_valid(animation) or not animation.has_animation(clip):
 		return
+	animation.speed_scale = speed
 	if active_clip != clip or not animation.is_playing():
 		active_clip = clip
-		animation.play(clip, 0.15)
+		animation.play(clip, blend)

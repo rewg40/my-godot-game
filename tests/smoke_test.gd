@@ -210,9 +210,50 @@ func _run() -> void:
 	world.inventory["wood"] = 50
 	world.inventory["stone"] = 25
 	world.inventory["cloth"] = 10
+	world.craft("club")
+	world.player._update_weapon()
+	var bat_model = world.player.weapon_root.get_node_or_null("SuppliedBat")
+	check(world.flags.get("club", false) and bat_model != null and bat_model.scene_file_path == "res://Bloody Baseball Bat with Nails.glb", "crafted bat uses the model supplied by the user")
+	check(world.player.hand_attachment is BoneAttachment3D and world.player.hand_attachment.bone_name == "hand_r" and world.player.weapon_root.get_parent() == world.player.hand_attachment, "weapon is attached to the animated right hand")
+	check(world.player.weapon_grip.active and world.player.weapon_grip.finger_bones.size() == 12, "equipped weapon enables the finger grip")
+	var hand_skeleton = world.player.hand_attachment.get_parent() as Skeleton3D
+	var index_bone = hand_skeleton.find_bone("index_02_r")
+	var grip_sample = {"seen": false, "rotation": Quaternion.IDENTITY}
+	var observe_grip = func():
+		grip_sample.seen = true
+		grip_sample.rotation = hand_skeleton.get_bone_pose_rotation(index_bone)
+	world.player.weapon_grip.modification_processed.connect(observe_grip)
+	await process_frame
+	world.player.weapon_grip.modification_processed.disconnect(observe_grip)
+	check(grip_sample.seen and absf(grip_sample.rotation.x) > 0.2, "finger modifier actually curls the hand around the handle")
+	world.player.facing = Vector3.RIGHT
+	world.player.visual.rotation.y = PI / 2.0
+	var bat_target = world.spawn_enemy("bat_target", "walker", world.world_to_map(world.player.global_position) + Vector2(45, 0), "test")
+	bat_target.set_physics_process(false)
+	var bat_hp: float = bat_target.health
+	Input.action_press("attack")
+	await physics_frame
+	await physics_frame
+	Input.action_release("attack")
+	check(world.player.visual.animation.current_animation == "SwordSlash" and world.player.visual.animation.speed_scale > 2.0, "bat input starts a fast animated swing")
+	check(world.player.bat_hit_pending and is_equal_approx(bat_target.health, bat_hp), "bat waits for the swing before applying damage")
+	var grip_start: Vector3 = world.player.weapon_root.global_position
+	await create_timer(0.25).timeout
+	check(grip_start.distance_to(world.player.weapon_root.global_position) > 0.03, "bat grip moves with the animated hand")
+	check(is_equal_approx(bat_target.health, bat_hp - 20.0) and not world.player.bat_hit_pending, "bat swing hits once at its impact")
+	await create_timer(0.1).timeout
+	check(is_equal_approx(bat_target.health, bat_hp - 20.0), "bat does not apply damage repeatedly during one swing")
+	bat_target.queue_free()
+	world.flags["club"] = false
+	world.player._update_weapon()
+	check(world.player.weapon_root.get_child_count() == 0 and not world.player.weapon_grip.active, "unequipping restores the open hand")
+	world.flags["club"] = true
+	world.player._update_weapon()
 	world.craft("axe")
 	world.craft("spear")
+	world.player._update_weapon()
 	check(world.flags.get("axe", false) and world.flags.get("spear", false), "tools and weapons craft successfully")
+	check(world.player.current_weapon == "spear" and world.player.weapon_root.get_node_or_null("SpearShaft") != null and world.player.weapon_root.get_node_or_null("SuppliedBat") == null, "crafting the spear replaces the bat without breaking its hand attachment")
 	for i in range(3):
 		world.interact(prop(world, "plot_%d" % i))
 	check(world.tower_count() == 3, "three towers can be built")

@@ -399,7 +399,7 @@ func _talk_to(who: String) -> void:
 				save_progress(false)
 			else:
 				hud.dialogue("Старик Гром", "До Обнуления ПРОМЕТЕЙ управлял медицинскими нанороботами. Потом он решил, что человечество надо спасать от самого себя. На других островах спрятаны оставшиеся части кода.")
-		"borg": hud.dialogue("Кузнец Борг", "В рюкзаке открой крафт клавишей C. Из дерева получится дубина, а дерево и камень станут копьём. Каменный топор помогает добывать больше ресурсов.")
+		"borg": hud.dialogue("Кузнец Борг", "В рюкзаке открой крафт клавишей C. Из дерева получится бита, а дерево и камень станут копьём. Каменный топор помогает добывать больше ресурсов.")
 		"lina":
 			hud.dialogue("Лина-Травница", "Ягоды утоляют голод, колодец даёт воду. Из ткани сделай бинты; две травы и вода станут лечебной мазью. Следи за собой — в лесу помощь далеко.")
 		"tim": _talk_tim()
@@ -571,6 +571,9 @@ func screamer_call(pos: Vector3) -> void:
 		hud.toast("Крикун зовёт заражённых!", 2.5)
 
 func player_defeated() -> void:
+	# A queued bat strike must not land from the respawn location.
+	player.bat_hit_pending = false
+	player.attack_flash = 0.0
 	player.health = 65.0
 	player.stamina = 100.0
 	player.hunger = maxf(player.hunger, 25.0)
@@ -658,7 +661,7 @@ func _repair_boat() -> void:
 
 func recipe_list() -> Array:
 	return [
-		{"id":"club", "name":"Деревянная дубина", "description":"2 древесины", "done":flags.get("club", false)},
+		{"id":"club", "name":"Бейсбольная бита", "description":"2 древесины", "done":flags.get("club", false)},
 		{"id":"spear", "name":"Каменное копьё", "description":"2 древесины + 1 камень", "done":flags.get("spear", false)},
 		{"id":"axe", "name":"Каменный топор", "description":"1 древесина + 2 камня + 1 ткань", "done":flags.get("axe", false)},
 		{"id":"bandage", "name":"Бинт", "description":"2 ткани"},
@@ -688,7 +691,7 @@ func craft(recipe: String) -> void:
 
 func weapon_name() -> String:
 	if flags.get("spear", false): return "каменное копьё"
-	if flags.get("club", false): return "деревянная дубина"
+	if flags.get("club", false): return "бейсбольная бита"
 	return "руки"
 
 func use_item(item: String) -> void:

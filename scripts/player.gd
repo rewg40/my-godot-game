@@ -2,7 +2,12 @@ extends CharacterBody3D
 
 const ActorVisual = preload("res://scripts/model_3d.gd")
 const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
+const WeaponGrip = preload("res://scripts/weapon_grip.gd")
 const HERO_MODEL = "res://assets/models/characters/Casual_Male.glb"
+const BAT_MODEL = preload("res://Bloody Baseball Bat with Nails.glb")
+const BAT_SWING_DURATION := 0.52
+const BAT_HIT_DELAY := 0.14
+const BAT_ANIMATION_SPEED := 2.8
 
 var world
 var health: float = 100.0
@@ -12,12 +17,16 @@ var thirst: float = 100.0
 var facing := Vector3.FORWARD
 var attack_cooldown: float = 0.0
 var attack_flash: float = 0.0
+var bat_hit_pending := false
+var bat_hit_delay := 0.0
 var invulnerable: float = 0.0
 var visual: Node3D
 var camera_pivot: Node3D
 var camera_arm: SpringArm3D
 var camera: Camera3D
 var orbit_dragging := false
+var hand_attachment: BoneAttachment3D
+var weapon_grip: SkeletonModifier3D
 var weapon_root: Node3D
 var current_weapon := ""
 
@@ -37,10 +46,32 @@ func _ready() -> void:
 	add_child(visual)
 	visual.setup(HERO_MODEL, 0.55, Color("b98060"))
 	visual.rotation.y = atan2(facing.x, facing.z)
-	weapon_root = Node3D.new()
-	weapon_root.position = Vector3(0.43, 0.9, 0.20)
-	visual.add_child(weapon_root)
+	_setup_weapon_hand()
 	_setup_camera()
+
+func _setup_weapon_hand() -> void:
+	var skeletons = visual.model.find_children("*", "Skeleton3D", true, false)
+	if skeletons.is_empty():
+		push_error("Не найден скелет игрока для крепления оружия")
+		return
+	var skeleton := skeletons[0] as Skeleton3D
+	if skeleton.find_bone("hand_r") < 0:
+		push_error("Не найдена правая рука игрока")
+		return
+	# BoneAttachment3D follows the animated hand through idle, movement and
+	# attacks. Its child origin is placed in the centre of the palm.
+	hand_attachment = BoneAttachment3D.new()
+	hand_attachment.name = "WeaponHand"
+	hand_attachment.bone_name = "hand_r"
+	skeleton.add_child(hand_attachment)
+	weapon_root = Node3D.new()
+	weapon_root.name = "WeaponGripPoint"
+	weapon_root.position = Vector3(-0.027, 0.11, 0.0)
+	hand_attachment.add_child(weapon_root)
+	weapon_grip = WeaponGrip.new()
+	weapon_grip.name = "CloseFingers"
+	weapon_grip.active = false
+	skeleton.add_child(weapon_grip)
 
 func _setup_camera() -> void:
 	camera_pivot = Node3D.new()
@@ -84,6 +115,14 @@ func _physics_process(delta: float) -> void:
 		return
 	attack_cooldown = maxf(0.0, attack_cooldown - delta)
 	attack_flash = maxf(0.0, attack_flash - delta)
+	if bat_hit_pending:
+		bat_hit_delay -= delta
+		if bat_hit_delay <= 0.0:
+			bat_hit_pending = false
+			# The swing reaches its target after the wind-up, not on the input
+			# frame. Changing weapons before impact cancels the queued hit.
+			if attack_flash > 0.0 and world.flags.get("club", false) and not world.flags.get("spear", false):
+				world.player_attack(facing)
 	invulnerable = maxf(0.0, invulnerable - delta)
 	var axis = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var camera_right = camera_pivot.global_transform.basis.x
@@ -113,12 +152,22 @@ func _physics_process(delta: float) -> void:
 	global_position.z = clampf(global_position.z, 110.0 * world.MAP_SCALE, 2080.0 * world.MAP_SCALE)
 	if global_position.y < -5.0:
 		world.player_defeated()
+	var has_bat: bool = world.flags.get("club", false) and not world.flags.get("spear", false)
 	if Input.is_action_just_pressed("attack") and attack_cooldown <= 0.0:
-		attack_cooldown = 0.42
-		attack_flash = 0.36
-		world.player_attack(facing)
+		if has_bat:
+			attack_cooldown = 0.58
+			attack_flash = BAT_SWING_DURATION
+			bat_hit_pending = true
+			bat_hit_delay = BAT_HIT_DELAY
+		else:
+			attack_cooldown = 0.42
+			attack_flash = 0.36
+			world.player_attack(facing)
 	if attack_flash > 0.0:
-		visual.play("SwordSlash" if world.flags.get("spear", false) else "Punch")
+		if has_bat:
+			visual.play("SwordSlash", BAT_ANIMATION_SPEED, 0.08)
+		else:
+			visual.play("SwordSlash" if world.flags.get("spear", false) else "Punch")
 	elif not is_on_floor():
 		visual.play("Jump")
 	elif direction.length() > 0.1:
@@ -134,34 +183,49 @@ func _update_weapon() -> void:
 	current_weapon = equipped
 	for child in weapon_root.get_children():
 		MeshCleanup.before_free(child)
+		weapon_root.remove_child(child)
 		child.queue_free()
+	weapon_grip.active = not equipped.is_empty()
 	if equipped.is_empty():
 		return
+	if equipped == "club":
+		# The supplied GLB's handle is at +Z; rotate the barrel away from the
+		# fist and align a point near the end of the handle with the palm.
+		var bat := BAT_MODEL.instantiate() as Node3D
+		bat.name = "SuppliedBat"
+		bat.rotation.y = PI
+		bat.position = Vector3(-0.006, 0.027, 0.36)
+		weapon_root.add_child(bat)
+		return
+	# Keep the existing craftable spear, now attached to the same hand instead
+	# of floating beside the character when the arm moves.
 	var shaft = CylinderMesh.new()
-	shaft.top_radius = 0.045 if equipped == "spear" else 0.11
-	shaft.bottom_radius = 0.05 if equipped == "spear" else 0.14
-	shaft.height = 1.5 if equipped == "spear" else 0.8
+	shaft.top_radius = 0.045
+	shaft.bottom_radius = 0.05
+	shaft.height = 1.5
 	var material = StandardMaterial3D.new()
 	material.albedo_color = Color("7f5b3d")
 	material.roughness = 1.0
 	shaft.material = material
 	var mesh = MeshInstance3D.new()
+	mesh.name = "SpearShaft"
 	mesh.mesh = shaft
-	mesh.rotation.x = -0.45
+	mesh.rotation.x = PI / 2.0
+	mesh.position.z = 0.55
 	weapon_root.add_child(mesh)
-	if equipped == "spear":
-		var tip = CylinderMesh.new()
-		tip.bottom_radius = 0.10
-		tip.top_radius = 0.0
-		tip.height = 0.35
-		var metal = StandardMaterial3D.new()
-		metal.albedo_color = Color("a5aaa1")
-		tip.material = metal
-		var point = MeshInstance3D.new()
-		point.mesh = tip
-		point.position = Vector3(0, 0.75, -0.36)
-		point.rotation.x = -0.45
-		weapon_root.add_child(point)
+	var tip = CylinderMesh.new()
+	tip.bottom_radius = 0.10
+	tip.top_radius = 0.0
+	tip.height = 0.35
+	var metal = StandardMaterial3D.new()
+	metal.albedo_color = Color("a5aaa1")
+	tip.material = metal
+	var point = MeshInstance3D.new()
+	point.name = "SpearTip"
+	point.mesh = tip
+	point.position.z = 1.475
+	point.rotation.x = PI / 2.0
+	weapon_root.add_child(point)
 
 func take_damage(amount: float) -> void:
 	if invulnerable > 0.0 or world.is_paused():

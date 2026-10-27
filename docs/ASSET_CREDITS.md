@@ -17,6 +17,10 @@ NODE_PATH=/tmp/shards-zombie-node/node_modules node tools/optimize_user_zombie.c
 python3 tools/rig_user_zombie.py /tmp/zombie-optimized.glb assets/models/zombie/user_zombie.glb
 ```
 
+## Бейсбольная бита
+
+**Bloody Baseball Bat with Nails**, автор Sviatoslav Semenov (svyasem), лицензия **CC BY 4.0**: https://creativecommons.org/licenses/by/4.0/. Оригинал: https://sketchfab.com/3d-models/bloody-baseball-bat-with-nails-425e6efd8d81408fa63ff2c2962840d1. Файл `Bloody Baseball Bat with Nails.glb` предоставлен пользователем и используется без изменения геометрии и текстур; в игре скорректированы положение и поворот, модель привязана к кости руки. Анимация замаха создана на основе клипа Quaternius, указанного ниже.
+
 ## Quaternius — анимированные 3D-персонажи
 
 **Лицензия: CC0 1.0.** Автор: Quaternius. В `assets/models/characters/` находятся персонажи из набора Ultimate Animated Character Pack, включая зомби. Файлы GLB содержат скелеты и анимации ходьбы, бега, прыжка и других действий. Оттенки кожи персонажей настроены в игре; оригинальный файл лицензии включён рядом с моделями.
