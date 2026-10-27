@@ -13,13 +13,13 @@ func _initialize() -> void:
 	watchdog = Timer.new()
 	watchdog.one_shot = true
 	watchdog.autostart = true
-	watchdog.wait_time = 20.0
+	watchdog.wait_time = 60.0
 	watchdog.timeout.connect(_on_timeout)
 	root.add_child(watchdog)
 	_run.call_deferred()
 
 func _on_timeout() -> void:
-	push_error("Smoke test did not finish within 20 seconds")
+	push_error("Smoke test timed out")
 	quit(1)
 
 func check(condition: bool, message: String) -> void:
@@ -127,10 +127,21 @@ func _run() -> void:
 	var old_hp: float = wave_first.health
 	world._update_towers(0.1)
 	check(wave_first.health < old_hp, "built tower damages enemies in range")
-	for i in range(5):
-		var e = enemy(world, "wave_%d" % i)
-		if e: e.take_damage(9999, world.player.global_position)
-	check(world.quest_stage == 3, "five defeated raiders advance the story")
+	# Let the actual physics, enemy AI and towers resolve the wave rather than
+	# instantly defeating the enemies. Only protect the idle test player.
+	world.player.global_position = world.camp_position + Vector2(0, 60)
+	world.player.invulnerable = 999.0
+	Engine.time_scale = 2.0
+	for i in range(25):
+		await create_timer(1.0).timeout
+		if world.quest_stage != 2:
+			break
+	Engine.time_scale = 1.0
+	world.player.invulnerable = 0.0
+	check(world.quest_stage == 3 and world.wave_kills == 5, "AI and towers defeat all five raiders and advance the story")
+	if world.quest_stage != 3:
+		# Preserve the failed assertion while allowing later systems to be tested.
+		world.quest_stage = 3
 	world.interact(prop(world, "hotel"))
 	check(world.quest_stage == 4 and enemy(world, "boss_hotel") != null, "hotel boss encounter starts")
 	world.hud.close_modal()
