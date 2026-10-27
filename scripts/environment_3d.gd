@@ -1,7 +1,7 @@
 extends Node3D
 
 const SURFACE_SHADER = preload("res://shaders/island_surface.gdshader")
-const ISLAND_MODEL = preload("res://Остров .glb")
+const ISLAND_MODEL = preload("res://assets/models/environment/user_island.glb")
 const SURFACE_MASK = preload("res://assets/environment/user_island_layout.png")
 const TERRAIN_DATA = preload("res://assets/environment/user_island_data.png")
 const NEAREST_DATA = preload("res://assets/environment/user_island_nearest.png")
@@ -12,10 +12,10 @@ const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
 const SCALE := 0.04
 const WIDTH := 3200.0 * SCALE
 const DEPTH := 2200.0 * SCALE
-const RAW_GROUND := -0.35
-const RAW_HEIGHT_MIN := -0.5025011
-const RAW_HEIGHT_MAX := 0.4799118
-const HEIGHT_SCALE := 35.0
+const RAW_GROUND := 0.011
+const RAW_HEIGHT_MIN := 0.0
+const RAW_HEIGHT_MAX := 0.067732
+const HEIGHT_SCALE := 75.0
 const MAX_CLEARANCE := 8.0
 const NAV_COLS := 160
 const NAV_ROWS := 110
@@ -30,9 +30,9 @@ var surface_data: Image
 var navigation: AStarGrid2D
 
 func _ready() -> void:
-	# Data is sampled from the supplied model by tools/prepare_user_island.py.
-	# It is used only for placement/routing: the visible ground and collision
-	# below are always the original model's full triangle mesh.
+	# Data is sampled from the optimized supplied model by
+	# tools/prepare_user_island.py, only for placement and routing. The same
+	# 3D mesh supplies both the visible island and its physical collision.
 	height_data = TERRAIN_DATA.get_image()
 	nearest_data = NEAREST_DATA.get_image()
 	surface_data = SURFACE_MASK.get_image()
@@ -189,9 +189,9 @@ func set_night(amount: float) -> void:
 	sky_material.ground_horizon_color = sky_material.sky_horizon_color
 
 func _build_terrain() -> void:
-	# Import and transform every vertex from the user's GLB; no old generated
-	# plane remains underneath it. The 270-degree rotation preserves the most
-	# important old map positions, while X/Z are fitted to exactly 128 x 88 m.
+	# Bake the GLB node's +90 degree X rotation and an additional 180 degree
+	# Y rotation into its mesh. Fit X/Z to the old 128 x 88 metre world while
+	# keeping the model's painted UVs and PBR textures.
 	var source = ISLAND_MODEL.instantiate()
 	var candidates = source.find_children("*", "MeshInstance3D", true, false)
 	if source is MeshInstance3D:
@@ -202,43 +202,52 @@ func _build_terrain() -> void:
 		return
 	var original = (candidates[0] as MeshInstance3D).mesh
 	var bounds = original.get_aabb()
-	var sx = WIDTH / bounds.size.z
-	var sz = DEPTH / bounds.size.x
+	var sx = WIDTH / bounds.size.x
+	var sz = DEPTH / bounds.size.y
 	var arrays = original.surface_get_arrays(0)
 	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-	var uvs = PackedVector2Array()
-	uvs.resize(vertices.size())
+	var tangents: PackedFloat32Array = arrays[Mesh.ARRAY_TANGENT]
+	var layout_uvs = PackedVector2Array()
+	layout_uvs.resize(vertices.size())
 	for i in range(vertices.size()):
 		var p = vertices[i]
 		var n = normals[i]
-		var x = (bounds.end.z - p.z) * sx
-		var z = (p.x - bounds.position.x) * sz
-		vertices[i] = Vector3(x, (p.y - RAW_GROUND) * HEIGHT_SCALE, z)
-		normals[i] = Vector3(-n.z / sx, n.y / HEIGHT_SCALE, n.x / sz).normalized()
-		uvs[i] = Vector2(x / WIDTH, z / DEPTH)
+		var x = (bounds.end.x - p.x) * sx
+		var z = (bounds.end.y - p.y) * sz
+		vertices[i] = Vector3(x, (-p.z - RAW_GROUND) * HEIGHT_SCALE, z)
+		var world_normal = Vector3(-n.x / sx, -n.z / HEIGHT_SCALE, -n.y / sz).normalized()
+		normals[i] = world_normal
+		# Tangents transform as directions, then are re-orthogonalized against
+		# the inverse-transpose normal after the non-uniform scale.
+		var j = i * 4
+		var tangent = Vector3(-tangents[j] * sx, -tangents[j + 2] * HEIGHT_SCALE, -tangents[j + 1] * sz)
+		tangent = (tangent - world_normal * tangent.dot(world_normal)).normalized()
+		tangents[j] = tangent.x
+		tangents[j + 1] = tangent.y
+		tangents[j + 2] = tangent.z
+		layout_uvs[i] = Vector2(x / WIDTH, z / DEPTH)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_NORMAL] = normals
-	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_TANGENT] = tangents
+	arrays[Mesh.ARRAY_TEX_UV2] = layout_uvs
 	var ground_mesh = ArrayMesh.new()
 	ground_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	var material = ShaderMaterial.new()
 	material.shader = SURFACE_SHADER
+	var source_material = original.surface_get_material(0) as BaseMaterial3D
+	material.set_shader_parameter("base_tex", source_material.get_texture(BaseMaterial3D.TEXTURE_ALBEDO))
+	material.set_shader_parameter("normal_tex", source_material.get_texture(BaseMaterial3D.TEXTURE_NORMAL))
+	material.set_shader_parameter("metal_rough_tex", source_material.get_texture(BaseMaterial3D.TEXTURE_ROUGHNESS))
 	material.set_shader_parameter("layout_mask", SURFACE_MASK)
-	material.set_shader_parameter("grass_tex", load("res://assets/environment/textures/grass_short.jpg"))
-	material.set_shader_parameter("litter_tex", load("res://assets/environment/textures/leafy_grass.jpg"))
-	material.set_shader_parameter("forest_tex", load("res://assets/environment/textures/forest_diff_1k.jpg"))
 	material.set_shader_parameter("dirt_tex", load("res://assets/environment/textures/dirt_diff_1k.jpg"))
 	material.set_shader_parameter("sand_tex", load("res://assets/environment/textures/sand.jpg"))
 	material.set_shader_parameter("asphalt_tex", load("res://assets/environment/textures/asphalt.jpg"))
-	material.set_shader_parameter("rock_tex", load("res://assets/environment/textures/rock_diff_1k.jpg"))
-	material.set_shader_parameter("wood_tex", load("res://assets/environment/textures/planks_diff_1k.jpg"))
-	material.set_shader_parameter("metal_tex", load("res://assets/environment/textures/metal_diff_1k.jpg"))
 	ground_mesh.surface_set_material(0, material)
 	var ground = MeshInstance3D.new()
 	ground.name = "IslandTerrain"
 	ground.mesh = ground_mesh
-	ground.set_meta("source_model", "res://Остров .glb")
+	ground.set_meta("source_model", "res://assets/models/environment/user_island.glb")
 	add_child(ground)
 	var body = StaticBody3D.new()
 	body.name = "IslandCollision"

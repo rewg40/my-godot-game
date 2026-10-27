@@ -23,15 +23,15 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
-from scipy.ndimage import binary_dilation, distance_transform_edt, label
+from scipy.ndimage import binary_dilation, distance_transform_edt, label, minimum_filter
 
-SOURCE = Path("Остров .glb")
+SOURCE = Path("assets/models/environment/user_island.glb")
 OUTPUT = Path("assets/environment")
 WIDTH, HEIGHT = 640, 440
 WORLD_WIDTH, WORLD_DEPTH = 128.0, 88.0
-WORLD_HEIGHT_SCALE, RAW_GROUND = 35.0, -0.35
+WORLD_HEIGHT_SCALE, RAW_GROUND = 75.0, 0.011
 SEA_Y = -0.8
-HEIGHT_MIN, HEIGHT_MAX = -0.5025011, 0.4799118
+HEIGHT_MIN, HEIGHT_MAX = 0.0, 0.067732
 MAX_CLEARANCE = 8.0
 # Positions are legacy map coordinates, matching scripts/world.gd.
 SITES = {
@@ -76,14 +76,14 @@ def read_glb(path: Path):
 
 
 def rasterize(positions, normals, triangles):
-    # Rotate the diorama 270 degrees, then fit its X/Z bounds exactly to the
-    # original 128 x 88 metre world. Keeping this transform identical to the
-    # game is essential: these samples are not a replacement terrain mesh.
-    x = -positions[:, 2]
-    z = positions[:, 0]
+    # The GLB node first rotates +90 degrees around X; the game then rotates
+    # the island 180 degrees around Y and fits it to 128 x 88 metres. Source
+    # mesh coordinates are therefore (world X, Y, Z) = (-x, -z, -y).
+    x = -positions[:, 0]
+    z = -positions[:, 1]
     x = (x - x.min()) / np.ptp(x) * (WIDTH - 1)
     z = (z - z.min()) / np.ptp(z) * (HEIGHT - 1)
-    y = positions[:, 1]
+    y = -positions[:, 2]
     top = np.full((HEIGHT, WIDTH), -np.inf, dtype=np.float32)
     top_normal_y = np.zeros_like(top)
     for triangle in triangles:
@@ -107,16 +107,21 @@ def rasterize(positions, normals, triangles):
         section = top[zl:zh + 1, xl:xh + 1]
         update = inside & (yy > section)
         section[update] = yy[update]
-        ny = u * normals[triangle[0], 1] + v * normals[triangle[1], 1] + w * normals[triangle[2], 1]
+        ny = -(u * normals[triangle[0], 2] + v * normals[triangle[1], 2] + w * normals[triangle[2], 2])
         top_normal_y[zl:zh + 1, xl:xh + 1][update] = ny[update]
     return top, top_normal_y
 
 
 def build_walkable(top, normals):
     land = np.isfinite(top) & ((top - RAW_GROUND) * WORLD_HEIGHT_SCALE > SEA_Y)
-    # The high forms and roofs in the supplied single mesh must not become
-    # spawn points. Also leave room for a character capsule near steep edges.
-    blocked = (~land) | (top > -0.295) | (normals < 0.55)
+    # The model includes trees and rocks in a single mesh. Detect raised
+    # obstacles relative to the surrounding terrain, instead of banning every
+    # high-altitude place on an otherwise gently sloping island.
+    local_minimum = minimum_filter(np.where(land, top, np.inf), size=31, mode="nearest")
+    difference = np.zeros_like(top)
+    np.subtract(top, local_minimum, out=difference, where=land)
+    raised_obstacle = difference > 0.014
+    blocked = (~land) | raised_obstacle | (normals < 0.55)
     blocked = binary_dilation(blocked, iterations=2)
     pitch = (WORLD_DEPTH / (HEIGHT - 1), WORLD_WIDTH / (WIDTH - 1))
     clearance = distance_transform_edt(~blocked, sampling=pitch)
@@ -253,41 +258,31 @@ def save_surface_and_map(top, land, clearance, nearest):
     size = (WIDTH * 2, HEIGHT * 2)
     land_img = Image.fromarray((land * 255).astype(np.uint8)).resize(size, Image.Resampling.NEAREST)
     coast_distance = distance_transform_edt(land, sampling=(WORLD_DEPTH / (HEIGHT - 1), WORLD_WIDTH / (WIDTH - 1)))
-    # Blue below .5 is sandy shore; blue above .5 identifies the built-in
-    # buildings. Their walls/roofs receive wood/metal rather than rock.
-    shore = np.clip((2.4 - coast_distance) / 2.4, 0, 1) * 105
+    # The blue channel marks the water's edge; the source model already has
+    # UV/PBR textures for all of its trees and rocks, not untextured buildings.
+    shore = np.clip((1.25 - coast_distance) / 1.25, 0, 1) * 255
     blue = Image.fromarray(shore.astype(np.uint8)).resize(size, Image.Resampling.BILINEAR)
-    buildings = Image.new("L", (WIDTH, HEIGHT), 0)
-    draw = ImageDraw.Draw(buildings)
-    for polygon in [
-        [(289, 73), (370, 65), (387, 141), (310, 151)],
-        [(327, 160), (394, 159), (401, 224), (327, 225)],
-        [(319, 232), (393, 230), (411, 260), (399, 292), (318, 291)],
-        [(221, 238), (292, 235), (298, 280), (287, 294), (223, 294)],
-    ]:
-        draw.polygon(polygon, fill=235)
-    buildings = buildings.filter(ImageFilter.GaussianBlur(1)).resize(size, Image.Resampling.BILINEAR)
-    blue_array = np.maximum(np.asarray(blue), np.asarray(buildings))
-    layout = np.dstack((road, trail, blue_array)).astype(np.uint8)
+    layout = np.dstack((road, trail, np.asarray(blue))).astype(np.uint8)
     Image.fromarray(layout).save(OUTPUT / "user_island_layout.png", optimize=True)
 
     # The map is derived from the same silhouette, heights and routes. Its
     # landmarks are drawn by map_view.gd using the actual relocated positions.
     h = np.asarray(Image.fromarray(np.where(np.isfinite(top), top, HEIGHT_MIN).astype(np.float32)).resize(size, Image.Resampling.BILINEAR))
     land2 = np.asarray(land_img) > 127
-    elevation = np.clip((h + 0.35) / 0.8, 0, 1)
+    elevation = np.clip((h - RAW_GROUND) / 0.055, 0, 1)
     zz, xx = np.indices((size[1], size[0]))
     noise = 3.5 * np.sin(xx * 0.037) * np.cos(zz * 0.031)
     color = np.empty((size[1], size[0], 3), dtype=np.float32)
     color[:] = (31, 67, 71)
-    base = np.stack((91 + noise, 111 + noise, 76 + noise), axis=-1)
-    rock = np.stack((119 + noise, 117 + noise, 99 + noise), axis=-1)
-    amount = np.clip(elevation * 3.2, 0, 1)[..., None]
-    terrain = base * (1 - amount) + rock * amount
-    sand = (np.asarray(blue) / 255.0 * 0.9)[..., None]
+    terrain = np.stack((91 + noise + elevation * 8, 111 + noise + elevation * 9,
+                        76 + noise + elevation * 5), axis=-1)
+    local_minimum = minimum_filter(np.where(land, top, np.inf), size=31, mode="nearest")
+    rise = np.zeros_like(top)
+    np.subtract(top, local_minimum, out=rise, where=land)
+    raised = np.asarray(Image.fromarray(np.clip(rise / 0.025, 0, 1).astype(np.float32)).resize(size, Image.Resampling.BILINEAR))[..., None]
+    terrain = terrain * (1 - raised * 0.6) + np.array([54, 76, 51]) * raised * 0.6
+    sand = (np.asarray(blue) / 255.0 * 0.75)[..., None]
     terrain = terrain * (1 - sand) + np.array([153, 142, 107]) * sand
-    structure = ((np.asarray(buildings) / 255.0) * (elevation > 0.07))[..., None]
-    terrain = terrain * (1 - structure) + np.array([133, 124, 109]) * structure
     paths = (np.maximum(road, trail) / 255.0 * 0.75)[..., None]
     terrain = terrain * (1 - paths) + np.array([135, 126, 105]) * paths
     color[land2] = terrain[land2]
@@ -298,8 +293,8 @@ def main():
     OUTPUT.mkdir(parents=True, exist_ok=True)
     positions, normals, triangles = read_glb(SOURCE)
     print(f"Rasterizing {len(positions)} vertices and {len(triangles)} triangles from {SOURCE}")
-    if len(positions) != 19996 or len(triangles) != 40000:
-        raise ValueError("Unexpected island model; recheck the transform and semantic masks")
+    if len(positions) != 108946 or len(triangles) != 120000:
+        raise ValueError("Unexpected island model; recheck the transform and placement masks")
     top, normals = rasterize(positions, normals, triangles)
     land, clearance, nearest = build_walkable(top, normals)
     save_placement_data(top, clearance, nearest)

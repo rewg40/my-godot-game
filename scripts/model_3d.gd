@@ -5,6 +5,7 @@ extends Node3D
 # outfits remain attached to the real skinned mesh when it moves.
 const MALE = "res://assets/models/survivors/male.glb"
 const FEMALE = "res://assets/models/survivors/female.glb"
+const USER_HERO = "res://assets/models/hero/user_hero.glb"
 const CLOTHES = preload("res://shaders/survivor_clothes.gdshader")
 
 var model: Node3D
@@ -15,9 +16,9 @@ var infected := false
 func setup(path: String, model_scale: float = 0.55, skin_tone: Variant = null) -> void:
 	var female = "female" in path.to_lower()
 	infected = "zombie" in path.to_lower()
-	# Survivors use the shared clothing-ready rigs; infected use their own
-	# textured, skinned model instead of silently substituting a survivor.
-	var resource_path = path if infected else (FEMALE if female else MALE)
+	# Only the playable hero uses the newly supplied body. Named NPCs keep the
+	# existing survivor models; infected keep their separate zombie model.
+	var resource_path = path if infected or path == USER_HERO else (FEMALE if female else MALE)
 	var scene := load(resource_path) as PackedScene
 	if scene == null:
 		push_error("Не удалось загрузить 3D-модель персонажа: " + resource_path)

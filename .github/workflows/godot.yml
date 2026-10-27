@@ -36,6 +36,45 @@ jobs:
             echo "::error::Godot import exited with code $result%0A$log"
             exit 1
           fi
+      - name: Visual probe hero
+        continue-on-error: true
+        shell: bash
+        run: |
+          xvfb-run -a godot --path . --rendering-method gl_compatibility --script res://tests/visual_probe.gd -- --view=hero > "$RUNNER_TEMP/probe-hero.log" 2>&1
+          encoded="$(sed -n 's/^JPEG://p' "$RUNNER_TEMP/probe-hero.log" | head -n1)"
+          echo "Encoded length: ${#encoded}"
+          if [ -z "$encoded" ]; then tail -n 40 "$RUNNER_TEMP/probe-hero.log"; exit 1; fi
+          index=0
+          for ((offset=0; offset<${#encoded}; offset+=3800)); do
+            printf '::notice title=hero-%02d::%s\n' "$index" "${encoded:offset:3800}"
+            index=$((index+1))
+          done
+      - name: Visual probe camp
+        continue-on-error: true
+        shell: bash
+        run: |
+          xvfb-run -a godot --path . --rendering-method gl_compatibility --script res://tests/visual_probe.gd -- --view=camp > "$RUNNER_TEMP/probe-camp.log" 2>&1
+          encoded="$(sed -n 's/^JPEG://p' "$RUNNER_TEMP/probe-camp.log" | head -n1)"
+          echo "Encoded length: ${#encoded}"
+          if [ -z "$encoded" ]; then tail -n 40 "$RUNNER_TEMP/probe-camp.log"; exit 1; fi
+          index=0
+          for ((offset=0; offset<${#encoded}; offset+=3800)); do
+            printf '::notice title=camp-%02d::%s\n' "$index" "${encoded:offset:3800}"
+            index=$((index+1))
+          done
+      - name: Visual probe island
+        continue-on-error: true
+        shell: bash
+        run: |
+          xvfb-run -a godot --path . --rendering-method gl_compatibility --script res://tests/visual_probe.gd -- --view=island > "$RUNNER_TEMP/probe-island.log" 2>&1
+          encoded="$(sed -n 's/^JPEG://p' "$RUNNER_TEMP/probe-island.log" | head -n1)"
+          echo "Encoded length: ${#encoded}"
+          if [ -z "$encoded" ]; then tail -n 40 "$RUNNER_TEMP/probe-island.log"; exit 1; fi
+          index=0
+          for ((offset=0; offset<${#encoded}; offset+=3800)); do
+            printf '::notice title=island-%02d::%s\n' "$index" "${encoded:offset:3800}"
+            index=$((index+1))
+          done
       - name: Test the playable chapter
         shell: bash
         run: |

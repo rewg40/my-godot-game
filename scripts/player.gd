@@ -2,7 +2,7 @@ extends CharacterBody3D
 
 const ActorVisual = preload("res://scripts/model_3d.gd")
 const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
-const HERO_MODEL = "res://assets/models/characters/Casual_Male.glb"
+const HERO_MODEL = "res://assets/models/hero/user_hero.glb"
 const BAT_MODEL = preload("res://Bloody Baseball Bat with Nails.glb")
 const BAT_SWING_DURATION := 0.52
 const BAT_HIT_DELAY := 0.14
@@ -65,7 +65,10 @@ func _setup_weapon_hand() -> void:
 	skeleton.add_child(hand_attachment)
 	weapon_root = Node3D.new()
 	weapon_root.name = "WeaponGripPoint"
-	weapon_root.position = Vector3(-0.027, 0.11, 0.0)
+	weapon_root.position = Vector3(-0.005, 0.09, 0.0)
+	# This model's palms face a different direction in the bind pose than the
+	# old survivor's. Rotate the grip with the fitted finger chains.
+	weapon_root.rotation.y = PI / 2.0
 	hand_attachment.add_child(weapon_root)
 
 func _setup_camera() -> void:

@@ -91,17 +91,17 @@ func _run() -> void:
 	check(world is Node3D and world.player is CharacterBody3D and world.player.camera is Camera3D, "game world, character and perspective camera are 3D")
 	check(world.environment_3d.get_node_or_null("IslandTerrain") is MeshInstance3D and world.environment_3d.get_node_or_null("IslandCollision") is StaticBody3D, "3D terrain and physics collision exist")
 	var terrain: MeshInstance3D = world.environment_3d.get_node("IslandTerrain")
-	check(terrain.mesh.surface_get_material(0) is ShaderMaterial, "terrain uses blended photographic surface materials")
-	check(terrain.get_meta("source_model", "") == "res://Остров .glb", "terrain comes from the user's island GLB")
+	check(terrain.mesh.surface_get_material(0) is ShaderMaterial, "terrain combines the user's PBR textures with road masks")
+	check(terrain.get_meta("source_model", "") == "res://assets/models/environment/user_island.glb", "terrain comes from the newly supplied island GLB")
 	var island_bounds: AABB = terrain.mesh.get_aabb()
 	var island_arrays = terrain.mesh.surface_get_arrays(0)
 	check(absf(island_bounds.size.x - 128.0) < 0.05 and absf(island_bounds.size.z - 88.0) < 0.05, "supplied island matches the old 128 by 88 metre world")
-	check(island_bounds.size.y > 30.0 and island_arrays[Mesh.ARRAY_INDEX].size() == 120000, "the entire island, including its tall structures, retains all 40000 triangles")
-	check(island_arrays[Mesh.ARRAY_TEX_UV].size() == island_arrays[Mesh.ARRAY_VERTEX].size(), "UV coordinates were generated for the untextured supplied model")
+	check(island_bounds.size.y > 4.9 and island_bounds.size.y < 5.2 and island_arrays[Mesh.ARRAY_INDEX].size() == 360000, "new island retains its terrain and trees in 120000 optimized triangles")
+	check(island_arrays[Mesh.ARRAY_TEX_UV].size() == island_arrays[Mesh.ARRAY_VERTEX].size() and island_arrays[Mesh.ARRAY_TEX_UV2].size() == island_arrays[Mesh.ARRAY_VERTEX].size(), "source UVs and separate road-mask UVs are both retained")
 	var island_material = terrain.mesh.surface_get_material(0) as ShaderMaterial
-	check(island_material.get_shader_parameter("rock_tex") is Texture2D and island_material.get_shader_parameter("wood_tex") is Texture2D, "cliffs and built-in buildings have projected textures")
+	check(island_material.get_shader_parameter("base_tex") is Texture2D and island_material.get_shader_parameter("normal_tex") is Texture2D and island_material.get_shader_parameter("metal_rough_tex") is Texture2D, "island keeps its original base-color, normal and metallic-roughness textures")
 	var collision_shape = world.environment_3d.get_node("IslandCollision").get_child(0) as CollisionShape3D
-	check(collision_shape.shape is ConcavePolygonShape3D and (collision_shape.shape as ConcavePolygonShape3D).get_faces().size() == 120000, "physical collision uses the complete island mesh")
+	check(collision_shape.shape is ConcavePolygonShape3D and (collision_shape.shape as ConcavePolygonShape3D).get_faces().size() == 360000, "physical collision uses the complete island mesh")
 	var repaired_point: Vector2 = world.environment_3d.nearest_walkable(67.0, 22.0)
 	check(world.environment_3d.is_walkable(repaired_point.x, repaired_point.y), "a saved position inside the new geometry moves to connected ground")
 	for site in ["marta", "grom", "hotel", "safe", "keycard", "chip", "coil", "cell", "teddy", "lighthouse", "boat", "plot_0", "plot_1", "plot_2"]:
@@ -111,6 +111,9 @@ func _run() -> void:
 	check(path.size() > 4, "navigation can route from the shore around the model to the hotel")
 	path = world.environment_3d.navigation_path(world.map_to_world(world.CAMP), world.map_to_world(world.SITES.keycard))
 	check(path.size() > 4, "navigation can route from the camp to the airfield")
+	for site in ["boat", "lighthouse", "coil", "cell"]:
+		path = world.environment_3d.navigation_path(world.map_to_world(world.CAMP), world.map_to_world(world.SITES[site]))
+		check(path.size() > 4, "navigation reaches the new island landmark: " + site)
 	var grass = world.environment_3d.get_node_or_null("GrassCover")
 	check(grass is MultiMeshInstance3D and grass.multimesh.instance_count > 500, "3D grass is batched across the island")
 	var weeds = world.environment_3d.get_node_or_null("GroundWeeds")
@@ -120,14 +123,31 @@ func _run() -> void:
 	check(world.environment_3d.get_node_or_null("ForestBroadleaf") is Node3D, "forest includes photoreal broadleaf trees")
 	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("Walk"), "rigged 3D hero has a walking animation")
 	check(world.player.visual.animation.get_animation("Walk").get_track_count() > 10, "walking animation contains skeletal tracks")
-	check(not world.player.visual.model.find_children("*", "Skeleton3D", true, false).is_empty(), "survivor has a 3D skeleton")
+	var hero_skeletons = world.player.visual.model.find_children("*", "Skeleton3D", true, false)
+	check(not hero_skeletons.is_empty(), "supplied hero has a 3D skeleton")
+	if not hero_skeletons.is_empty():
+		var hero_skeleton = hero_skeletons[0] as Skeleton3D
+		var thigh = hero_skeleton.find_bone("thigh_l")
+		check(thigh >= 0, "supplied hero has a leg bone")
+		if thigh >= 0:
+			world.player.visual.play("Walk")
+			world.player.visual.animation.advance(0.2)
+			world.player.visual.animation.seek(0.15, true)
+			var pose_a = hero_skeleton.get_bone_pose_rotation(thigh)
+			world.player.visual.animation.seek(0.75, true)
+			var pose_b = hero_skeleton.get_bone_pose_rotation(thigh)
+			check(absf(pose_a.dot(pose_b)) < 0.999, "supplied hero's walking animation moves its legs")
+			world.player.visual.play("Idle")
 	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("ZombieWalk"), "character rig also contains infected animations")
-	var has_clothing_shader = false
-	for instance in world.player.visual.model.find_children("*", "MeshInstance3D", true, false):
-		for surface in range(instance.mesh.get_surface_count()):
-			if instance.get_surface_override_material(surface) is ShaderMaterial:
-				has_clothing_shader = true
-	check(has_clothing_shader, "survivor body has the clothing material")
+	check(world.player.visual.model.scene_file_path == "res://assets/models/hero/user_hero.glb", "only the playable hero uses the newly supplied character")
+	var hero_meshes = world.player.visual.model.find_children("*", "MeshInstance3D", true, false)
+	check(not hero_meshes.is_empty(), "supplied hero has a mesh")
+	if not hero_meshes.is_empty():
+		var hero_mesh = hero_meshes[0] as MeshInstance3D
+		var hero_material = hero_mesh.get_active_material(0)
+		var hero_arrays = hero_mesh.mesh.surface_get_arrays(0)
+		check(hero_material is BaseMaterial3D and hero_material.albedo_texture != null and hero_material.normal_texture != null and hero_material.roughness_texture != null, "supplied hero retains its original PBR textures")
+		check(hero_arrays[Mesh.ARRAY_INDEX].size() == 180000 and hero_arrays[Mesh.ARRAY_BONES].size() > 0, "supplied hero is optimized and skinned")
 	check(world.player.camera_arm.rotation.x < deg_to_rad(-50.0) and world.player.camera_arm.spring_length >= 12.0, "default perspective camera provides a high survival-game overview")
 	check(world.get_node_or_null("RoadsideDetails/RoadDebris") is MultiMeshInstance3D, "roadside debris is present")
 	check(world.quest_stage == 0 and world.hud.is_modal_open(), "new game opens introduction")
@@ -147,8 +167,8 @@ func _run() -> void:
 		check(not hit.is_empty() and hit.collider == island_body and absf(hit.position.y - point.y) < 0.25, "sampled placement height matches island collision at " + str(sample))
 	for identity in ["marta", "grom", "hotel", "safe", "keycard", "chip", "coil", "cell", "teddy", "lighthouse", "boat", "plot_0", "plot_1", "plot_2"]:
 		check(has_interaction_space(world, prop(world, identity), island_body), "landmark has a clear, usable interaction approach: " + identity)
-	var rescued: Vector3 = world._safe_player_spawn(Vector2(1300, 850))
 	var tree_position: Vector3 = prop(world, "tree_8").global_position
+	var rescued: Vector3 = world._safe_player_spawn(world.world_to_map(tree_position))
 	check(Vector2(rescued.x, rescued.z).distance_to(Vector2(tree_position.x, tree_position.z)) > 0.95, "a saved position inside an old tree is moved out of its collision")
 	check(world.player.is_on_floor(), "3D player stands on terrain")
 	var ground_y: float = world.player.global_position.y
@@ -247,6 +267,8 @@ func _run() -> void:
 	check(target.health < target.max_health, "directional player attack damages a nearby enemy")
 	target.queue_free()
 	var marta = prop(world, "marta")
+	var grom = prop(world, "grom")
+	check(marta.idle_actor.model.scene_file_path == "res://assets/models/survivors/female.glb" and grom.idle_actor.model.scene_file_path == "res://assets/models/survivors/male.glb", "female and male NPCs keep their existing models")
 	check(marta.idle_actor.animation != null and marta.idle_actor.animation.has_animation("Walk"), "female survivor rig imports its animations")
 	world.player.global_position = marta.global_position + Vector3(0, 0, -2.4)
 	check(world.nearest_prop() == marta, "nearby interaction selects Marta")
@@ -407,7 +429,7 @@ func _run() -> void:
 	check(restored_map_position.distance_to(safe_legacy) < 5.0, "legacy save restores its safe position on the new island")
 	restored.queue_free()
 	await process_frame
-	pending_boss["player"]["position"] = [1675, 550] # inside the imported structure
+	pending_boss["player"]["position"] = [100, 100] # water outside the new island
 	var relocated = WorldScript.new()
 	relocated.main = main
 	relocated.load_data = pending_boss
