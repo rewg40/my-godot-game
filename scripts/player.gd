@@ -46,18 +46,20 @@ func _setup_camera() -> void:
 	camera_pivot = Node3D.new()
 	camera_pivot.name = "CameraPivot"
 	camera_pivot.position.y = 1.15
-	camera_pivot.rotation.y = -0.7
+	camera_pivot.rotation.y = -0.78
 	add_child(camera_pivot)
 	camera_arm = SpringArm3D.new()
 	camera_arm.name = "CameraArm"
-	camera_arm.rotation.x = -0.30
-	camera_arm.spring_length = 6.5
+	# High, rotatable perspective gives a readable survival-game overview while
+	# retaining true 3D depth and camera-relative movement.
+	camera_arm.rotation.x = deg_to_rad(-58.0)
+	camera_arm.spring_length = 16.0
 	camera_arm.margin = 0.15
 	camera_arm.collision_mask = 1
 	camera_pivot.add_child(camera_arm)
 	camera = Camera3D.new()
 	camera.name = "FollowCamera"
-	camera.fov = 58.0
+	camera.fov = 43.0
 	camera.near = 0.08
 	camera.far = 350.0
 	camera_arm.add_child(camera)
@@ -68,12 +70,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		orbit_dragging = event.pressed and not world.is_paused()
 	elif event is InputEventMouseMotion and orbit_dragging and not world.is_paused():
 		camera_pivot.rotate_y(-event.relative.x * 0.006)
-		camera_arm.rotation.x = clampf(camera_arm.rotation.x - event.relative.y * 0.004, -1.05, -0.18)
+		camera_arm.rotation.x = clampf(camera_arm.rotation.x - event.relative.y * 0.004, deg_to_rad(-75.0), deg_to_rad(-30.0))
 	elif event is InputEventMouseButton and event.pressed and not world.is_paused():
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			camera_arm.spring_length = maxf(4.5, camera_arm.spring_length - 0.75)
+			camera_arm.spring_length = maxf(8.0, camera_arm.spring_length - 1.0)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			camera_arm.spring_length = minf(13.0, camera_arm.spring_length + 0.75)
+			camera_arm.spring_length = minf(24.0, camera_arm.spring_length + 1.0)
 
 func _physics_process(delta: float) -> void:
 	if world.is_paused():

@@ -2,6 +2,10 @@ extends Node3D
 
 const ActorVisual = preload("res://scripts/model_3d.gd")
 const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
+const Ruins3D = preload("res://scripts/ruins_3d.gd")
+const REAL_NATURE = "res://assets/models/nature_real/"
+const WOOD_TEXTURE = preload("res://assets/environment/textures/planks_diff_1k.jpg")
+const METAL_TEXTURE = preload("res://assets/environment/textures/metal_diff_1k.jpg")
 const FONT = preload("res://assets/fonts/DejaVuSans-Bold.ttf")
 const NATURE = "res://assets/models/kenney/nature/"
 const SURVIVAL = "res://assets/models/kenney/survival/"
@@ -41,6 +45,7 @@ func _ready() -> void:
 			height = 6.0
 		elif kind == "deco" and "building-" in String(detail.get("model", "")):
 			height = 3.8
+			radius = maxf(radius, 2.15)
 		_add_collision(radius, height)
 
 func _process(_delta: float) -> void:
@@ -61,15 +66,23 @@ func _build_visual() -> void:
 			visual.add_child(idle_actor)
 			idle_actor.setup(CHARACTERS + String(paths.get(prop_id, "Casual_Male.glb")), 0.42 if prop_id == "tim" else 0.55, skin_tones.get(prop_id, Color("b98060")))
 			_add_name_tag()
-		"tree":
-			_add_model(NATURE + ("tree_oak.glb" if prop_id.hash() % 3 == 0 else "tree_pineTallB.glb"), 4.1)
-		"rock": _add_model(SURVIVAL + "rock-b.glb", 2.7)
-		"bush": _add_model(NATURE + "plant_bushLarge.glb", 3.2)
+		"tree": _add_model(REAL_NATURE + "pine.glb", 0.54)
+		"rock": _add_model(REAL_NATURE + "rock_07.glb", 4.2)
+		"bush": _add_model(REAL_NATURE + "fern_02.glb", 1.8)
 		"scrap":
-			_add_model(SURVIVAL + "barrel.glb", 2.3)
-			_box(Vector3(0.7, 0.12, 0.45), Vector3(0.30, 0.1, 0.25), Color("6d7b78"))
-		"crate": _add_model(SURVIVAL + "box.glb", 2.5)
-		"deco": _add_model(String(detail.get("model", NATURE + "tree_pineTallA.glb")), float(detail.get("model_scale", 3.0)))
+			_build_scrap()
+		"crate": _build_crate()
+		"deco":
+			var path = String(detail.get("model", ""))
+			if "city-suburban/building-" in path or "city-industrial/building-" in path:
+				var ruin = Ruins3D.new()
+				visual.add_child(ruin)
+				ruin.build("city-industrial" in path, absi(path.hash()) % 4)
+			elif "nature/tree_" in path:
+				_add_model(REAL_NATURE + "pine.glb", 0.50 if "pine" in path else 0.60)
+			else:
+				_add_model(path, float(detail.get("model_scale", 3.0)))
+			visual.rotation.y = float(detail.get("yaw", 0.0))
 		"fire": _build_fire()
 		"well": _build_well()
 		"plot":
@@ -98,6 +111,10 @@ func _add_model(path: String, model_scale: float) -> void:
 		return
 	var node = packed.instantiate() as Node3D
 	node.scale = Vector3.ONE * model_scale
+	if path == REAL_NATURE + "pine.glb":
+		node.add_to_group("tall_tree_visual")
+		node.set_meta("tree_height", 14.5 * model_scale)
+		node.set_meta("tree_radius", 3.6 * model_scale)
 	visual.add_child(node)
 
 func _add_collision(radius: float, height: float) -> void:
@@ -162,6 +179,38 @@ func _sphere(radius: float, pos: Vector3, color: Color, emission: bool = false, 
 func _glow(pos: Vector3, color: Color) -> void:
 	var gem = _sphere(0.18, pos, color, true)
 	gem.scale.y = 1.4
+
+func _surface(texture: Texture2D, tint: Color = Color.WHITE) -> StandardMaterial3D:
+	var material = StandardMaterial3D.new()
+	material.albedo_texture = texture
+	material.albedo_color = tint
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	material.roughness = 1.0
+	return material
+
+func _build_crate() -> void:
+	var body = _box(Vector3(0.95, 0.85, 0.85), Vector3(0, 0.43, 0), Color.WHITE)
+	body.material_override = _surface(WOOD_TEXTURE, Color("aaa399"))
+	for x in [-0.38, 0.38]:
+		_box(Vector3(0.08, 0.88, 0.90), Vector3(x, 0.43, 0), Color("5e5141"))
+	_box(Vector3(1.0, 0.09, 0.90), Vector3(0, 0.76, 0), Color("5e5141"))
+
+func _build_scrap() -> void:
+	var barrel = CylinderMesh.new()
+	barrel.bottom_radius = 0.38
+	barrel.top_radius = 0.38
+	barrel.height = 1.05
+	barrel.radial_segments = 20
+	barrel.material = _surface(METAL_TEXTURE, Color("a09987"))
+	var node = MeshInstance3D.new()
+	node.mesh = barrel
+	node.position.y = 0.53
+	visual.add_child(node)
+	_cylinder(0.40, 0.40, 0.05, Vector3(0, 0.25, 0), Color("51483f"))
+	_cylinder(0.40, 0.40, 0.05, Vector3(0, 0.80, 0), Color("51483f"))
+	var sheet = _box(Vector3(0.8, 0.08, 0.52), Vector3(0.52, 0.08, 0.25), Color.WHITE)
+	sheet.rotation.y = 0.3
+	sheet.material_override = _surface(METAL_TEXTURE, Color("9e9a8c"))
 
 func _add_name_tag() -> void:
 	var label = Label3D.new()

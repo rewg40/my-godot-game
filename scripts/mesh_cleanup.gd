@@ -8,5 +8,9 @@ static func before_free(node: Node) -> void:
 		return
 	if node is MeshInstance3D:
 		(node as MeshInstance3D).mesh = null
+	elif node is MultiMeshInstance3D:
+		(node as MultiMeshInstance3D).multimesh = null
 	for child in node.find_children("*", "MeshInstance3D", true, false):
 		(child as MeshInstance3D).mesh = null
+	for child in node.find_children("*", "MultiMeshInstance3D", true, false):
+		(child as MultiMeshInstance3D).multimesh = null

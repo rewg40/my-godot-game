@@ -6,6 +6,7 @@ const PropScript = preload("res://scripts/prop.gd")
 const HudScript = preload("res://scripts/hud.gd")
 const SaveGame = preload("res://scripts/save_game.gd")
 const Environment3D = preload("res://scripts/environment_3d.gd")
+const Roadside3D = preload("res://scripts/roadside_3d.gd")
 const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
 const MAP_SCALE := 0.04
 const CAMP = Vector2(850, 1300)
@@ -52,6 +53,10 @@ func _ready() -> void:
 	if not load_data.is_empty():
 		_apply_save(load_data)
 	_build_world()
+	var roadside = Roadside3D.new()
+	roadside.name = "RoadsideDetails"
+	add_child(roadside)
+	roadside.build(self)
 	player = PlayerScript.new()
 	player.world = self
 	player.position = map_to_world(_saved_position()) + Vector3.UP * 0.12
@@ -118,6 +123,11 @@ func _build_world() -> void:
 	_deco(Vector2(2500, 500), "res://assets/models/kenney/city-industrial/building-a.glb", 3.8, 33)
 	_deco(Vector2(570, 345), "res://assets/models/kenney/nature/cliff_cave_rock.glb", 5.0, 30)
 	_deco(Vector2(1550, 380), "res://assets/models/kenney/survival/structure-metal.glb", 4.8, 24)
+	# Abandoned cars sit beside old routes without replacing quest objects.
+	_deco(Vector2(500, 1770), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, -0.45)
+	_deco(Vector2(1530, 1510), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, 0.35)
+	_deco(Vector2(2050, 1500), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, 2.4)
+	_deco(Vector2(2460, 960), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, -0.6)
 	_make("marta", "npc", "Старейшина Марта", SITES.marta, {"collision": 12})
 	_make("grom", "npc", "Старик Гром", SITES.grom, {"collision": 12})
 	_make("borg", "npc", "Кузнец Борг", Vector2(655, 1365), {"collision": 12})
@@ -168,8 +178,8 @@ func _make(identity: String, kind: String, title: String, pos: Vector2, detail: 
 	props.append(prop)
 	return prop
 
-func _deco(pos: Vector2, model_path: String, size: float, radius: float) -> void:
-	_make("", "deco", "", pos, {"model": model_path, "model_scale": size, "collision": radius})
+func _deco(pos: Vector2, model_path: String, size: float, radius: float, yaw: float = 0.0) -> void:
+	_make("", "deco", "", pos, {"model": model_path, "model_scale": size, "collision": radius, "yaw": yaw})
 
 func _spawn_initial_enemies() -> void:
 	var data = [
