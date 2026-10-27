@@ -22,7 +22,7 @@ void vertex() {
 
 void fragment() {
 	vec4 layout = texture(layout_mask, UV2);
-	vec3 source_color = texture(base_tex, UV).rgb;
+	vec3 painted_color = texture(base_tex, UV).rgb;
 	vec3 mr = texture(metal_rough_tex, UV).rgb;
 	vec2 ground_uv = island_position.xz * 0.5;
 	// Only paint nearly horizontal ground, not the sides of the baked-in trees.
@@ -30,7 +30,7 @@ void fragment() {
 	float shore = smoothstep(0.15, 0.95, layout.b) * flat_ground;
 	float trail = smoothstep(0.05, 0.7, layout.g) * flat_ground;
 	float road = smoothstep(0.05, 0.6, layout.r) * flat_ground;
-	vec3 color = mix(source_color, texture(sand_tex, ground_uv * 0.7).rgb, shore * 0.45);
+	vec3 color = mix(painted_color, texture(sand_tex, ground_uv * 0.7).rgb, shore * 0.45);
 	color = mix(color, texture(dirt_tex, ground_uv * 0.8).rgb, trail * 0.72);
 	color = mix(color, texture(asphalt_tex, ground_uv * 0.67).rgb * vec3(0.82, 0.85, 0.82), road * 0.82);
 	float overlay = max(road, max(trail, shore * 0.45));
