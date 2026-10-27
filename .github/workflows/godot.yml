@@ -89,10 +89,16 @@ jobs:
         if: always()
         shell: bash
         run: |
-          for pose in idle walk attack ingame; do
+          for pose in idle walk attack; do
             python3 tests/encode_probe.py "$RUNNER_TEMP/zombie_${pose}.png" "ZOMBIE_${pose}" 0
             python3 tests/encode_probe.py "$RUNNER_TEMP/zombie_${pose}.png" "ZOMBIE_${pose}" 1
           done
+      - name: Inspect zombie in game
+        if: always()
+        shell: bash
+        run: |
+          python3 tests/encode_probe.py "$RUNNER_TEMP/zombie_ingame.png" ZOMBIE_ingame 0
+          python3 tests/encode_probe.py "$RUNNER_TEMP/zombie_ingame.png" ZOMBIE_ingame 1
       - name: Inspect beach (1)
         if: always()
         shell: bash
