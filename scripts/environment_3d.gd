@@ -51,7 +51,7 @@ func _raw_height(pixel: Color) -> float:
 
 func height_at(x: float, z: float) -> float:
 	# Bilinear samples of the model's upper triangles, with 16-bit precision.
-	# Placements first check is_walkable(), so roofs are never used as ground.
+	# Placements first check is_walkable(), avoiding trees and steep obstacles.
 	var point = _data_coordinate(x, z)
 	var x0 = floori(point.x)
 	var z0 = floori(point.y)
@@ -171,8 +171,7 @@ func _build_lighting() -> void:
 	sun.light_color = Color("f1e7d4")
 	sun.light_energy = 0.78
 	sun.shadow_enabled = true
-	# The imported island has much taller cliffs than the old ground plane.
-	# Soften their shadows to keep the camp readable in daylight.
+	# Soften tree and building shadows to keep the camp readable in daylight.
 	sun.shadow_opacity = 0.55
 	sun.shadow_blur = 1.2
 	sun.directional_shadow_max_distance = 55.0

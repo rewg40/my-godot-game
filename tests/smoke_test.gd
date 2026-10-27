@@ -2,6 +2,7 @@ extends SceneTree
 
 const SaveGame = preload("res://scripts/save_game.gd")
 const WorldScript = preload("res://scripts/world.gd")
+const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
 var failures: Array[String] = []
 var watchdog: Timer
 
@@ -98,6 +99,16 @@ func _run() -> void:
 	check(absf(island_bounds.size.x - 128.0) < 0.05 and absf(island_bounds.size.z - 88.0) < 0.05, "supplied island matches the old 128 by 88 metre world")
 	check(island_bounds.size.y > 4.9 and island_bounds.size.y < 5.2 and island_arrays[Mesh.ARRAY_INDEX].size() == 360000, "new island retains its terrain and trees in 120000 optimized triangles")
 	check(island_arrays[Mesh.ARRAY_TEX_UV].size() == island_arrays[Mesh.ARRAY_VERTEX].size() and island_arrays[Mesh.ARRAY_TEX_UV2].size() == island_arrays[Mesh.ARRAY_VERTEX].size(), "source UVs and separate road-mask UVs are both retained")
+	var imported_island = load("res://assets/models/environment/user_island.glb").instantiate()
+	var original_meshes = imported_island.find_children("*", "MeshInstance3D", true, false)
+	if imported_island is MeshInstance3D:
+		original_meshes.push_front(imported_island)
+	check(not original_meshes.is_empty(), "source island has a mesh")
+	if not original_meshes.is_empty():
+		var original_arrays = (original_meshes[0] as MeshInstance3D).mesh.surface_get_arrays(0)
+		check(island_arrays[Mesh.ARRAY_TEX_UV] == original_arrays[Mesh.ARRAY_TEX_UV], "island keeps the exact UV coordinates of the supplied model")
+	MeshCleanup.before_free(imported_island)
+	imported_island.free()
 	var island_material = terrain.mesh.surface_get_material(0) as ShaderMaterial
 	check(island_material.get_shader_parameter("base_tex") is Texture2D and island_material.get_shader_parameter("normal_tex") is Texture2D and island_material.get_shader_parameter("metal_rough_tex") is Texture2D, "island keeps its original base-color, normal and metallic-roughness textures")
 	var collision_shape = world.environment_3d.get_node("IslandCollision").get_child(0) as CollisionShape3D
@@ -435,7 +446,7 @@ func _run() -> void:
 	relocated.load_data = pending_boss
 	root.add_child(relocated)
 	await process_frame
-	check(relocated.environment_3d.is_walkable(relocated.player.position.x, relocated.player.position.z) and relocated.quest_stage == 4, "legacy save inside the supplied island moves safely without losing quest progress")
+	check(relocated.environment_3d.is_walkable(relocated.player.position.x, relocated.player.position.z) and relocated.world_to_map(relocated.player.global_position).distance_to(Vector2(100, 100)) > 100.0 and relocated.quest_stage == 4, "legacy save in water moves safely to land without losing quest progress")
 	relocated.queue_free()
 	await process_frame
 	var boss = enemy(world, "boss_hotel")

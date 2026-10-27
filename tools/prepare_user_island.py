@@ -1,9 +1,9 @@
 """Prepare placement, surface and map data for the supplied island GLB.
 
-The original model is never rewritten. The game builds its visible and physical
-mesh from that same GLB at runtime. This script rasterizes its top surface to
-make height queries and safe placements inexpensive, derives a connected
-walkable area, and draws roads around the model's existing structures.
+The uploaded original is never rewritten. The game builds its visible and
+physical mesh from the optimized copy at runtime. This script rasterizes its
+top surface for height queries and safe placements, derives a connected
+walkable area, and routes roads around the model's existing trees and rocks.
 
 Run from the repository root with Python 3, numpy, scipy and Pillow installed:
     python tools/prepare_user_island.py
@@ -67,6 +67,12 @@ def read_glb(path: Path):
         return np.ndarray((a["count"], count), dtype, buffer=blob, offset=offset,
                           strides=(stride, dtype.itemsize)).copy()
 
+    mesh_nodes = [node for node in gltf["nodes"] if node.get("mesh") == 0]
+    rotation = mesh_nodes[0].get("rotation", []) if len(mesh_nodes) == 1 else []
+    if len(rotation) != 4 or not np.allclose(rotation, [2**-0.5, 0, 0, 2**-0.5], atol=1e-5):
+        raise ValueError("Unexpected island node rotation; recalibrate the placement transform")
+    if mesh_nodes[0].get("translation", [0, 0, 0]) != [0, 0, 0] or mesh_nodes[0].get("scale", [1, 1, 1]) != [1, 1, 1]:
+        raise ValueError("Unexpected island translation/scale; recalibrate the placement transform")
     primitive = gltf["meshes"][0]["primitives"][0]
     if primitive.get("mode", 4) != 4:
         raise ValueError("The supplied island must contain triangles")

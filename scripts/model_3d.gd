@@ -1,8 +1,8 @@
 extends Node3D
 
-# Quaternius Universal Base Characters with retargeted Universal Animation
-# Library clips. Clothing masks are baked in rest-pose vertex colours, so the
-# outfits remain attached to the real skinned mesh when it moves.
+# NPCs use Quaternius survivor rigs and their clothing masks. The playable
+# hero and the infected use separate supplied models with their own textures;
+# all three retain skeletal animations.
 const MALE = "res://assets/models/survivors/male.glb"
 const FEMALE = "res://assets/models/survivors/female.glb"
 const USER_HERO = "res://assets/models/hero/user_hero.glb"
