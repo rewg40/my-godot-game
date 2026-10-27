@@ -86,6 +86,14 @@ jobs:
         if: always()
         shell: bash
         run: python3 tests/encode_probe.py "$RUNNER_TEMP/dark3d.png" DARK 1
+      - name: Inspect grass check (1)
+        if: always()
+        shell: bash
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/grasscheck3d.png" CHECK 0
+      - name: Inspect grass check (2)
+        if: always()
+        shell: bash
+        run: python3 tests/encode_probe.py "$RUNNER_TEMP/grasscheck3d.png" CHECK 1
       - name: Inspect camp (1)
         if: always()
         shell: bash
