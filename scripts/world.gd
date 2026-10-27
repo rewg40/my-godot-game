@@ -134,10 +134,10 @@ func _build_world() -> void:
 	_make("boat", "boat", "Лодка у причала", SITES.boat, {"collision": 15})
 	var trees = [Vector2(330,1530),Vector2(460,1515),Vector2(535,1580),Vector2(290,1320),Vector2(445,1260),Vector2(1160,1010),Vector2(1220,1170),Vector2(1330,1200),Vector2(1300,850),Vector2(1440,720),Vector2(1535,665),Vector2(1600,540),Vector2(1420,350),Vector2(1280,430),Vector2(1140,470),Vector2(860,420),Vector2(780,590),Vector2(350,600),Vector2(480,700),Vector2(1790,940),Vector2(1850,1150),Vector2(1850,1730),Vector2(2400,1750),Vector2(900,1820),Vector2(650,1830)]
 	for i in range(trees.size()):
-		_make("tree_%d" % i, "tree", "Дерево", trees[i], {"region": TREE_REGION, "scale": 3.0, "collision": 14})
+		_make("tree_%d" % i, "tree", "Дерево", trees[i], {"collision": 14})
 	var rocks = [Vector2(415,1640),Vector2(520,1410),Vector2(310,1120),Vector2(1170,1420),Vector2(1270,1510),Vector2(1310,950),Vector2(750,680),Vector2(650,550),Vector2(490,470),Vector2(800,320),Vector2(1640,760),Vector2(1810,1400),Vector2(2400,1220),Vector2(2800,1510)]
 	for i in range(rocks.size()):
-		_make("rock_%d" % i, "rock", "Камни", rocks[i], {"region": ROCK_REGION, "scale": 2.4, "collision": 15})
+		_make("rock_%d" % i, "rock", "Камни", rocks[i], {"collision": 15})
 	var scrap = [Vector2(2200,1630),Vector2(2350,1380),Vector2(2510,800),Vector2(2700,540),Vector2(2770,850),Vector2(2440,680),Vector2(1270,1700),Vector2(650,1740)]
 	for i in range(scrap.size()):
 		_make("scrap_%d" % i, "scrap", "Металлолом", scrap[i], {"collision": 12})
