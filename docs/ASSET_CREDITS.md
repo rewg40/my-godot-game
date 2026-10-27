@@ -2,6 +2,10 @@
 
 Все необходимые файлы находятся в репозитории; интернет при запуске игры не нужен. Текст CC0 включён в [`licenses/CC0-1.0.md`](licenses/CC0-1.0.md).
 
+## Остров, предоставленный пользователем
+
+Файл `Остров .glb` предоставлен пользователем; автор и условия лицензии исходной модели не указаны, поэтому её не следует считать CC0. Оригинальный файл сохранён без изменений. В игре его сетка повёрнута и подогнана к площади прежнего мира 128 × 88 м, а для геометрии без текстур добавлены проецируемые материалы из перечисленных ниже CC0-ресурсов. Модель используется и для видимой поверхности, и для физической коллизии. Маски поверхности, данные безопасных позиций и карта в `assets/environment/user_island_*.png` созданы из этой геометрии скриптом `tools/prepare_user_island.py` (Python 3, NumPy, SciPy и Pillow). Данные нужны для размещения и маршрутов, а не заменяют саму модель.
+
 ## Модель зомби, предоставленная пользователем
 
 `assets/models/zombie/user_zombie.glb` создана из файла `ZOMBI.glb`, предоставленного пользователем. Автор и условия лицензии исходной модели не указаны; не следует считать её CC0. Для игры сетка упрощена с 1 500 000 до 37 500 треугольников, три текстуры уменьшены с 4096×4096 до 2048×2048 и перекодированы. Исходник был статичным, без скелета и анимаций: для него самостоятельно добавлены скелет и простые анимации ожидания, ходьбы, бега и атаки. Все игровые варианты заражённых используют эту модель с разным масштабом.
@@ -38,7 +42,7 @@ python3 tools/rig_user_zombie.py /tmp/zombie-optimized.glb assets/models/zombie/
 
 ## Poly Haven и Game Piggs — окружение
 
-**Лицензия: CC0 1.0.** Фотоматериалы Poly Haven: Leafy Grass (Charlotte Baglioni), Forest Leaves 02, Brown Mud 02, Concrete Wall 008, Weathered Planks, Red Brick 03, Rusty Metal 02, Asphalt 02 и Aerial Beach 01; 3D-модели Fern 02, Rock 07 и Tree Stump 01 (геометрия распакована для совместимости с Godot). Источники и лицензия: https://polyhaven.com/license и страницы соответствующих материалов / моделей. Зеркала: https://github.com/xustevexu/zombie-game, https://github.com/thedoncancel/kimchi-city и https://github.com/ssboroo/Rainy-portfolio.
+**Лицензия: CC0 1.0.** Фотоматериалы Poly Haven: Leafy Grass (Charlotte Baglioni), Forest Leaves 02, Brown Mud 02, Concrete Wall 008, Weathered Planks, Red Brick 03, Rusty Metal 02, Asphalt 02, Aerial Beach 01 и Aerial Rocks 02 (`assets/environment/textures/rock_diff_1k.jpg`); 3D-модели Fern 02, Rock 07 и Tree Stump 01 (геометрия распакована для совместимости с Godot). Источники и лицензия: https://polyhaven.com/license и страницы соответствующих материалов / моделей. Зеркала: https://github.com/xustevexu/zombie-game, https://github.com/thedoncancel/kimchi-city и https://github.com/ssboroo/Rainy-portfolio.
 
 `assets/models/nature_real/pine.glb`, `grass.glb` и `sorrel.glb` — облегчённые версии Pine Tree 01 и Grass Medium 01 от Rico Cilliers и Rob Tuytel и Shrub Sorrel 01 от Rico Cilliers (Poly Haven, CC0), подготовленные проектом Terrain Studio: https://github.com/HowdyMoto/terrain-tools/blob/main/public/foliage/photoreal/CREDITS.txt. Хвоя использует текстурные карточки; ресурсы изменены по сравнению с оригиналом.
 
@@ -71,4 +75,4 @@ python3 tools/rig_user_zombie.py /tmp/zombie-optimized.glb assets/models/zombie/
 
 ## Созданные для проекта материалы
 
-`assets/art/shelter_menu.png` — сгенерированная иллюстрация меню. Карта `assets/environment/island_ground.png`, используемая также как текстура 3D-рельефа, создана скриптом `tools/generate_original_art.py`. Несколько игровых объектов (например, маяк, башни и квестовые предметы) собраны из объёмных примитивов в `scripts/prop.gd`.
+`assets/art/shelter_menu.png` — сгенерированная иллюстрация меню. Прежняя карта `assets/environment/island_ground.png` создана скриптом `tools/generate_original_art.py`; текущая карта создаётся из предоставленной модели острова. Несколько игровых объектов (например, маяк, башни и квестовые предметы) собраны из объёмных примитивов в `scripts/prop.gd`.

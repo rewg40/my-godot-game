@@ -1,8 +1,9 @@
 shader_type spatial;
 render_mode diffuse_burley, specular_schlick_ggx;
 
-// The layout is an original, hand-authored mask; the repeatable surfaces are
-// CC0 photo textures. UV is the existing island/map coordinate system.
+// The supplied island has neither UVs nor textures. The game generates planar
+// map UVs from its real vertices and projects the photographic materials in 3D,
+// so cliffs and building walls are textured as well as the horizontal ground.
 uniform sampler2D layout_mask : filter_linear_mipmap, repeat_disable;
 uniform sampler2D grass_tex : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D litter_tex : source_color, filter_linear_mipmap, repeat_enable;
@@ -10,6 +11,18 @@ uniform sampler2D forest_tex : source_color, filter_linear_mipmap, repeat_enable
 uniform sampler2D dirt_tex : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D sand_tex : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D asphalt_tex : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D rock_tex : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D wood_tex : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D metal_tex : source_color, filter_linear_mipmap, repeat_enable;
+
+varying vec3 island_position;
+varying vec3 island_normal;
+
+void vertex() {
+	// The supplied model's transform is baked into its mesh in metres.
+	island_position = VERTEX;
+	island_normal = NORMAL;
+}
 
 float ground_hash(vec2 cell) {
 	return fract(sin(dot(cell, vec2(127.1, 311.7))) * 43758.5453);
@@ -24,41 +37,56 @@ float ground_noise(vec2 p) {
 	return mix(a, b, f.y);
 }
 
+vec3 project_texture(sampler2D surface, vec3 pos, vec3 weights, float frequency) {
+	vec3 along_x = texture(surface, pos.zy * frequency).rgb;
+	vec3 along_y = texture(surface, pos.xz * frequency).rgb;
+	vec3 along_z = texture(surface, pos.xy * frequency).rgb;
+	return along_x * weights.x + along_y * weights.y + along_z * weights.z;
+}
+
 void fragment() {
 	vec4 layout = texture(layout_mask, UV);
-	vec2 world_uv = UV * vec2(64.0, 44.0); // roughly 2 m per grass tile
-	vec3 grass_a = texture(grass_tex, world_uv).rgb;
-	vec3 grass_b = texture(grass_tex, world_uv.yx * 0.57 + vec2(0.31, 0.17)).rgb;
-	// Large-scale variations break up the repeating detail into uneven patches
-	// of green growth and dry leaf litter, rather than a single flat lawn.
-	float macro = 0.5 + 0.5 * sin(UV.x * 47.0 + sin(UV.y * 21.0)) * sin(UV.y * 37.0);
-	float patches = smoothstep(0.28, 0.72, ground_noise(world_uv * 0.72));
-	vec3 grass = mix(grass_a, grass_b, 0.25 + macro * 0.20);
-	vec3 litter = texture(litter_tex, world_uv * 0.83 + vec2(0.37, 0.2)).rgb;
-	vec3 dirt = texture(dirt_tex, world_uv * 0.8).rgb;
-	vec3 dry_ground = mix(litter, dirt, 0.40);
-	grass = mix(grass, dry_ground, 0.18 + patches * 0.65);
-	vec3 forest = texture(forest_tex, world_uv * 0.8).rgb;
-	float forest_mask = clamp(layout.b * 2.7, 0.0, 1.0) * (1.0 - smoothstep(0.45, 0.7, layout.b));
-	grass = mix(grass, forest, forest_mask * 0.62);
-	grass *= mix(vec3(0.47, 0.56, 0.42), vec3(0.60, 0.65, 0.48), macro);
+	vec3 n = normalize(island_normal);
+	vec3 weights = pow(abs(n), vec3(4.0));
+	weights /= max(weights.x + weights.y + weights.z, 0.0001);
+	vec2 ground_uv = island_position.xz * 0.5;
+	float macro = ground_noise(island_position.xz * 0.11);
+	float patches = smoothstep(0.28, 0.72, ground_noise(ground_uv * 0.72));
+	vec3 grass_a = texture(grass_tex, ground_uv).rgb;
+	vec3 grass_b = texture(grass_tex, ground_uv.yx * 0.57 + vec2(0.31, 0.17)).rgb;
+	vec3 grass = mix(grass_a, grass_b, 0.25 + macro * 0.2);
+	vec3 litter = texture(litter_tex, ground_uv * 0.83 + vec2(0.37, 0.2)).rgb;
+	vec3 forest = texture(forest_tex, ground_uv * 0.8).rgb;
+	vec3 dirt = texture(dirt_tex, ground_uv * 0.8).rgb;
+	grass = mix(grass, mix(litter, dirt, 0.40), 0.18 + patches * 0.45);
+	grass = mix(grass, forest, smoothstep(0.5, 0.8, macro) * 0.22);
+	grass *= mix(vec3(0.52, 0.60, 0.46), vec3(0.65, 0.69, 0.53), macro);
 
-	vec3 sand = texture(sand_tex, world_uv * 0.7).rgb;
-	float sand_mask = smoothstep(0.42, 0.75, layout.b);
-	float dirt_mask = smoothstep(0.05, 0.85, layout.g);
-	vec3 terrain = mix(grass, sand * 0.82, sand_mask);
-	terrain = mix(terrain, dirt * 0.82, dirt_mask);
+	float built_area = smoothstep(0.52, 0.80, layout.b);
+	float shore = smoothstep(0.04, 0.38, layout.b) * (1.0 - built_area);
+	vec3 sand = texture(sand_tex, ground_uv * 0.7).rgb * 0.82;
+	vec3 terrain = mix(grass, sand, shore);
+	terrain = mix(terrain, dirt * 0.85, smoothstep(0.05, 0.65, layout.g));
+	vec3 asphalt = texture(asphalt_tex, ground_uv * 0.67).rgb;
+	terrain = mix(terrain, asphalt * vec3(0.72, 0.77, 0.78), smoothstep(0.05, 0.52, layout.r));
 
-	vec3 asphalt = texture(asphalt_tex, world_uv * 0.67).rgb;
-	float road = smoothstep(0.05, 0.5, layout.r);
-	terrain = mix(terrain, asphalt * vec3(0.68, 0.74, 0.77), road);
-	float marking = smoothstep(0.72, 0.92, layout.r);
-	terrain = mix(terrain, vec3(0.50, 0.49, 0.42), marking * 0.65);
+	// Height and slope distinguish the island's baked-in cliffs from its base.
+	// Triplanar projection avoids stretched texture stripes on vertical faces.
+	vec3 rock = project_texture(rock_tex, island_position, weights, 0.38) * vec3(0.85, 0.86, 0.79);
+	float steepness = 1.0 - smoothstep(0.42, 0.83, abs(n.y));
+	float raised = smoothstep(0.7, 2.6, island_position.y);
+	float cliff = clamp(max(raised, steepness * 0.88), 0.0, 1.0);
+	terrain = mix(terrain, rock, cliff);
 
-	// The sea extends beyond the terrain mesh; colour the perimeter consistently
-	// without changing the collision or the legacy map coordinates.
-	vec3 shore_water = vec3(0.075, 0.16, 0.18);
-	ALBEDO = mix(shore_water, terrain, layout.a);
-	ROUGHNESS = mix(0.42, 0.96, layout.a);
+	// The original is one material, so a separate footprint mask identifies
+	// its buildings while leaving the original geometry completely intact.
+	float building = built_area * smoothstep(0.35, 1.8, island_position.y);
+	vec3 wood = project_texture(wood_tex, island_position, weights, 0.48) * vec3(0.76, 0.74, 0.67);
+	vec3 metal = project_texture(metal_tex, island_position, weights, 0.45) * vec3(0.74, 0.73, 0.67);
+	vec3 structure = mix(wood, metal, smoothstep(0.50, 0.85, abs(n.y)));
+	terrain = mix(terrain, structure, building);
+
+	ALBEDO = terrain;
+	ROUGHNESS = 0.96;
 	METALLIC = 0.0;
 }

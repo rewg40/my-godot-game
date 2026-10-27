@@ -9,12 +9,12 @@ const Environment3D = preload("res://scripts/environment_3d.gd")
 const Roadside3D = preload("res://scripts/roadside_3d.gd")
 const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
 const MAP_SCALE := 0.04
-const CAMP = Vector2(850, 1300)
+const CAMP = Vector2(850, 1280)
 const SITES = {
 	"marta": Vector2(900, 1240), "grom": Vector2(1050, 1375),
 	"hotel": Vector2(2150, 1440), "safe": Vector2(2250, 1510),
-	"keycard": Vector2(2570, 625), "chip": Vector2(2680, 700),
-	"coil": Vector2(590, 430), "cell": Vector2(1480, 470),
+	"keycard": Vector2(2850, 500), "chip": Vector2(2850, 700),
+	"coil": Vector2(590, 430), "cell": Vector2(1360, 450),
 	"teddy": Vector2(1390, 565), "lighthouse": Vector2(2750, 1800),
 	"boat": Vector2(380, 1950),
 }
@@ -88,10 +88,9 @@ func _exit_tree() -> void:
 
 # Map coordinates remain stable for the journal and old saves; world actors,
 # collisions and the camera all use true 3D metres in X/Y/Z.
-func map_to_world(point: Vector2) -> Vector3:
-	var x = point.x * MAP_SCALE
-	var z = point.y * MAP_SCALE
-	return Vector3(x, environment_3d.height_at(x, z), z)
+func map_to_world(point: Vector2, clearance: float = 1.0) -> Vector3:
+	var position_2d: Vector2 = environment_3d.nearest_walkable(point.x * MAP_SCALE, point.y * MAP_SCALE, clearance)
+	return Vector3(position_2d.x, environment_3d.height_at(position_2d.x, position_2d.y), position_2d.y)
 
 func world_to_map(point: Vector3) -> Vector2:
 	return Vector2(point.x, point.z) / MAP_SCALE
@@ -172,7 +171,9 @@ func _build_world() -> void:
 func _make(identity: String, kind: String, title: String, pos: Vector2, detail: Dictionary = {}):
 	var prop = PropScript.new()
 	prop.configure(self, identity, kind, title, detail)
-	prop.position = map_to_world(pos)
+	# Keep large decorative buildings clear of the imported cliffs and walls.
+	var clearance = 2.5 if kind == "deco" and "building-" in String(detail.get("model", "")) else 1.0
+	prop.position = map_to_world(pos, clearance)
 	add_child(prop)
 	if kind in ["keycard", "chip", "coil", "cell", "teddy"] and flags.get(kind, false):
 		prop.visible = false

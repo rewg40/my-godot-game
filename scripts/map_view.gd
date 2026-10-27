@@ -1,7 +1,7 @@
 extends Control
 
 const UI = preload("res://scripts/ui_style.gd")
-const GROUND = preload("res://assets/environment/island_ground.png")
+const GROUND = preload("res://assets/environment/user_island_map.png")
 var world
 
 func _ready() -> void:
@@ -13,11 +13,11 @@ func _draw() -> void:
 	draw_texture_rect(GROUND, map_rect, false)
 	draw_rect(map_rect, Color(0.03, 0.08, 0.08, 0.23))
 	for mark in world.map_markers():
-		var point: Vector2 = _map_point(mark["position"])
+		var point: Vector2 = _map_point(world.world_to_map(world.map_to_world(mark["position"])))
 		draw_circle(point, 5.0, Color("ecd09a"))
 		draw_arc(point, 8.0, 0, TAU, 20, Color("173633"), 2.0)
 		draw_string(UI.FONT_BOLD, point + Vector2(10, -6), mark["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("fff2cf"))
-	var goal = _map_point(world.objective_position())
+	var goal = _map_point(world.world_to_map(world.map_to_world(world.objective_position())))
 	draw_arc(goal, 12.0, 0, TAU, 20, Color("f7d171"), 3.0)
 	var player_pos = _map_point(world.world_to_map(world.player.global_position))
 	draw_circle(player_pos, 6.0, Color("e66e53"))

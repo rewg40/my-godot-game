@@ -1,7 +1,10 @@
 extends Node3D
 
 const SURFACE_SHADER = preload("res://shaders/island_surface.gdshader")
-const SURFACE_MASK = preload("res://assets/environment/terrain_mask.png")
+const ISLAND_MODEL = preload("res://Остров .glb")
+const SURFACE_MASK = preload("res://assets/environment/user_island_layout.png")
+const TERRAIN_DATA = preload("res://assets/environment/user_island_data.png")
+const NEAREST_DATA = preload("res://assets/environment/user_island_nearest.png")
 const PINE_PATH = "res://assets/models/nature_real/pine.glb"
 const GRASS_PATH = "res://assets/models/nature_real/grass.glb"
 const FERN_PATH = "res://assets/models/nature_real/fern_02.glb"
@@ -9,22 +12,134 @@ const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
 const SCALE := 0.04
 const WIDTH := 3200.0 * SCALE
 const DEPTH := 2200.0 * SCALE
+const RAW_GROUND := -0.35
+const RAW_HEIGHT_MIN := -0.5025011
+const RAW_HEIGHT_MAX := 0.4799118
+const HEIGHT_SCALE := 35.0
+const MAX_CLEARANCE := 8.0
+const NAV_COLS := 160
+const NAV_ROWS := 110
 
 var sun: DirectionalLight3D
 var sky_material: ProceduralSkyMaterial
 var environment: Environment
 var occlusion_timer := 0.0
-
-# Heights stay gentle enough to cross, but the terrain is a real triangle mesh
-# with a matching 3D collision surface, not a 2D picture or a flat billboard.
-func height_at(x: float, z: float) -> float:
-	return 0.22 * sin(x * 0.11) * cos(z * 0.12) + 0.10 * sin(x * 0.29 + z * 0.23)
+var height_data: Image
+var nearest_data: Image
+var surface_data: Image
+var navigation: AStarGrid2D
 
 func _ready() -> void:
+	# Data is sampled from the supplied model by tools/prepare_user_island.py.
+	# It is used only for placement/routing: the visible ground and collision
+	# below are always the original model's full triangle mesh.
+	height_data = TERRAIN_DATA.get_image()
+	nearest_data = NEAREST_DATA.get_image()
+	surface_data = SURFACE_MASK.get_image()
 	_build_lighting()
 	_build_terrain()
 	_build_sea()
+	_build_navigation()
 	_scatter_scenery()
+
+func _data_coordinate(x: float, z: float) -> Vector2:
+	return Vector2(clampf(x / WIDTH, 0.0, 1.0) * float(height_data.get_width() - 1), clampf(z / DEPTH, 0.0, 1.0) * float(height_data.get_height() - 1))
+
+func _raw_height(pixel: Color) -> float:
+	var value = roundi(pixel.r * 255.0) * 256 + roundi(pixel.g * 255.0)
+	return lerpf(RAW_HEIGHT_MIN, RAW_HEIGHT_MAX, float(value) / 65535.0)
+
+func height_at(x: float, z: float) -> float:
+	# Bilinear samples of the model's upper triangles, with 16-bit precision.
+	# Placements first check is_walkable(), so roofs are never used as ground.
+	var point = _data_coordinate(x, z)
+	var x0 = floori(point.x)
+	var z0 = floori(point.y)
+	var x1 = mini(x0 + 1, height_data.get_width() - 1)
+	var z1 = mini(z0 + 1, height_data.get_height() - 1)
+	var a = lerpf(_raw_height(height_data.get_pixel(x0, z0)), _raw_height(height_data.get_pixel(x1, z0)), point.x - x0)
+	var b = lerpf(_raw_height(height_data.get_pixel(x0, z1)), _raw_height(height_data.get_pixel(x1, z1)), point.x - x0)
+	return (lerpf(a, b, point.y - z0) - RAW_GROUND) * HEIGHT_SCALE
+
+func is_walkable(x: float, z: float, clearance: float = 1.0) -> bool:
+	if x < 0.0 or x > WIDTH or z < 0.0 or z > DEPTH:
+		return false
+	var point = _data_coordinate(x, z)
+	var pixel = height_data.get_pixel(roundi(point.x), roundi(point.y))
+	return pixel.b * MAX_CLEARANCE + 0.0001 >= clearance
+
+func nearest_walkable(x: float, z: float, clearance: float = 1.0) -> Vector2:
+	# Existing saves and all quest coordinates remain map-space values. If a
+	# point is inside a cliff/building or in water, use the nearest connected
+	# ground instead of spawning a character or item inside the supplied mesh.
+	if is_walkable(x, z, clearance):
+		return Vector2(x, z)
+	if clearance > 1.0:
+		# Large decorative buildings need more room than a character capsule.
+		# Search by increasing radius; most are resolved in the first few rings.
+		for ring in range(1, 65):
+			var radius = float(ring) * 0.4
+			var steps = clampi(ceili(TAU * radius / 0.4), 16, 160)
+			for i in range(steps):
+				var angle = TAU * float(i) / float(steps)
+				var candidate = Vector2(x, z) + Vector2(cos(angle), sin(angle)) * radius
+				if is_walkable(candidate.x, candidate.y, clearance):
+					return candidate
+	var point = _data_coordinate(x, z)
+	var packed = nearest_data.get_pixel(roundi(point.x), roundi(point.y))
+	var index = (roundi(packed.r * 255.0) << 16) | (roundi(packed.g * 255.0) << 8) | roundi(packed.b * 255.0)
+	var px = index % height_data.get_width()
+	var pz = floori(float(index) / float(height_data.get_width()))
+	return Vector2(float(px) / float(height_data.get_width() - 1) * WIDTH, float(pz) / float(height_data.get_height() - 1) * DEPTH)
+
+func _build_navigation() -> void:
+	# The imported diorama contains tall obstacles. A coarse grid keeps enemy
+	# pursuit connected around them; local ray steering still avoids props.
+	navigation = AStarGrid2D.new()
+	navigation.region = Rect2i(0, 0, NAV_COLS, NAV_ROWS)
+	navigation.cell_size = Vector2(WIDTH / NAV_COLS, DEPTH / NAV_ROWS)
+	navigation.offset = navigation.cell_size * 0.5
+	navigation.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
+	navigation.update()
+	for z in range(NAV_ROWS):
+		for x in range(NAV_COLS):
+			var px = (float(x) + 0.5) * WIDTH / NAV_COLS
+			var pz = (float(z) + 0.5) * DEPTH / NAV_ROWS
+			if not is_walkable(px, pz, 1.0):
+				navigation.set_point_solid(Vector2i(x, z), true)
+
+func _nearest_navigation_cell(pos: Vector2) -> Vector2i:
+	var cell = Vector2i(clampi(floori(pos.x / WIDTH * NAV_COLS), 0, NAV_COLS - 1), clampi(floori(pos.y / DEPTH * NAV_ROWS), 0, NAV_ROWS - 1))
+	if not navigation.is_point_solid(cell):
+		return cell
+	for radius in range(1, 15):
+		var best = Vector2i(-1, -1)
+		var best_distance = INF
+		for dz in range(-radius, radius + 1):
+			for dx in range(-radius, radius + 1):
+				if absi(dx) != radius and absi(dz) != radius:
+					continue
+				var candidate = cell + Vector2i(dx, dz)
+				if not navigation.region.has_point(candidate) or navigation.is_point_solid(candidate):
+					continue
+				var center = (Vector2(candidate) + Vector2(0.5, 0.5)) * navigation.cell_size
+				var distance = center.distance_squared_to(pos)
+				if distance < best_distance:
+					best_distance = distance
+					best = candidate
+		if best.x >= 0:
+			return best
+	return Vector2i(-1, -1)
+
+func navigation_path(from: Vector3, to: Vector3) -> PackedVector2Array:
+	var result = PackedVector2Array()
+	var start = _nearest_navigation_cell(Vector2(from.x, from.z))
+	var target = _nearest_navigation_cell(Vector2(to.x, to.z))
+	if start.x < 0 or target.x < 0:
+		return result
+	for cell in navigation.get_id_path(start, target):
+		result.append((Vector2(cell) + Vector2(0.5, 0.5)) * navigation.cell_size)
+	return result
 
 func _build_lighting() -> void:
 	sky_material = ProceduralSkyMaterial.new()
@@ -71,36 +186,37 @@ func set_night(amount: float) -> void:
 	sky_material.ground_horizon_color = sky_material.sky_horizon_color
 
 func _build_terrain() -> void:
-	const NX := 80
-	const NZ := 55
-	var vertices = PackedVector3Array()
-	var normals = PackedVector3Array()
+	# Import and transform every vertex from the user's GLB; no old generated
+	# plane remains underneath it. The 270-degree rotation preserves the most
+	# important old map positions, while X/Z are fitted to exactly 128 x 88 m.
+	var source = ISLAND_MODEL.instantiate()
+	var candidates = source.find_children("*", "MeshInstance3D", true, false)
+	if source is MeshInstance3D:
+		candidates.push_front(source)
+	if candidates.is_empty():
+		push_error("Модель острова не содержит сетку")
+		source.free()
+		return
+	var original = (candidates[0] as MeshInstance3D).mesh
+	var bounds = original.get_aabb()
+	var sx = WIDTH / bounds.size.z
+	var sz = DEPTH / bounds.size.x
+	var arrays = original.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
 	var uvs = PackedVector2Array()
-	var indices = PackedInt32Array()
-	for iz in range(NZ + 1):
-		for ix in range(NX + 1):
-			var x = WIDTH * float(ix) / NX
-			var z = DEPTH * float(iz) / NZ
-			vertices.append(Vector3(x, height_at(x, z), z))
-			var dx = height_at(x + 0.2, z) - height_at(x - 0.2, z)
-			var dz = height_at(x, z + 0.2) - height_at(x, z - 0.2)
-			normals.append(Vector3(-dx, 0.4, -dz).normalized())
-			uvs.append(Vector2(float(ix) / NX, float(iz) / NZ))
-	for iz in range(NZ):
-		for ix in range(NX):
-			var a = iz * (NX + 1) + ix
-			var b = a + 1
-			var c = a + NX + 1
-			var d = c + 1
-			# Godot treats clockwise triangles as front-facing. Winding upward is
-			# essential: the concave physics shape only collides with its front.
-			indices.append_array(PackedInt32Array([a, b, c, b, d, c]))
-	var arrays = []
-	arrays.resize(Mesh.ARRAY_MAX)
+	uvs.resize(vertices.size())
+	for i in range(vertices.size()):
+		var p = vertices[i]
+		var n = normals[i]
+		var x = (bounds.end.z - p.z) * sx
+		var z = (p.x - bounds.position.x) * sz
+		vertices[i] = Vector3(x, (p.y - RAW_GROUND) * HEIGHT_SCALE, z)
+		normals[i] = Vector3(-n.z / sx, n.y / HEIGHT_SCALE, n.x / sz).normalized()
+		uvs[i] = Vector2(x / WIDTH, z / DEPTH)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_TEX_UV] = uvs
-	arrays[Mesh.ARRAY_INDEX] = indices
 	var ground_mesh = ArrayMesh.new()
 	ground_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	var material = ShaderMaterial.new()
@@ -112,11 +228,14 @@ func _build_terrain() -> void:
 	material.set_shader_parameter("dirt_tex", load("res://assets/environment/textures/dirt_diff_1k.jpg"))
 	material.set_shader_parameter("sand_tex", load("res://assets/environment/textures/sand.jpg"))
 	material.set_shader_parameter("asphalt_tex", load("res://assets/environment/textures/asphalt.jpg"))
+	material.set_shader_parameter("rock_tex", load("res://assets/environment/textures/rock_diff_1k.jpg"))
+	material.set_shader_parameter("wood_tex", load("res://assets/environment/textures/planks_diff_1k.jpg"))
+	material.set_shader_parameter("metal_tex", load("res://assets/environment/textures/metal_diff_1k.jpg"))
 	ground_mesh.surface_set_material(0, material)
 	var ground = MeshInstance3D.new()
 	ground.name = "IslandTerrain"
 	ground.mesh = ground_mesh
-	ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	ground.set_meta("source_model", "res://Остров .glb")
 	add_child(ground)
 	var body = StaticBody3D.new()
 	body.name = "IslandCollision"
@@ -126,6 +245,8 @@ func _build_terrain() -> void:
 	shape.shape = ground_mesh.create_trimesh_shape()
 	body.add_child(shape)
 	add_child(body)
+	MeshCleanup.before_free(source)
+	source.free()
 
 func _build_sea() -> void:
 	var mesh = PlaneMesh.new()
@@ -159,7 +280,7 @@ func _scatter_scenery() -> void:
 	trunk_shape.height = 2.0
 	# Trees cluster away from the village, roads and quest landmarks, keeping
 	# the chapter's routes, encounters and old saves unobstructed.
-	var exclusion = [Vector2(850, 1300), Vector2(2150, 1440), Vector2(2570, 625), Vector2(2750, 1800), Vector2(590, 430), Vector2(360, 1830)]
+	var exclusion = [Vector2(850, 1280), Vector2(2150, 1440), Vector2(2850, 500), Vector2(2850, 700), Vector2(1360, 450), Vector2(1390, 565), Vector2(2750, 1800), Vector2(590, 430), Vector2(360, 1830)]
 	for i in range(115):
 		var p = Vector2(rng.randf_range(260, 2940), rng.randf_range(240, 1960))
 		var clear = true
@@ -167,7 +288,7 @@ func _scatter_scenery() -> void:
 			if p.distance_to(landmark) < 230:
 				clear = false
 				break
-		if not clear or _near_road(p):
+		if not clear or _near_road(p) or not is_walkable(p.x * SCALE, p.y * SCALE, 2.0):
 			continue
 		var broadleaf = rng.randf() < 0.32
 		var instance = (broadleaf_scene if broadleaf else pine_scene).instantiate() as Node3D
@@ -187,7 +308,7 @@ func _scatter_scenery() -> void:
 	# Photographic fern clusters; no invisible blockers are added to routes.
 	for i in range(55):
 		var p = Vector2(rng.randf_range(250, 2950), rng.randf_range(220, 1980))
-		if _near_road(p):
+		if _near_road(p) or not is_walkable(p.x * SCALE, p.y * SCALE, 1.0):
 			continue
 		var instance = fern_scene.instantiate() as Node3D
 		instance.scale = Vector3.ONE * rng.randf_range(0.8, 1.6)
@@ -196,7 +317,7 @@ func _scatter_scenery() -> void:
 		add_child(instance)
 	for i in range(16):
 		var p = Vector2(rng.randf_range(350, 2750), rng.randf_range(250, 1900))
-		if _near_road(p):
+		if _near_road(p) or not is_walkable(p.x * SCALE, p.y * SCALE, 1.0):
 			continue
 		var stump = stump_scene.instantiate() as Node3D
 		stump.scale = Vector3.ONE * rng.randf_range(0.8, 1.4)
@@ -218,13 +339,13 @@ func _build_grass(rng: RandomNumberGenerator) -> void:
 		source.free()
 		return
 	var grass_mesh = (candidates[0] as MeshInstance3D).mesh
-	var mask = SURFACE_MASK.get_image()
+	var mask = surface_data
 	var positions: Array[Transform3D] = []
 	for i in range(10500):
 		var p = Vector2(rng.randf_range(150, 3050), rng.randf_range(130, 2070))
 		var uv = Vector2i(clampi(int(p.x / 3200.0 * mask.get_width()), 0, mask.get_width() - 1), clampi(int(p.y / 2200.0 * mask.get_height()), 0, mask.get_height() - 1))
 		var pixel = mask.get_pixelv(uv)
-		if pixel.a < 0.95 or pixel.r > 0.06 or pixel.g > 0.12 or pixel.b > 0.45:
+		if pixel.r > 0.06 or pixel.g > 0.12 or pixel.b > 0.12 or not is_walkable(p.x * SCALE, p.y * SCALE, 1.0):
 			continue
 		# Spread each tuft sideways while keeping its height natural. Thin alpha
 		# blades otherwise disappear at the elevated gameplay camera distance.
@@ -259,7 +380,7 @@ func _build_sorrel(rng: RandomNumberGenerator) -> void:
 		source.free()
 		return
 	var weed_mesh = (candidates[0] as MeshInstance3D).mesh
-	var mask = SURFACE_MASK.get_image()
+	var mask = surface_data
 	var transforms: Array[Transform3D] = []
 	var patches: Array[Vector2] = []
 	for i in range(460):
@@ -269,7 +390,7 @@ func _build_sorrel(rng: RandomNumberGenerator) -> void:
 		var p = center + Vector2(rng.randf_range(-35, 35), rng.randf_range(-35, 35))
 		var uv = Vector2i(clampi(int(p.x / 3200.0 * mask.get_width()), 0, mask.get_width() - 1), clampi(int(p.y / 2200.0 * mask.get_height()), 0, mask.get_height() - 1))
 		var pixel = mask.get_pixelv(uv)
-		if pixel.a < 0.95 or pixel.r > 0.06 or pixel.g > 0.12 or pixel.b > 0.45:
+		if pixel.r > 0.06 or pixel.g > 0.12 or pixel.b > 0.12 or not is_walkable(p.x * SCALE, p.y * SCALE, 1.0):
 			continue
 		var size = rng.randf_range(4.5, 7.5)
 		var basis = Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * size)
@@ -295,18 +416,12 @@ func _build_sorrel(rng: RandomNumberGenerator) -> void:
 	source.free()
 
 func _near_road(p: Vector2) -> bool:
-	var roads = [
-		[Vector2(360, 1840), Vector2(600, 1720)], [Vector2(600, 1720), Vector2(680, 1550)], [Vector2(680, 1550), Vector2(850, 1300)],
-		[Vector2(850, 1300), Vector2(1200, 1400)], [Vector2(1200, 1400), Vector2(1640, 1460)], [Vector2(1640, 1460), Vector2(2190, 1400)],
-		[Vector2(2190, 1400), Vector2(2300, 1180)], [Vector2(2300, 1180), Vector2(2420, 940)], [Vector2(2420, 940), Vector2(2570, 650)],
-		[Vector2(2190, 1400), Vector2(2460, 1540)], [Vector2(2460, 1540), Vector2(2640, 1640)], [Vector2(2640, 1640), Vector2(2750, 1800)],
-		[Vector2(850, 1300), Vector2(730, 1110)], [Vector2(730, 1110), Vector2(680, 800)], [Vector2(680, 800), Vector2(590, 430)],
-		[Vector2(850, 1300), Vector2(1120, 1236)], [Vector2(1120, 1236), Vector2(1430, 1120)], [Vector2(1430, 1120), Vector2(1620, 880)], [Vector2(1620, 880), Vector2(1460, 480)],
-	]
-	for road in roads:
-		if Geometry2D.get_closest_point_to_segment(p, road[0], road[1]).distance_to(p) < 90:
-			return true
-	return false
+	# Share the generated road layout with the terrain shader.
+	var mask = surface_data
+	var x = clampi(roundi(p.x / 3200.0 * float(mask.get_width() - 1)), 0, mask.get_width() - 1)
+	var z = clampi(roundi(p.y / 2200.0 * float(mask.get_height() - 1)), 0, mask.get_height() - 1)
+	var pixel = mask.get_pixel(x, z)
+	return pixel.r > 0.03 or pixel.g > 0.05
 
 func _process(delta: float) -> void:
 	occlusion_timer -= delta

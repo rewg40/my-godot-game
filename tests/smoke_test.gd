@@ -64,6 +64,25 @@ func _run() -> void:
 	check(world.environment_3d.get_node_or_null("IslandTerrain") is MeshInstance3D and world.environment_3d.get_node_or_null("IslandCollision") is StaticBody3D, "3D terrain and physics collision exist")
 	var terrain: MeshInstance3D = world.environment_3d.get_node("IslandTerrain")
 	check(terrain.mesh.surface_get_material(0) is ShaderMaterial, "terrain uses blended photographic surface materials")
+	check(terrain.get_meta("source_model", "") == "res://Остров .glb", "terrain comes from the user's island GLB")
+	var island_bounds: AABB = terrain.mesh.get_aabb()
+	var island_arrays = terrain.mesh.surface_get_arrays(0)
+	check(absf(island_bounds.size.x - 128.0) < 0.05 and absf(island_bounds.size.z - 88.0) < 0.05, "supplied island matches the old 128 by 88 metre world")
+	check(island_bounds.size.y > 30.0 and island_arrays[Mesh.ARRAY_INDEX].size() == 120000, "the entire island, including its tall structures, retains all 40000 triangles")
+	check(island_arrays[Mesh.ARRAY_TEX_UV].size() == island_arrays[Mesh.ARRAY_VERTEX].size(), "UV coordinates were generated for the untextured supplied model")
+	var island_material = terrain.mesh.surface_get_material(0) as ShaderMaterial
+	check(island_material.get_shader_parameter("rock_tex") is Texture2D and island_material.get_shader_parameter("wood_tex") is Texture2D, "cliffs and built-in buildings have projected textures")
+	var collision_shape = world.environment_3d.get_node("IslandCollision").get_child(0) as CollisionShape3D
+	check(collision_shape.shape is ConcavePolygonShape3D and (collision_shape.shape as ConcavePolygonShape3D).get_faces().size() == 120000, "physical collision uses the complete island mesh")
+	var repaired_point: Vector2 = world.environment_3d.nearest_walkable(67.0, 22.0)
+	check(world.environment_3d.is_walkable(repaired_point.x, repaired_point.y), "a saved position inside the new geometry moves to connected ground")
+	for site in ["marta", "grom", "hotel", "safe", "keycard", "chip", "coil", "cell", "teddy", "lighthouse", "boat", "plot_0", "plot_1", "plot_2"]:
+		var landmark = prop(world, site)
+		check(landmark != null and world.environment_3d.is_walkable(landmark.position.x, landmark.position.z), "landmark is on connected, unobstructed ground: " + site)
+	var path = world.environment_3d.navigation_path(world.map_to_world(Vector2(360, 1830)), world.map_to_world(world.SITES.hotel))
+	check(path.size() > 4, "navigation can route from the shore around the model to the hotel")
+	path = world.environment_3d.navigation_path(world.map_to_world(world.CAMP), world.map_to_world(world.SITES.keycard))
+	check(path.size() > 4, "navigation can route from the camp to the airfield")
 	var grass = world.environment_3d.get_node_or_null("GrassCover")
 	check(grass is MultiMeshInstance3D and grass.multimesh.instance_count > 500, "3D grass is batched across the island")
 	var weeds = world.environment_3d.get_node_or_null("GroundWeeds")
@@ -86,6 +105,18 @@ func _run() -> void:
 	check(world.quest_stage == 0 and world.hud.is_modal_open(), "new game opens introduction")
 	world.hud.close_modal()
 	await create_timer(0.35).timeout
+	# Raycast only against the island (not props or trees) to verify that the
+	# placement samples and the imported collision are the same real surface.
+	var excluded: Array[RID] = []
+	var island_body = world.environment_3d.get_node("IslandCollision") as StaticBody3D
+	for body in world.find_children("*", "StaticBody3D", true, false):
+		if body != island_body:
+			excluded.append(body.get_rid())
+	for sample in [Vector2(360, 1830), world.CAMP, world.SITES.coil, world.SITES.keycard, world.SITES.lighthouse]:
+		var point: Vector3 = world.map_to_world(sample)
+		var ray = PhysicsRayQueryParameters3D.create(Vector3(point.x, 40.0, point.z), Vector3(point.x, -3.0, point.z), 1, excluded)
+		var hit = world.get_world_3d().direct_space_state.intersect_ray(ray)
+		check(not hit.is_empty() and hit.collider == island_body and absf(hit.position.y - point.y) < 0.25, "sampled placement height matches island collision at " + str(sample))
 	check(world.player.is_on_floor(), "3D player stands on terrain")
 	var ground_y: float = world.player.global_position.y
 	Input.action_press("jump")
@@ -329,7 +360,7 @@ func _run() -> void:
 	var pending_boss = SaveGame.load_data()
 	# A 2D-era save stores the same two map coordinates. They are mapped onto
 	# the new 3D X/Z plane rather than discarded or interpreted as height.
-	pending_boss["player"]["position"] = [1200, 900]
+	pending_boss["player"]["position"] = [1300, 850]
 	var restored = WorldScript.new()
 	restored.main = main
 	restored.load_data = pending_boss
@@ -337,10 +368,19 @@ func _run() -> void:
 	await process_frame
 	check(restored.quest_stage == 4 and enemy(restored, "boss_hotel") != null, "unfinished boss survives save/load")
 	var restored_map_position: Vector2 = restored.world_to_map(restored.player.global_position)
-	if restored_map_position.distance_to(Vector2(1200, 900)) >= 5.0:
-		print("Legacy position: expected (1200, 900), got ", restored_map_position)
-	check(restored_map_position.distance_to(Vector2(1200, 900)) < 5.0, "legacy 2D save position maps to 3D terrain")
+	if restored_map_position.distance_to(Vector2(1300, 850)) >= 5.0:
+		print("Legacy position: expected (1300, 850), got ", restored_map_position)
+	check(restored_map_position.distance_to(Vector2(1300, 850)) < 5.0, "legacy save keeps its position when it is safe on the new island")
 	restored.queue_free()
+	await process_frame
+	pending_boss["player"]["position"] = [1675, 550] # inside the imported structure
+	var relocated = WorldScript.new()
+	relocated.main = main
+	relocated.load_data = pending_boss
+	root.add_child(relocated)
+	await process_frame
+	check(relocated.environment_3d.is_walkable(relocated.player.position.x, relocated.player.position.z) and relocated.quest_stage == 4, "legacy save inside the supplied island moves safely without losing quest progress")
+	relocated.queue_free()
 	await process_frame
 	var boss = enemy(world, "boss_hotel")
 	boss.take_damage(9999, world.player.global_position)

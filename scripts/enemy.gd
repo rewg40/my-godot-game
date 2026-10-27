@@ -21,6 +21,10 @@ var facing := Vector3.FORWARD
 var knockback := Vector3.ZERO
 var avoidance_side: float = 0.0
 var avoidance_grace: float = 0.0
+var route_refresh: float = 0.0
+var route_target := Vector3(INF, 0.0, INF)
+var route := PackedVector2Array()
+var route_index := 0
 var visual: Node3D
 var name_label: Label3D
 
@@ -92,7 +96,8 @@ func _physics_process(delta: float) -> void:
 	offset.y = 0
 	var distance = offset.length()
 	if aggressive and distance > 1.52:
-		facing = _steer_around_obstacles(offset.normalized(), delta)
+		var wanted = _route_direction(target, offset.normalized(), delta)
+		facing = _steer_around_obstacles(wanted, delta)
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(facing.x, facing.z), minf(1.0, delta * 7.0))
 		velocity.x = facing.x * speed + knockback.x
 		velocity.z = facing.z * speed + knockback.z
@@ -121,6 +126,23 @@ func _physics_process(delta: float) -> void:
 		visual.play("Run" if kind == "runner" else "Walk")
 	else:
 		visual.play("Idle")
+
+# Follow the connected ground grid around the supplied island's larger cliffs.
+# The local ray steering below handles smaller props not present in that grid.
+func _route_direction(target: Vector3, direct: Vector3, delta: float) -> Vector3:
+	route_refresh -= delta
+	var moved = Vector2(target.x - route_target.x, target.z - route_target.z).length()
+	if route_refresh <= 0.0 or moved > 3.0:
+		route = world.environment_3d.navigation_path(global_position, target)
+		route_index = 0
+		route_target = target
+		route_refresh = 1.8
+	while route_index < route.size():
+		var offset = route[route_index] - Vector2(global_position.x, global_position.z)
+		if offset.length() > 0.85:
+			return Vector3(offset.x, 0.0, offset.y).normalized()
+		route_index += 1
+	return direct
 
 # The island contains solid 3D houses, trees and rocks. A direct pursuit
 # vector alone can get stuck forever against them, so follow a consistent
