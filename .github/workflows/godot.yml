@@ -49,30 +49,3 @@ jobs:
             echo "::error::Godot smoke test exited with code $result%0A$log"
             exit 1
           fi
-      - name: Render 3D diagnostics
-        if: always()
-        shell: bash
-        run: |
-          if ! command -v xvfb-run >/dev/null; then
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq xvfb
-          fi
-          python3 -m pip install --quiet pillow
-          export SHARDS_PREVIEW_DIR="$RUNNER_TEMP"
-          xvfb-run -a -s '-screen 0 1280x720x24' godot --path . --rendering-method gl_compatibility --audio-driver Dummy --script res://tests/visual_probe.gd
-      - name: Inspect beach (1)
-        if: always()
-        shell: bash
-        run: python3 tests/encode_probe.py "$RUNNER_TEMP/beach3d.png" BEACH 0
-      - name: Inspect beach (2)
-        if: always()
-        shell: bash
-        run: python3 tests/encode_probe.py "$RUNNER_TEMP/beach3d.png" BEACH 1
-      - name: Inspect camp (1)
-        if: always()
-        shell: bash
-        run: python3 tests/encode_probe.py "$RUNNER_TEMP/camp3d.png" CAMP 0
-      - name: Inspect camp (2)
-        if: always()
-        shell: bash
-        run: python3 tests/encode_probe.py "$RUNNER_TEMP/camp3d.png" CAMP 1

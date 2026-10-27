@@ -4,7 +4,7 @@
 
 ## Quaternius — анимированные 3D-персонажи
 
-**Лицензия: CC0 1.0.** Автор: Quaternius. В `assets/models/characters/` находятся персонажи из набора Ultimate Animated Character Pack, включая зомби. Файлы GLB содержат скелеты и анимации ходьбы, бега, прыжка и других действий. Оригинальный файл лицензии включён рядом с моделями.
+**Лицензия: CC0 1.0.** Автор: Quaternius. В `assets/models/characters/` находятся персонажи из набора Ultimate Animated Character Pack, включая зомби. Файлы GLB содержат скелеты и анимации ходьбы, бега, прыжка и других действий. Оттенки кожи персонажей настроены в игре; оригинальный файл лицензии включён рядом с моделями.
 
 - Набор: https://quaternius.com/packs/ultimatedanimatedcharacter.html
 - Зеркало файлов GLB: https://github.com/wellmota/tutory-personagens/tree/main/quaternius-uac
