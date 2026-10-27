@@ -1,0 +1,10 @@
+# 3D-модели и текстуры — бинарные, diff для них бессмыслен
+*.glb  binary
+*.gltf text
+*.png  binary
+*.jpg  binary
+*.fbx  binary
+*.obj  text
+
+# Служебные метаданные Godot — не шуметь в диффах
+*.import -diff

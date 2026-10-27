@@ -1,0 +1,5167 @@
+{
+  "description": "Инвентарь 3D-моделей местности и островов",
+  "sources": {
+    "downloaded": {
+      "repository": "https://github.com/shorepine/kenney (каталог 3d/)",
+      "author": "Kenney — https://kenney.nl",
+      "license": "CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/"
+    },
+    "generated": {
+      "script": "scripts/generate_islands.py",
+      "license": "CC0 1.0 (та же, что и у остального контента папки)"
+    }
+  },
+  "categories": {
+    "01_terrain_ground": "Местность — грунт, трава, песок, камень, склоны, дороги",
+    "02_islands": "Острова — основание острова, берег, вода и реки",
+    "03_cliffs_rocks": "Скалы, утёсы, камни, пещеры, горы",
+    "04_vegetation": "Растительность — деревья, пальмы, трава, кусты, цветы, пни",
+    "05_buildings_structures": "Постройки и конструкции — дома, доки, причалы, мосты, стены, башни",
+    "06_props_decor": "Реквизит и декор — бочки, ящики, корабли, оружие, противники"
+  },
+  "total_models": 641,
+  "total_textures": 3,
+  "per_category": {
+    "01_terrain_ground": 121,
+    "02_islands": 51,
+    "03_cliffs_rocks": 129,
+    "04_vegetation": 136,
+    "05_buildings_structures": 153,
+    "06_props_decor": 51
+  },
+  "textures": [
+    "hex_Textures_colormap.png",
+    "pir_Textures_colormap.png",
+    "td_Textures_colormap.png"
+  ],
+  "models": [
+    {
+      "file": "01_terrain_ground/gen_hex_tiles.glb",
+      "category": "01_terrain_ground",
+      "origin": "generated",
+      "pack": "generate_islands.py",
+      "original_name": "gen_hex_tiles",
+      "size_bytes": 3996
+    },
+    {
+      "file": "01_terrain_ground/gen_terrain_large.glb",
+      "category": "01_terrain_ground",
+      "origin": "generated",
+      "pack": "generate_islands.py",
+      "original_name": "gen_terrain_large",
+      "size_bytes": 560764
+    },
+    {
+      "file": "01_terrain_ground/gen_terrain_small.glb",
+      "category": "01_terrain_ground",
+      "origin": "generated",
+      "pack": "generate_islands.py",
+      "original_name": "gen_terrain_small",
+      "size_bytes": 142588
+    },
+    {
+      "file": "01_terrain_ground/hex_dirt-lumber.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "dirt-lumber.glb",
+      "size_bytes": 34920
+    },
+    {
+      "file": "01_terrain_ground/hex_dirt.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "dirt.glb",
+      "size_bytes": 3464
+    },
+    {
+      "file": "01_terrain_ground/hex_grass-forest.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "grass-forest.glb",
+      "size_bytes": 45748
+    },
+    {
+      "file": "01_terrain_ground/hex_grass-hill.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "grass-hill.glb",
+      "size_bytes": 34204
+    },
+    {
+      "file": "01_terrain_ground/hex_grass.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "grass.glb",
+      "size_bytes": 4680
+    },
+    {
+      "file": "01_terrain_ground/hex_path-corner-sharp.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-corner-sharp.glb",
+      "size_bytes": 5556
+    },
+    {
+      "file": "01_terrain_ground/hex_path-corner.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-corner.glb",
+      "size_bytes": 5288
+    },
+    {
+      "file": "01_terrain_ground/hex_path-crossing.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-crossing.glb",
+      "size_bytes": 9736
+    },
+    {
+      "file": "01_terrain_ground/hex_path-end.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-end.glb",
+      "size_bytes": 3788
+    },
+    {
+      "file": "01_terrain_ground/hex_path-intersectionA.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-intersectionA.glb",
+      "size_bytes": 6304
+    },
+    {
+      "file": "01_terrain_ground/hex_path-intersectionB.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-intersectionB.glb",
+      "size_bytes": 6212
+    },
+    {
+      "file": "01_terrain_ground/hex_path-intersectionC.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-intersectionC.glb",
+      "size_bytes": 6212
+    },
+    {
+      "file": "01_terrain_ground/hex_path-intersectionD.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-intersectionD.glb",
+      "size_bytes": 7460
+    },
+    {
+      "file": "01_terrain_ground/hex_path-intersectionE.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-intersectionE.glb",
+      "size_bytes": 7460
+    },
+    {
+      "file": "01_terrain_ground/hex_path-intersectionF.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-intersectionF.glb",
+      "size_bytes": 6848
+    },
+    {
+      "file": "01_terrain_ground/hex_path-intersectionG.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-intersectionG.glb",
+      "size_bytes": 8756
+    },
+    {
+      "file": "01_terrain_ground/hex_path-intersectionH.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-intersectionH.glb",
+      "size_bytes": 7260
+    },
+    {
+      "file": "01_terrain_ground/hex_path-square-end.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-square-end.glb",
+      "size_bytes": 5076
+    },
+    {
+      "file": "01_terrain_ground/hex_path-square.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-square.glb",
+      "size_bytes": 6260
+    },
+    {
+      "file": "01_terrain_ground/hex_path-start.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-start.glb",
+      "size_bytes": 4696
+    },
+    {
+      "file": "01_terrain_ground/hex_path-straight.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "path-straight.glb",
+      "size_bytes": 4752
+    },
+    {
+      "file": "01_terrain_ground/hex_sand-desert.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "sand-desert.glb",
+      "size_bytes": 25496
+    },
+    {
+      "file": "01_terrain_ground/hex_sand-rocks.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "sand-rocks.glb",
+      "size_bytes": 9684
+    },
+    {
+      "file": "01_terrain_ground/hex_sand.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "sand.glb",
+      "size_bytes": 4656
+    },
+    {
+      "file": "01_terrain_ground/hex_stone.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "stone.glb",
+      "size_bytes": 4656
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_grass.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_grass.glb",
+      "size_bytes": 1576
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathBend.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathBend.glb",
+      "size_bytes": 4132
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathBendBank.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathBendBank.glb",
+      "size_bytes": 4308
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathCorner.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathCorner.glb",
+      "size_bytes": 3532
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathCornerSmall.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathCornerSmall.glb",
+      "size_bytes": 3632
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathCross.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathCross.glb",
+      "size_bytes": 6404
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathEnd.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathEnd.glb",
+      "size_bytes": 5044
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathEndClosed.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathEndClosed.glb",
+      "size_bytes": 5824
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathOpen.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathOpen.glb",
+      "size_bytes": 1856
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathRocks.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathRocks.glb",
+      "size_bytes": 8036
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathSide.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathSide.glb",
+      "size_bytes": 4124
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathSideOpen.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathSideOpen.glb",
+      "size_bytes": 4524
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathSplit.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathSplit.glb",
+      "size_bytes": 6012
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathStraight.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathStraight.glb",
+      "size_bytes": 5620
+    },
+    {
+      "file": "01_terrain_ground/nat_ground_pathTile.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_pathTile.glb",
+      "size_bytes": 6624
+    },
+    {
+      "file": "01_terrain_ground/nat_path_stone.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "path_stone.glb",
+      "size_bytes": 12392
+    },
+    {
+      "file": "01_terrain_ground/nat_path_stoneCircle.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "path_stoneCircle.glb",
+      "size_bytes": 13100
+    },
+    {
+      "file": "01_terrain_ground/nat_path_stoneCorner.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "path_stoneCorner.glb",
+      "size_bytes": 10772
+    },
+    {
+      "file": "01_terrain_ground/nat_path_stoneEnd.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "path_stoneEnd.glb",
+      "size_bytes": 8996
+    },
+    {
+      "file": "01_terrain_ground/nat_path_wood.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "path_wood.glb",
+      "size_bytes": 6448
+    },
+    {
+      "file": "01_terrain_ground/nat_path_woodCorner.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "path_woodCorner.glb",
+      "size_bytes": 6444
+    },
+    {
+      "file": "01_terrain_ground/nat_path_woodEnd.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "path_woodEnd.glb",
+      "size_bytes": 5164
+    },
+    {
+      "file": "01_terrain_ground/pir_grass.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "grass.glb",
+      "size_bytes": 8964
+    },
+    {
+      "file": "01_terrain_ground/pir_patch-grass-foliage.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "patch-grass-foliage.glb",
+      "size_bytes": 30716
+    },
+    {
+      "file": "01_terrain_ground/pir_patch-grass.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "patch-grass.glb",
+      "size_bytes": 8416
+    },
+    {
+      "file": "01_terrain_ground/pir_patch-sand-foliage.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "patch-sand-foliage.glb",
+      "size_bytes": 63008
+    },
+    {
+      "file": "01_terrain_ground/pir_patch-sand.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "patch-sand.glb",
+      "size_bytes": 10212
+    },
+    {
+      "file": "01_terrain_ground/td_detail-dirt-large.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "detail-dirt-large.glb",
+      "size_bytes": 22916
+    },
+    {
+      "file": "01_terrain_ground/td_detail-dirt.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "detail-dirt.glb",
+      "size_bytes": 22892
+    },
+    {
+      "file": "01_terrain_ground/td_snow-detail-dirt-large.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-detail-dirt-large.glb",
+      "size_bytes": 22932
+    },
+    {
+      "file": "01_terrain_ground/td_snow-detail-dirt.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-detail-dirt.glb",
+      "size_bytes": 22908
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-bump.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-bump.glb",
+      "size_bytes": 28992
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-corner-inner.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-corner-inner.glb",
+      "size_bytes": 4268
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-corner-large.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-corner-large.glb",
+      "size_bytes": 106304
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-corner-outer.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-corner-outer.glb",
+      "size_bytes": 4268
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-corner-round.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-corner-round.glb",
+      "size_bytes": 31008
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-corner-square.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-corner-square.glb",
+      "size_bytes": 17156
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-crossing.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-crossing.glb",
+      "size_bytes": 25476
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-crystal.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-crystal.glb",
+      "size_bytes": 47124
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-dirt.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-dirt.glb",
+      "size_bytes": 4052
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-end-round.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-end-round.glb",
+      "size_bytes": 20268
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-end.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-end.glb",
+      "size_bytes": 15880
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-hill.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-hill.glb",
+      "size_bytes": 36236
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-rock.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-rock.glb",
+      "size_bytes": 36240
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-slope.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-slope.glb",
+      "size_bytes": 4056
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-spawn-end-round.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-spawn-end-round.glb",
+      "size_bytes": 35364
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-spawn-end.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-spawn-end.glb",
+      "size_bytes": 22928
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-spawn-round.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-spawn-round.glb",
+      "size_bytes": 34052
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-spawn.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-spawn.glb",
+      "size_bytes": 25968
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-split.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-split.glb",
+      "size_bytes": 21096
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-straight-slope-large.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-straight-slope-large.glb",
+      "size_bytes": 6540
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-straight-slope.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-straight-slope.glb",
+      "size_bytes": 15916
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-straight.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-straight.glb",
+      "size_bytes": 15896
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-transition.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-transition.glb",
+      "size_bytes": 15904
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-tree-double.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-tree-double.glb",
+      "size_bytes": 38468
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-tree-quad.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-tree-quad.glb",
+      "size_bytes": 94920
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-tree.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-tree.glb",
+      "size_bytes": 21308
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-wide-corner.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-wide-corner.glb",
+      "size_bytes": 76160
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-wide-split.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-wide-split.glb",
+      "size_bytes": 20800
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-wide-straight.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-wide-straight.glb",
+      "size_bytes": 10004
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile-wide-transition.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-wide-transition.glb",
+      "size_bytes": 17836
+    },
+    {
+      "file": "01_terrain_ground/td_snow-tile.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile.glb",
+      "size_bytes": 4040
+    },
+    {
+      "file": "01_terrain_ground/td_tile-bump.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-bump.glb",
+      "size_bytes": 28976
+    },
+    {
+      "file": "01_terrain_ground/td_tile-corner-inner.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-corner-inner.glb",
+      "size_bytes": 4256
+    },
+    {
+      "file": "01_terrain_ground/td_tile-corner-large.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-corner-large.glb",
+      "size_bytes": 106292
+    },
+    {
+      "file": "01_terrain_ground/td_tile-corner-outer.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-corner-outer.glb",
+      "size_bytes": 4256
+    },
+    {
+      "file": "01_terrain_ground/td_tile-corner-round.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-corner-round.glb",
+      "size_bytes": 30992
+    },
+    {
+      "file": "01_terrain_ground/td_tile-corner-square.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-corner-square.glb",
+      "size_bytes": 17140
+    },
+    {
+      "file": "01_terrain_ground/td_tile-crossing.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-crossing.glb",
+      "size_bytes": 25460
+    },
+    {
+      "file": "01_terrain_ground/td_tile-crystal.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-crystal.glb",
+      "size_bytes": 47112
+    },
+    {
+      "file": "01_terrain_ground/td_tile-dirt.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-dirt.glb",
+      "size_bytes": 4040
+    },
+    {
+      "file": "01_terrain_ground/td_tile-end-round.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-end-round.glb",
+      "size_bytes": 20252
+    },
+    {
+      "file": "01_terrain_ground/td_tile-end.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-end.glb",
+      "size_bytes": 15864
+    },
+    {
+      "file": "01_terrain_ground/td_tile-hill.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-hill.glb",
+      "size_bytes": 36224
+    },
+    {
+      "file": "01_terrain_ground/td_tile-rock.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-rock.glb",
+      "size_bytes": 36228
+    },
+    {
+      "file": "01_terrain_ground/td_tile-slope.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-slope.glb",
+      "size_bytes": 4040
+    },
+    {
+      "file": "01_terrain_ground/td_tile-spawn-end-round.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-spawn-end-round.glb",
+      "size_bytes": 35348
+    },
+    {
+      "file": "01_terrain_ground/td_tile-spawn-end.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-spawn-end.glb",
+      "size_bytes": 22912
+    },
+    {
+      "file": "01_terrain_ground/td_tile-spawn-round.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-spawn-round.glb",
+      "size_bytes": 34036
+    },
+    {
+      "file": "01_terrain_ground/td_tile-spawn.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-spawn.glb",
+      "size_bytes": 25952
+    },
+    {
+      "file": "01_terrain_ground/td_tile-split.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-split.glb",
+      "size_bytes": 21080
+    },
+    {
+      "file": "01_terrain_ground/td_tile-straight-slope-large.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-straight-slope-large.glb",
+      "size_bytes": 6524
+    },
+    {
+      "file": "01_terrain_ground/td_tile-straight-slope.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-straight-slope.glb",
+      "size_bytes": 15900
+    },
+    {
+      "file": "01_terrain_ground/td_tile-straight.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-straight.glb",
+      "size_bytes": 15880
+    },
+    {
+      "file": "01_terrain_ground/td_tile-transition.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-transition.glb",
+      "size_bytes": 15888
+    },
+    {
+      "file": "01_terrain_ground/td_tile-tree-double.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-tree-double.glb",
+      "size_bytes": 60640
+    },
+    {
+      "file": "01_terrain_ground/td_tile-tree-quad.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-tree-quad.glb",
+      "size_bytes": 94908
+    },
+    {
+      "file": "01_terrain_ground/td_tile-tree.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-tree.glb",
+      "size_bytes": 32384
+    },
+    {
+      "file": "01_terrain_ground/td_tile-wide-corner.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-wide-corner.glb",
+      "size_bytes": 76144
+    },
+    {
+      "file": "01_terrain_ground/td_tile-wide-split.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-wide-split.glb",
+      "size_bytes": 20780
+    },
+    {
+      "file": "01_terrain_ground/td_tile-wide-straight.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-wide-straight.glb",
+      "size_bytes": 9988
+    },
+    {
+      "file": "01_terrain_ground/td_tile-wide-transition.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-wide-transition.glb",
+      "size_bytes": 17820
+    },
+    {
+      "file": "01_terrain_ground/td_tile.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile.glb",
+      "size_bytes": 4024
+    },
+    {
+      "file": "02_islands/gen_atoll.glb",
+      "category": "02_islands",
+      "origin": "generated",
+      "pack": "generate_islands.py",
+      "original_name": "gen_atoll",
+      "size_bytes": 588424
+    },
+    {
+      "file": "02_islands/gen_island_a.glb",
+      "category": "02_islands",
+      "origin": "generated",
+      "pack": "generate_islands.py",
+      "original_name": "gen_island_a",
+      "size_bytes": 588428
+    },
+    {
+      "file": "02_islands/gen_island_b.glb",
+      "category": "02_islands",
+      "origin": "generated",
+      "pack": "generate_islands.py",
+      "original_name": "gen_island_b",
+      "size_bytes": 497228
+    },
+    {
+      "file": "02_islands/gen_island_cluster.glb",
+      "category": "02_islands",
+      "origin": "generated",
+      "pack": "generate_islands.py",
+      "original_name": "gen_island_cluster",
+      "size_bytes": 859840
+    },
+    {
+      "file": "02_islands/gen_rock_islet.glb",
+      "category": "02_islands",
+      "origin": "generated",
+      "pack": "generate_islands.py",
+      "original_name": "gen_rock_islet",
+      "size_bytes": 269712
+    },
+    {
+      "file": "02_islands/hex_river-corner-sharp.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-corner-sharp.glb",
+      "size_bytes": 12204
+    },
+    {
+      "file": "02_islands/hex_river-corner.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-corner.glb",
+      "size_bytes": 12216
+    },
+    {
+      "file": "02_islands/hex_river-crossing.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-crossing.glb",
+      "size_bytes": 21368
+    },
+    {
+      "file": "02_islands/hex_river-end.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-end.glb",
+      "size_bytes": 8952
+    },
+    {
+      "file": "02_islands/hex_river-intersectionA.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-intersectionA.glb",
+      "size_bytes": 14084
+    },
+    {
+      "file": "02_islands/hex_river-intersectionB.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-intersectionB.glb",
+      "size_bytes": 19524
+    },
+    {
+      "file": "02_islands/hex_river-intersectionC.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-intersectionC.glb",
+      "size_bytes": 14108
+    },
+    {
+      "file": "02_islands/hex_river-intersectionD.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-intersectionD.glb",
+      "size_bytes": 17376
+    },
+    {
+      "file": "02_islands/hex_river-intersectionE.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-intersectionE.glb",
+      "size_bytes": 17256
+    },
+    {
+      "file": "02_islands/hex_river-intersectionF.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-intersectionF.glb",
+      "size_bytes": 16056
+    },
+    {
+      "file": "02_islands/hex_river-intersectionG.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-intersectionG.glb",
+      "size_bytes": 19740
+    },
+    {
+      "file": "02_islands/hex_river-intersectionH.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-intersectionH.glb",
+      "size_bytes": 16640
+    },
+    {
+      "file": "02_islands/hex_river-start.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-start.glb",
+      "size_bytes": 10268
+    },
+    {
+      "file": "02_islands/hex_river-straight.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "river-straight.glb",
+      "size_bytes": 11168
+    },
+    {
+      "file": "02_islands/hex_water-island.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "water-island.glb",
+      "size_bytes": 9800
+    },
+    {
+      "file": "02_islands/hex_water-rocks.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "water-rocks.glb",
+      "size_bytes": 17256
+    },
+    {
+      "file": "02_islands/hex_water.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "water.glb",
+      "size_bytes": 3468
+    },
+    {
+      "file": "02_islands/nat_ground_riverBend.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverBend.glb",
+      "size_bytes": 5684
+    },
+    {
+      "file": "02_islands/nat_ground_riverBendBank.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverBendBank.glb",
+      "size_bytes": 5692
+    },
+    {
+      "file": "02_islands/nat_ground_riverCorner.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverCorner.glb",
+      "size_bytes": 4844
+    },
+    {
+      "file": "02_islands/nat_ground_riverCornerSmall.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverCornerSmall.glb",
+      "size_bytes": 4236
+    },
+    {
+      "file": "02_islands/nat_ground_riverCross.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverCross.glb",
+      "size_bytes": 7560
+    },
+    {
+      "file": "02_islands/nat_ground_riverEnd.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverEnd.glb",
+      "size_bytes": 5464
+    },
+    {
+      "file": "02_islands/nat_ground_riverEndClosed.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverEndClosed.glb",
+      "size_bytes": 6920
+    },
+    {
+      "file": "02_islands/nat_ground_riverOpen.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverOpen.glb",
+      "size_bytes": 1852
+    },
+    {
+      "file": "02_islands/nat_ground_riverRocks.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverRocks.glb",
+      "size_bytes": 8884
+    },
+    {
+      "file": "02_islands/nat_ground_riverSide.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverSide.glb",
+      "size_bytes": 4544
+    },
+    {
+      "file": "02_islands/nat_ground_riverSideOpen.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverSideOpen.glb",
+      "size_bytes": 5312
+    },
+    {
+      "file": "02_islands/nat_ground_riverSplit.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverSplit.glb",
+      "size_bytes": 6804
+    },
+    {
+      "file": "02_islands/nat_ground_riverStraight.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverStraight.glb",
+      "size_bytes": 6044
+    },
+    {
+      "file": "02_islands/nat_ground_riverTile.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "ground_riverTile.glb",
+      "size_bytes": 9120
+    },
+    {
+      "file": "02_islands/pir_hole.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "hole.glb",
+      "size_bytes": 28168
+    },
+    {
+      "file": "02_islands/td_snow-tile-river-bridge.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-river-bridge.glb",
+      "size_bytes": 31804
+    },
+    {
+      "file": "02_islands/td_snow-tile-river-corner.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-river-corner.glb",
+      "size_bytes": 61020
+    },
+    {
+      "file": "02_islands/td_snow-tile-river-slope-large.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-river-slope-large.glb",
+      "size_bytes": 8916
+    },
+    {
+      "file": "02_islands/td_snow-tile-river-slope.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-river-slope.glb",
+      "size_bytes": 18384
+    },
+    {
+      "file": "02_islands/td_snow-tile-river-straight.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-river-straight.glb",
+      "size_bytes": 18376
+    },
+    {
+      "file": "02_islands/td_snow-tile-river-transition.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-river-transition.glb",
+      "size_bytes": 23204
+    },
+    {
+      "file": "02_islands/td_snow-tile-river-waterfall.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-tile-river-waterfall.glb",
+      "size_bytes": 39180
+    },
+    {
+      "file": "02_islands/td_tile-river-bridge.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-river-bridge.glb",
+      "size_bytes": 31788
+    },
+    {
+      "file": "02_islands/td_tile-river-corner.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-river-corner.glb",
+      "size_bytes": 61004
+    },
+    {
+      "file": "02_islands/td_tile-river-slope-large.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-river-slope-large.glb",
+      "size_bytes": 8904
+    },
+    {
+      "file": "02_islands/td_tile-river-slope.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-river-slope.glb",
+      "size_bytes": 18368
+    },
+    {
+      "file": "02_islands/td_tile-river-straight.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-river-straight.glb",
+      "size_bytes": 18360
+    },
+    {
+      "file": "02_islands/td_tile-river-transition.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-river-transition.glb",
+      "size_bytes": 23188
+    },
+    {
+      "file": "02_islands/td_tile-river-waterfall.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tile-river-waterfall.glb",
+      "size_bytes": 39164
+    },
+    {
+      "file": "03_cliffs_rocks/hex_stone-hill.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "stone-hill.glb",
+      "size_bytes": 13412
+    },
+    {
+      "file": "03_cliffs_rocks/hex_stone-mountain.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "stone-mountain.glb",
+      "size_bytes": 20904
+    },
+    {
+      "file": "03_cliffs_rocks/hex_stone-rocks.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "stone-rocks.glb",
+      "size_bytes": 24700
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockCave_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockCave_rock.glb",
+      "size_bytes": 5432
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockCave_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockCave_stone.glb",
+      "size_bytes": 5436
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockDiagonal_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockDiagonal_rock.glb",
+      "size_bytes": 2564
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockDiagonal_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockDiagonal_stone.glb",
+      "size_bytes": 2568
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockHalf_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockHalf_rock.glb",
+      "size_bytes": 2788
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockHalf_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockHalf_stone.glb",
+      "size_bytes": 2792
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockQuarter_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockQuarter_rock.glb",
+      "size_bytes": 2796
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockQuarter_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockQuarter_stone.glb",
+      "size_bytes": 2800
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockSlopeHalfWalls_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockSlopeHalfWalls_rock.glb",
+      "size_bytes": 8880
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockSlopeHalfWalls_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockSlopeHalfWalls_stone.glb",
+      "size_bytes": 8884
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockSlopeWalls_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockSlopeWalls_rock.glb",
+      "size_bytes": 8900
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockSlopeWalls_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockSlopeWalls_stone.glb",
+      "size_bytes": 8904
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockSlope_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockSlope_rock.glb",
+      "size_bytes": 6720
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_blockSlope_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_blockSlope_stone.glb",
+      "size_bytes": 6724
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_block_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_block_rock.glb",
+      "size_bytes": 2776
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_block_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_block_stone.glb",
+      "size_bytes": 2780
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cave_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cave_rock.glb",
+      "size_bytes": 5480
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cave_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cave_stone.glb",
+      "size_bytes": 5484
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cornerInnerLarge_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cornerInnerLarge_rock.glb",
+      "size_bytes": 4296
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cornerInnerLarge_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cornerInnerLarge_stone.glb",
+      "size_bytes": 4300
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cornerInnerTop_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cornerInnerTop_rock.glb",
+      "size_bytes": 7608
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cornerInnerTop_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cornerInnerTop_stone.glb",
+      "size_bytes": 7612
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cornerInner_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cornerInner_rock.glb",
+      "size_bytes": 5008
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cornerInner_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cornerInner_stone.glb",
+      "size_bytes": 8568
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cornerLarge_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cornerLarge_rock.glb",
+      "size_bytes": 2376
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cornerLarge_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cornerLarge_stone.glb",
+      "size_bytes": 3296
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cornerTop_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cornerTop_rock.glb",
+      "size_bytes": 3108
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_cornerTop_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_cornerTop_stone.glb",
+      "size_bytes": 3112
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_corner_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_corner_rock.glb",
+      "size_bytes": 2360
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_corner_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_corner_stone.glb",
+      "size_bytes": 2364
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_diagonal_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_diagonal_rock.glb",
+      "size_bytes": 4296
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_diagonal_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_diagonal_stone.glb",
+      "size_bytes": 4236
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_halfCornerInner_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_halfCornerInner_rock.glb",
+      "size_bytes": 8016
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_halfCornerInner_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_halfCornerInner_stone.glb",
+      "size_bytes": 8020
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_halfCorner_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_halfCorner_rock.glb",
+      "size_bytes": 3128
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_halfCorner_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_halfCorner_stone.glb",
+      "size_bytes": 3132
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_half_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_half_rock.glb",
+      "size_bytes": 5316
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_half_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_half_stone.glb",
+      "size_bytes": 5320
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_large_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_large_rock.glb",
+      "size_bytes": 3560
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_large_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_large_stone.glb",
+      "size_bytes": 3564
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_rock.glb",
+      "size_bytes": 3556
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_stepsCornerInner_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_stepsCornerInner_rock.glb",
+      "size_bytes": 15632
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_stepsCornerInner_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_stepsCornerInner_stone.glb",
+      "size_bytes": 15636
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_stepsCorner_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_stepsCorner_rock.glb",
+      "size_bytes": 17544
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_stepsCorner_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_stepsCorner_stone.glb",
+      "size_bytes": 17548
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_steps_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_steps_rock.glb",
+      "size_bytes": 15952
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_steps_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_steps_stone.glb",
+      "size_bytes": 15956
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_stone.glb",
+      "size_bytes": 3560
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_topDiagonal_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_topDiagonal_rock.glb",
+      "size_bytes": 6220
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_topDiagonal_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_topDiagonal_stone.glb",
+      "size_bytes": 10540
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_top_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_top_rock.glb",
+      "size_bytes": 5312
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_top_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_top_stone.glb",
+      "size_bytes": 5316
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_waterfallTop_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_waterfallTop_rock.glb",
+      "size_bytes": 7076
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_waterfallTop_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_waterfallTop_stone.glb",
+      "size_bytes": 7508
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_waterfall_rock.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_waterfall_rock.glb",
+      "size_bytes": 4488
+    },
+    {
+      "file": "03_cliffs_rocks/nat_cliff_waterfall_stone.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cliff_waterfall_stone.glb",
+      "size_bytes": 6100
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_largeA.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_largeA.glb",
+      "size_bytes": 7552
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_largeB.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_largeB.glb",
+      "size_bytes": 8560
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_largeC.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_largeC.glb",
+      "size_bytes": 7004
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_largeD.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_largeD.glb",
+      "size_bytes": 7992
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_largeE.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_largeE.glb",
+      "size_bytes": 6464
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_largeF.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_largeF.glb",
+      "size_bytes": 7516
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallA.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallA.glb",
+      "size_bytes": 3044
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallB.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallB.glb",
+      "size_bytes": 3528
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallC.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallC.glb",
+      "size_bytes": 3044
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallD.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallD.glb",
+      "size_bytes": 4012
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallE.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallE.glb",
+      "size_bytes": 5932
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallF.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallF.glb",
+      "size_bytes": 5700
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallFlatA.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallFlatA.glb",
+      "size_bytes": 3300
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallFlatB.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallFlatB.glb",
+      "size_bytes": 3056
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallFlatC.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallFlatC.glb",
+      "size_bytes": 4508
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallG.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallG.glb",
+      "size_bytes": 4204
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallH.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallH.glb",
+      "size_bytes": 6200
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallI.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallI.glb",
+      "size_bytes": 5120
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallTopA.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallTopA.glb",
+      "size_bytes": 5220
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_smallTopB.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_smallTopB.glb",
+      "size_bytes": 6660
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_tallA.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_tallA.glb",
+      "size_bytes": 12072
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_tallB.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_tallB.glb",
+      "size_bytes": 14060
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_tallC.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_tallC.glb",
+      "size_bytes": 5184
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_tallD.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_tallD.glb",
+      "size_bytes": 5132
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_tallE.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_tallE.glb",
+      "size_bytes": 5192
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_tallF.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_tallF.glb",
+      "size_bytes": 5608
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_tallG.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_tallG.glb",
+      "size_bytes": 6772
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_tallH.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_tallH.glb",
+      "size_bytes": 7792
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_tallI.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_tallI.glb",
+      "size_bytes": 5584
+    },
+    {
+      "file": "03_cliffs_rocks/nat_rock_tallJ.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "rock_tallJ.glb",
+      "size_bytes": 5424
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_largeA.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_largeA.glb",
+      "size_bytes": 7124
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_largeB.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_largeB.glb",
+      "size_bytes": 8132
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_largeC.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_largeC.glb",
+      "size_bytes": 6580
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_largeD.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_largeD.glb",
+      "size_bytes": 7564
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_largeE.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_largeE.glb",
+      "size_bytes": 6036
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_largeF.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_largeF.glb",
+      "size_bytes": 7092
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallA.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallA.glb",
+      "size_bytes": 2620
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallB.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallB.glb",
+      "size_bytes": 3100
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallC.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallC.glb",
+      "size_bytes": 2620
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallD.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallD.glb",
+      "size_bytes": 3584
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallE.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallE.glb",
+      "size_bytes": 5504
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallF.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallF.glb",
+      "size_bytes": 5272
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallFlatA.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallFlatA.glb",
+      "size_bytes": 2872
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallFlatB.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallFlatB.glb",
+      "size_bytes": 2632
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallFlatC.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallFlatC.glb",
+      "size_bytes": 4080
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallG.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallG.glb",
+      "size_bytes": 3776
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallH.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallH.glb",
+      "size_bytes": 5772
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallI.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallI.glb",
+      "size_bytes": 4692
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallTopA.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallTopA.glb",
+      "size_bytes": 4792
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_smallTopB.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_smallTopB.glb",
+      "size_bytes": 6232
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_tallA.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_tallA.glb",
+      "size_bytes": 11644
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_tallB.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_tallB.glb",
+      "size_bytes": 13596
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_tallC.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_tallC.glb",
+      "size_bytes": 4788
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_tallD.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_tallD.glb",
+      "size_bytes": 4704
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_tallE.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_tallE.glb",
+      "size_bytes": 4764
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_tallF.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_tallF.glb",
+      "size_bytes": 5180
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_tallG.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_tallG.glb",
+      "size_bytes": 6344
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_tallH.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_tallH.glb",
+      "size_bytes": 7364
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_tallI.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_tallI.glb",
+      "size_bytes": 5160
+    },
+    {
+      "file": "03_cliffs_rocks/nat_stone_tallJ.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stone_tallJ.glb",
+      "size_bytes": 4808
+    },
+    {
+      "file": "03_cliffs_rocks/pir_rocks-a.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "rocks-a.glb",
+      "size_bytes": 27644
+    },
+    {
+      "file": "03_cliffs_rocks/pir_rocks-b.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "rocks-b.glb",
+      "size_bytes": 31316
+    },
+    {
+      "file": "03_cliffs_rocks/pir_rocks-c.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "rocks-c.glb",
+      "size_bytes": 24572
+    },
+    {
+      "file": "03_cliffs_rocks/pir_rocks-sand-a.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "rocks-sand-a.glb",
+      "size_bytes": 57052
+    },
+    {
+      "file": "03_cliffs_rocks/pir_rocks-sand-b.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "rocks-sand-b.glb",
+      "size_bytes": 53404
+    },
+    {
+      "file": "03_cliffs_rocks/pir_rocks-sand-c.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "rocks-sand-c.glb",
+      "size_bytes": 46624
+    },
+    {
+      "file": "03_cliffs_rocks/td_detail-rocks-large.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "detail-rocks-large.glb",
+      "size_bytes": 22888
+    },
+    {
+      "file": "03_cliffs_rocks/td_detail-rocks.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "detail-rocks.glb",
+      "size_bytes": 18552
+    },
+    {
+      "file": "03_cliffs_rocks/td_snow-detail-rocks-large.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-detail-rocks-large.glb",
+      "size_bytes": 22900
+    },
+    {
+      "file": "03_cliffs_rocks/td_snow-detail-rocks.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-detail-rocks.glb",
+      "size_bytes": 18568
+    },
+    {
+      "file": "04_vegetation/hex_unit-tree.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "unit-tree.glb",
+      "size_bytes": 6800
+    },
+    {
+      "file": "04_vegetation/nat_cactus_short.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cactus_short.glb",
+      "size_bytes": 8844
+    },
+    {
+      "file": "04_vegetation/nat_cactus_tall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "cactus_tall.glb",
+      "size_bytes": 9668
+    },
+    {
+      "file": "04_vegetation/nat_crop_carrot.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crop_carrot.glb",
+      "size_bytes": 12664
+    },
+    {
+      "file": "04_vegetation/nat_crop_melon.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crop_melon.glb",
+      "size_bytes": 13328
+    },
+    {
+      "file": "04_vegetation/nat_crop_pumpkin.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crop_pumpkin.glb",
+      "size_bytes": 10840
+    },
+    {
+      "file": "04_vegetation/nat_crop_turnip.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crop_turnip.glb",
+      "size_bytes": 14308
+    },
+    {
+      "file": "04_vegetation/nat_crops_bambooStageA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_bambooStageA.glb",
+      "size_bytes": 22092
+    },
+    {
+      "file": "04_vegetation/nat_crops_bambooStageB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_bambooStageB.glb",
+      "size_bytes": 40144
+    },
+    {
+      "file": "04_vegetation/nat_crops_cornStageA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_cornStageA.glb",
+      "size_bytes": 9076
+    },
+    {
+      "file": "04_vegetation/nat_crops_cornStageB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_cornStageB.glb",
+      "size_bytes": 9780
+    },
+    {
+      "file": "04_vegetation/nat_crops_cornStageC.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_cornStageC.glb",
+      "size_bytes": 11960
+    },
+    {
+      "file": "04_vegetation/nat_crops_cornStageD.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_cornStageD.glb",
+      "size_bytes": 29316
+    },
+    {
+      "file": "04_vegetation/nat_crops_dirtDoubleRow.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_dirtDoubleRow.glb",
+      "size_bytes": 7560
+    },
+    {
+      "file": "04_vegetation/nat_crops_dirtDoubleRowCorner.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_dirtDoubleRowCorner.glb",
+      "size_bytes": 5396
+    },
+    {
+      "file": "04_vegetation/nat_crops_dirtDoubleRowEnd.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_dirtDoubleRowEnd.glb",
+      "size_bytes": 6248
+    },
+    {
+      "file": "04_vegetation/nat_crops_dirtRow.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_dirtRow.glb",
+      "size_bytes": 4712
+    },
+    {
+      "file": "04_vegetation/nat_crops_dirtRowCorner.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_dirtRowCorner.glb",
+      "size_bytes": 3248
+    },
+    {
+      "file": "04_vegetation/nat_crops_dirtRowEnd.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_dirtRowEnd.glb",
+      "size_bytes": 4064
+    },
+    {
+      "file": "04_vegetation/nat_crops_dirtSingle.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_dirtSingle.glb",
+      "size_bytes": 4196
+    },
+    {
+      "file": "04_vegetation/nat_crops_leafsStageA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_leafsStageA.glb",
+      "size_bytes": 7144
+    },
+    {
+      "file": "04_vegetation/nat_crops_leafsStageB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_leafsStageB.glb",
+      "size_bytes": 7768
+    },
+    {
+      "file": "04_vegetation/nat_crops_wheatStageA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_wheatStageA.glb",
+      "size_bytes": 56228
+    },
+    {
+      "file": "04_vegetation/nat_crops_wheatStageB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "crops_wheatStageB.glb",
+      "size_bytes": 30040
+    },
+    {
+      "file": "04_vegetation/nat_flower_purpleA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "flower_purpleA.glb",
+      "size_bytes": 7112
+    },
+    {
+      "file": "04_vegetation/nat_flower_purpleB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "flower_purpleB.glb",
+      "size_bytes": 8084
+    },
+    {
+      "file": "04_vegetation/nat_flower_purpleC.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "flower_purpleC.glb",
+      "size_bytes": 7600
+    },
+    {
+      "file": "04_vegetation/nat_flower_redA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "flower_redA.glb",
+      "size_bytes": 7104
+    },
+    {
+      "file": "04_vegetation/nat_flower_redB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "flower_redB.glb",
+      "size_bytes": 8080
+    },
+    {
+      "file": "04_vegetation/nat_flower_redC.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "flower_redC.glb",
+      "size_bytes": 7600
+    },
+    {
+      "file": "04_vegetation/nat_flower_yellowA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "flower_yellowA.glb",
+      "size_bytes": 7120
+    },
+    {
+      "file": "04_vegetation/nat_flower_yellowB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "flower_yellowB.glb",
+      "size_bytes": 11256
+    },
+    {
+      "file": "04_vegetation/nat_flower_yellowC.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "flower_yellowC.glb",
+      "size_bytes": 7616
+    },
+    {
+      "file": "04_vegetation/nat_grass.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "grass.glb",
+      "size_bytes": 11496
+    },
+    {
+      "file": "04_vegetation/nat_grass_large.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "grass_large.glb",
+      "size_bytes": 18504
+    },
+    {
+      "file": "04_vegetation/nat_grass_leafs.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "grass_leafs.glb",
+      "size_bytes": 4608
+    },
+    {
+      "file": "04_vegetation/nat_grass_leafsLarge.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "grass_leafsLarge.glb",
+      "size_bytes": 13988
+    },
+    {
+      "file": "04_vegetation/nat_hanging_moss.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "hanging_moss.glb",
+      "size_bytes": 4776
+    },
+    {
+      "file": "04_vegetation/nat_lily_large.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "lily_large.glb",
+      "size_bytes": 8044
+    },
+    {
+      "file": "04_vegetation/nat_lily_small.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "lily_small.glb",
+      "size_bytes": 5664
+    },
+    {
+      "file": "04_vegetation/nat_mushroom_red.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "mushroom_red.glb",
+      "size_bytes": 6364
+    },
+    {
+      "file": "04_vegetation/nat_mushroom_redGroup.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "mushroom_redGroup.glb",
+      "size_bytes": 14960
+    },
+    {
+      "file": "04_vegetation/nat_mushroom_redTall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "mushroom_redTall.glb",
+      "size_bytes": 6504
+    },
+    {
+      "file": "04_vegetation/nat_mushroom_tan.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "mushroom_tan.glb",
+      "size_bytes": 5804
+    },
+    {
+      "file": "04_vegetation/nat_mushroom_tanGroup.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "mushroom_tanGroup.glb",
+      "size_bytes": 14956
+    },
+    {
+      "file": "04_vegetation/nat_mushroom_tanTall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "mushroom_tanTall.glb",
+      "size_bytes": 6500
+    },
+    {
+      "file": "04_vegetation/nat_plant_bush.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "plant_bush.glb",
+      "size_bytes": 4396
+    },
+    {
+      "file": "04_vegetation/nat_plant_bushDetailed.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "plant_bushDetailed.glb",
+      "size_bytes": 10172
+    },
+    {
+      "file": "04_vegetation/nat_plant_bushLarge.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "plant_bushLarge.glb",
+      "size_bytes": 6436
+    },
+    {
+      "file": "04_vegetation/nat_plant_bushLargeTriangle.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "plant_bushLargeTriangle.glb",
+      "size_bytes": 4564
+    },
+    {
+      "file": "04_vegetation/nat_plant_bushSmall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "plant_bushSmall.glb",
+      "size_bytes": 3212
+    },
+    {
+      "file": "04_vegetation/nat_plant_bushTriangle.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "plant_bushTriangle.glb",
+      "size_bytes": 3956
+    },
+    {
+      "file": "04_vegetation/nat_plant_flatShort.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "plant_flatShort.glb",
+      "size_bytes": 3936
+    },
+    {
+      "file": "04_vegetation/nat_plant_flatTall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "plant_flatTall.glb",
+      "size_bytes": 3480
+    },
+    {
+      "file": "04_vegetation/nat_stump_old.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stump_old.glb",
+      "size_bytes": 9564
+    },
+    {
+      "file": "04_vegetation/nat_stump_oldTall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stump_oldTall.glb",
+      "size_bytes": 9564
+    },
+    {
+      "file": "04_vegetation/nat_stump_round.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stump_round.glb",
+      "size_bytes": 5644
+    },
+    {
+      "file": "04_vegetation/nat_stump_roundDetailed.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stump_roundDetailed.glb",
+      "size_bytes": 8188
+    },
+    {
+      "file": "04_vegetation/nat_stump_square.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stump_square.glb",
+      "size_bytes": 4584
+    },
+    {
+      "file": "04_vegetation/nat_stump_squareDetailed.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stump_squareDetailed.glb",
+      "size_bytes": 7544
+    },
+    {
+      "file": "04_vegetation/nat_stump_squareDetailedWide.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "stump_squareDetailedWide.glb",
+      "size_bytes": 7536
+    },
+    {
+      "file": "04_vegetation/nat_tree_blocks.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_blocks.glb",
+      "size_bytes": 10128
+    },
+    {
+      "file": "04_vegetation/nat_tree_blocks_dark.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_blocks_dark.glb",
+      "size_bytes": 10132
+    },
+    {
+      "file": "04_vegetation/nat_tree_blocks_fall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_blocks_fall.glb",
+      "size_bytes": 18368
+    },
+    {
+      "file": "04_vegetation/nat_tree_cone.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_cone.glb",
+      "size_bytes": 10924
+    },
+    {
+      "file": "04_vegetation/nat_tree_cone_dark.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_cone_dark.glb",
+      "size_bytes": 19940
+    },
+    {
+      "file": "04_vegetation/nat_tree_cone_fall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_cone_fall.glb",
+      "size_bytes": 10916
+    },
+    {
+      "file": "04_vegetation/nat_tree_default.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_default.glb",
+      "size_bytes": 9428
+    },
+    {
+      "file": "04_vegetation/nat_tree_default_dark.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_default_dark.glb",
+      "size_bytes": 9436
+    },
+    {
+      "file": "04_vegetation/nat_tree_default_fall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_default_fall.glb",
+      "size_bytes": 16940
+    },
+    {
+      "file": "04_vegetation/nat_tree_detailed.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_detailed.glb",
+      "size_bytes": 31412
+    },
+    {
+      "file": "04_vegetation/nat_tree_detailed_dark.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_detailed_dark.glb",
+      "size_bytes": 31416
+    },
+    {
+      "file": "04_vegetation/nat_tree_detailed_fall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_detailed_fall.glb",
+      "size_bytes": 31404
+    },
+    {
+      "file": "04_vegetation/nat_tree_fat.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_fat.glb",
+      "size_bytes": 5576
+    },
+    {
+      "file": "04_vegetation/nat_tree_fat_darkh.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_fat_darkh.glb",
+      "size_bytes": 5584
+    },
+    {
+      "file": "04_vegetation/nat_tree_fat_fall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_fat_fall.glb",
+      "size_bytes": 5572
+    },
+    {
+      "file": "04_vegetation/nat_tree_oak.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_oak.glb",
+      "size_bytes": 14644
+    },
+    {
+      "file": "04_vegetation/nat_tree_oak_dark.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_oak_dark.glb",
+      "size_bytes": 14648
+    },
+    {
+      "file": "04_vegetation/nat_tree_oak_fall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_oak_fall.glb",
+      "size_bytes": 14640
+    },
+    {
+      "file": "04_vegetation/nat_tree_palm.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_palm.glb",
+      "size_bytes": 13616
+    },
+    {
+      "file": "04_vegetation/nat_tree_palmBend.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_palmBend.glb",
+      "size_bytes": 14820
+    },
+    {
+      "file": "04_vegetation/nat_tree_palmDetailedShort.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_palmDetailedShort.glb",
+      "size_bytes": 28212
+    },
+    {
+      "file": "04_vegetation/nat_tree_palmDetailedTall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_palmDetailedTall.glb",
+      "size_bytes": 28204
+    },
+    {
+      "file": "04_vegetation/nat_tree_palmShort.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_palmShort.glb",
+      "size_bytes": 15596
+    },
+    {
+      "file": "04_vegetation/nat_tree_palmTall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_palmTall.glb",
+      "size_bytes": 15592
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineDefaultA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineDefaultA.glb",
+      "size_bytes": 17220
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineDefaultB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineDefaultB.glb",
+      "size_bytes": 18180
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineGroundA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineGroundA.glb",
+      "size_bytes": 6704
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineGroundB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineGroundB.glb",
+      "size_bytes": 6704
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineRoundA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineRoundA.glb",
+      "size_bytes": 14488
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineRoundB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineRoundB.glb",
+      "size_bytes": 18464
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineRoundC.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineRoundC.glb",
+      "size_bytes": 15332
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineRoundD.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineRoundD.glb",
+      "size_bytes": 13748
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineRoundE.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineRoundE.glb",
+      "size_bytes": 15308
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineRoundF.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineRoundF.glb",
+      "size_bytes": 16264
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineSmallA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineSmallA.glb",
+      "size_bytes": 12820
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineSmallB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineSmallB.glb",
+      "size_bytes": 7816
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineSmallC.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineSmallC.glb",
+      "size_bytes": 5376
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineSmallD.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineSmallD.glb",
+      "size_bytes": 5368
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineTallA.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineTallA.glb",
+      "size_bytes": 7200
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineTallA_detailed.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineTallA_detailed.glb",
+      "size_bytes": 10708
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineTallB.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineTallB.glb",
+      "size_bytes": 7204
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineTallB_detailed.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineTallB_detailed.glb",
+      "size_bytes": 12632
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineTallC.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineTallC.glb",
+      "size_bytes": 8080
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineTallC_detailed.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineTallC_detailed.glb",
+      "size_bytes": 11588
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineTallD.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineTallD.glb",
+      "size_bytes": 8080
+    },
+    {
+      "file": "04_vegetation/nat_tree_pineTallD_detailed.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_pineTallD_detailed.glb",
+      "size_bytes": 12548
+    },
+    {
+      "file": "04_vegetation/nat_tree_plateau.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_plateau.glb",
+      "size_bytes": 16304
+    },
+    {
+      "file": "04_vegetation/nat_tree_plateau_dark.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_plateau_dark.glb",
+      "size_bytes": 16308
+    },
+    {
+      "file": "04_vegetation/nat_tree_plateau_fall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_plateau_fall.glb",
+      "size_bytes": 16296
+    },
+    {
+      "file": "04_vegetation/nat_tree_simple.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_simple.glb",
+      "size_bytes": 6500
+    },
+    {
+      "file": "04_vegetation/nat_tree_simple_dark.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_simple_dark.glb",
+      "size_bytes": 6508
+    },
+    {
+      "file": "04_vegetation/nat_tree_simple_fall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_simple_fall.glb",
+      "size_bytes": 6496
+    },
+    {
+      "file": "04_vegetation/nat_tree_small.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_small.glb",
+      "size_bytes": 6500
+    },
+    {
+      "file": "04_vegetation/nat_tree_small_dark.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_small_dark.glb",
+      "size_bytes": 11092
+    },
+    {
+      "file": "04_vegetation/nat_tree_small_fall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_small_fall.glb",
+      "size_bytes": 6492
+    },
+    {
+      "file": "04_vegetation/nat_tree_tall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_tall.glb",
+      "size_bytes": 7000
+    },
+    {
+      "file": "04_vegetation/nat_tree_tall_dark.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_tall_dark.glb",
+      "size_bytes": 7008
+    },
+    {
+      "file": "04_vegetation/nat_tree_tall_fall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_tall_fall.glb",
+      "size_bytes": 12088
+    },
+    {
+      "file": "04_vegetation/nat_tree_thin.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_thin.glb",
+      "size_bytes": 17200
+    },
+    {
+      "file": "04_vegetation/nat_tree_thin_dark.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_thin_dark.glb",
+      "size_bytes": 32488
+    },
+    {
+      "file": "04_vegetation/nat_tree_thin_fall.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tree_thin_fall.glb",
+      "size_bytes": 17192
+    },
+    {
+      "file": "04_vegetation/pir_grass-patch.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "grass-patch.glb",
+      "size_bytes": 38640
+    },
+    {
+      "file": "04_vegetation/pir_grass-plant.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "grass-plant.glb",
+      "size_bytes": 14400
+    },
+    {
+      "file": "04_vegetation/pir_palm-bend.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "palm-bend.glb",
+      "size_bytes": 36528
+    },
+    {
+      "file": "04_vegetation/pir_palm-detailed-bend.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "palm-detailed-bend.glb",
+      "size_bytes": 52012
+    },
+    {
+      "file": "04_vegetation/pir_palm-detailed-straight.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "palm-detailed-straight.glb",
+      "size_bytes": 51916
+    },
+    {
+      "file": "04_vegetation/pir_palm-straight.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "palm-straight.glb",
+      "size_bytes": 36524
+    },
+    {
+      "file": "04_vegetation/td_detail-crystal-large.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "detail-crystal-large.glb",
+      "size_bytes": 44828
+    },
+    {
+      "file": "04_vegetation/td_detail-crystal.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "detail-crystal.glb",
+      "size_bytes": 8996
+    },
+    {
+      "file": "04_vegetation/td_detail-tree-large.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "detail-tree-large.glb",
+      "size_bytes": 18940
+    },
+    {
+      "file": "04_vegetation/td_detail-tree.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "detail-tree.glb",
+      "size_bytes": 18980
+    },
+    {
+      "file": "04_vegetation/td_snow-detail-crystal-large.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-detail-crystal-large.glb",
+      "size_bytes": 44844
+    },
+    {
+      "file": "04_vegetation/td_snow-detail-crystal.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-detail-crystal.glb",
+      "size_bytes": 9012
+    },
+    {
+      "file": "04_vegetation/td_snow-detail-tree-large.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-detail-tree-large.glb",
+      "size_bytes": 18952
+    },
+    {
+      "file": "04_vegetation/td_snow-detail-tree.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-detail-tree.glb",
+      "size_bytes": 18996
+    },
+    {
+      "file": "05_buildings_structures/hex_bridge.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "bridge.glb",
+      "size_bytes": 36344
+    },
+    {
+      "file": "05_buildings_structures/hex_building-archery.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-archery.glb",
+      "size_bytes": 58632
+    },
+    {
+      "file": "05_buildings_structures/hex_building-cabin.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-cabin.glb",
+      "size_bytes": 43816
+    },
+    {
+      "file": "05_buildings_structures/hex_building-castle.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-castle.glb",
+      "size_bytes": 88592
+    },
+    {
+      "file": "05_buildings_structures/hex_building-dock.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-dock.glb",
+      "size_bytes": 28980
+    },
+    {
+      "file": "05_buildings_structures/hex_building-farm.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-farm.glb",
+      "size_bytes": 18928
+    },
+    {
+      "file": "05_buildings_structures/hex_building-house.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-house.glb",
+      "size_bytes": 35452
+    },
+    {
+      "file": "05_buildings_structures/hex_building-market.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-market.glb",
+      "size_bytes": 52276
+    },
+    {
+      "file": "05_buildings_structures/hex_building-mill.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-mill.glb",
+      "size_bytes": 48284
+    },
+    {
+      "file": "05_buildings_structures/hex_building-mine.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-mine.glb",
+      "size_bytes": 32812
+    },
+    {
+      "file": "05_buildings_structures/hex_building-port.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-port.glb",
+      "size_bytes": 38128
+    },
+    {
+      "file": "05_buildings_structures/hex_building-sheep.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-sheep.glb",
+      "size_bytes": 71656
+    },
+    {
+      "file": "05_buildings_structures/hex_building-smelter.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-smelter.glb",
+      "size_bytes": 42872
+    },
+    {
+      "file": "05_buildings_structures/hex_building-tower.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-tower.glb",
+      "size_bytes": 50916
+    },
+    {
+      "file": "05_buildings_structures/hex_building-village.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-village.glb",
+      "size_bytes": 40412
+    },
+    {
+      "file": "05_buildings_structures/hex_building-wall.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-wall.glb",
+      "size_bytes": 64584
+    },
+    {
+      "file": "05_buildings_structures/hex_building-walls.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-walls.glb",
+      "size_bytes": 108708
+    },
+    {
+      "file": "05_buildings_structures/hex_building-watermill.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-watermill.glb",
+      "size_bytes": 55712
+    },
+    {
+      "file": "05_buildings_structures/hex_building-wizard-tower.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "building-wizard-tower.glb",
+      "size_bytes": 88908
+    },
+    {
+      "file": "05_buildings_structures/hex_unit-house.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "unit-house.glb",
+      "size_bytes": 8804
+    },
+    {
+      "file": "05_buildings_structures/hex_unit-mansion.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "unit-mansion.glb",
+      "size_bytes": 13112
+    },
+    {
+      "file": "05_buildings_structures/hex_unit-mill.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "unit-mill.glb",
+      "size_bytes": 23016
+    },
+    {
+      "file": "05_buildings_structures/hex_unit-tower.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "unit-tower.glb",
+      "size_bytes": 21276
+    },
+    {
+      "file": "05_buildings_structures/hex_unit-wall-tower.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "unit-wall-tower.glb",
+      "size_bytes": 16024
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_center_stone.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_center_stone.glb",
+      "size_bytes": 5076
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_center_stoneRound.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_center_stoneRound.glb",
+      "size_bytes": 5080
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_center_wood.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_center_wood.glb",
+      "size_bytes": 5480
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_center_woodRound.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_center_woodRound.glb",
+      "size_bytes": 6280
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_side_stone.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_side_stone.glb",
+      "size_bytes": 11408
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_side_stoneRound.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_side_stoneRound.glb",
+      "size_bytes": 13540
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_side_wood.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_side_wood.glb",
+      "size_bytes": 10604
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_side_woodRound.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_side_woodRound.glb",
+      "size_bytes": 13460
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_stone.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_stone.glb",
+      "size_bytes": 17708
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_stoneNarrow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_stoneNarrow.glb",
+      "size_bytes": 17724
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_stoneRound.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_stoneRound.glb",
+      "size_bytes": 22552
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_stoneRoundNarrow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_stoneRoundNarrow.glb",
+      "size_bytes": 22564
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_wood.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_wood.glb",
+      "size_bytes": 15692
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_woodNarrow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_woodNarrow.glb",
+      "size_bytes": 15708
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_woodRound.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_woodRound.glb",
+      "size_bytes": 21192
+    },
+    {
+      "file": "05_buildings_structures/nat_bridge_woodRoundNarrow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bridge_woodRoundNarrow.glb",
+      "size_bytes": 21204
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_bend.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_bend.glb",
+      "size_bytes": 16276
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_bendCenter.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_bendCenter.glb",
+      "size_bytes": 20016
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_corner.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_corner.glb",
+      "size_bytes": 8644
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_gate.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_gate.glb",
+      "size_bytes": 27652
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_planks.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_planks.glb",
+      "size_bytes": 7720
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_planksDouble.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_planksDouble.glb",
+      "size_bytes": 11160
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_simple.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_simple.glb",
+      "size_bytes": 5712
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_simpleCenter.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_simpleCenter.glb",
+      "size_bytes": 8660
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_simpleDiagonal.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_simpleDiagonal.glb",
+      "size_bytes": 6688
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_simpleDiagonalCenter.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_simpleDiagonalCenter.glb",
+      "size_bytes": 11064
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_simpleHigh.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_simpleHigh.glb",
+      "size_bytes": 4300
+    },
+    {
+      "file": "05_buildings_structures/nat_fence_simpleLow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "fence_simpleLow.glb",
+      "size_bytes": 4312
+    },
+    {
+      "file": "05_buildings_structures/nat_log.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "log.glb",
+      "size_bytes": 14288
+    },
+    {
+      "file": "05_buildings_structures/nat_log_large.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "log_large.glb",
+      "size_bytes": 7924
+    },
+    {
+      "file": "05_buildings_structures/nat_log_stack.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "log_stack.glb",
+      "size_bytes": 10896
+    },
+    {
+      "file": "05_buildings_structures/nat_log_stackLarge.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "log_stackLarge.glb",
+      "size_bytes": 17604
+    },
+    {
+      "file": "05_buildings_structures/nat_platform_beach.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "platform_beach.glb",
+      "size_bytes": 13204
+    },
+    {
+      "file": "05_buildings_structures/nat_platform_grass.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "platform_grass.glb",
+      "size_bytes": 12568
+    },
+    {
+      "file": "05_buildings_structures/nat_platform_stone.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "platform_stone.glb",
+      "size_bytes": 13632
+    },
+    {
+      "file": "05_buildings_structures/nat_pot_large.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "pot_large.glb",
+      "size_bytes": 6168
+    },
+    {
+      "file": "05_buildings_structures/nat_pot_small.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "pot_small.glb",
+      "size_bytes": 7004
+    },
+    {
+      "file": "05_buildings_structures/nat_sign.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "sign.glb",
+      "size_bytes": 5040
+    },
+    {
+      "file": "05_buildings_structures/nat_statue_block.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "statue_block.glb",
+      "size_bytes": 11252
+    },
+    {
+      "file": "05_buildings_structures/nat_statue_column.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "statue_column.glb",
+      "size_bytes": 10472
+    },
+    {
+      "file": "05_buildings_structures/nat_statue_columnDamaged.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "statue_columnDamaged.glb",
+      "size_bytes": 8824
+    },
+    {
+      "file": "05_buildings_structures/nat_statue_head.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "statue_head.glb",
+      "size_bytes": 14704
+    },
+    {
+      "file": "05_buildings_structures/nat_statue_obelisk.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "statue_obelisk.glb",
+      "size_bytes": 4416
+    },
+    {
+      "file": "05_buildings_structures/nat_statue_ring.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "statue_ring.glb",
+      "size_bytes": 6568
+    },
+    {
+      "file": "05_buildings_structures/nat_tent_detailedClosed.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tent_detailedClosed.glb",
+      "size_bytes": 15460
+    },
+    {
+      "file": "05_buildings_structures/nat_tent_detailedOpen.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tent_detailedOpen.glb",
+      "size_bytes": 15324
+    },
+    {
+      "file": "05_buildings_structures/nat_tent_smallClosed.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tent_smallClosed.glb",
+      "size_bytes": 13200
+    },
+    {
+      "file": "05_buildings_structures/nat_tent_smallOpen.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "tent_smallOpen.glb",
+      "size_bytes": 13604
+    },
+    {
+      "file": "05_buildings_structures/pir_castle-door.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "castle-door.glb",
+      "size_bytes": 37648
+    },
+    {
+      "file": "05_buildings_structures/pir_castle-gate.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "castle-gate.glb",
+      "size_bytes": 67440
+    },
+    {
+      "file": "05_buildings_structures/pir_castle-wall.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "castle-wall.glb",
+      "size_bytes": 30504
+    },
+    {
+      "file": "05_buildings_structures/pir_castle-window.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "castle-window.glb",
+      "size_bytes": 28668
+    },
+    {
+      "file": "05_buildings_structures/pir_flag-high-pennant.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "flag-high-pennant.glb",
+      "size_bytes": 13656
+    },
+    {
+      "file": "05_buildings_structures/pir_flag-high.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "flag-high.glb",
+      "size_bytes": 15196
+    },
+    {
+      "file": "05_buildings_structures/pir_flag-pennant.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "flag-pennant.glb",
+      "size_bytes": 13640
+    },
+    {
+      "file": "05_buildings_structures/pir_flag-pirate-high-pennant.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "flag-pirate-high-pennant.glb",
+      "size_bytes": 13676
+    },
+    {
+      "file": "05_buildings_structures/pir_flag-pirate-high.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "flag-pirate-high.glb",
+      "size_bytes": 15220
+    },
+    {
+      "file": "05_buildings_structures/pir_flag-pirate-pennant.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "flag-pirate-pennant.glb",
+      "size_bytes": 13660
+    },
+    {
+      "file": "05_buildings_structures/pir_flag-pirate.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "flag-pirate.glb",
+      "size_bytes": 15204
+    },
+    {
+      "file": "05_buildings_structures/pir_flag.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "flag.glb",
+      "size_bytes": 15184
+    },
+    {
+      "file": "05_buildings_structures/pir_mast-ropes.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "mast-ropes.glb",
+      "size_bytes": 36156
+    },
+    {
+      "file": "05_buildings_structures/pir_mast.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "mast.glb",
+      "size_bytes": 30816
+    },
+    {
+      "file": "05_buildings_structures/pir_platform-planks.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "platform-planks.glb",
+      "size_bytes": 6524
+    },
+    {
+      "file": "05_buildings_structures/pir_platform.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "platform.glb",
+      "size_bytes": 7668
+    },
+    {
+      "file": "05_buildings_structures/pir_structure-fence-sides.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "structure-fence-sides.glb",
+      "size_bytes": 44480
+    },
+    {
+      "file": "05_buildings_structures/pir_structure-fence.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "structure-fence.glb",
+      "size_bytes": 35752
+    },
+    {
+      "file": "05_buildings_structures/pir_structure-platform-dock-small.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "structure-platform-dock-small.glb",
+      "size_bytes": 32156
+    },
+    {
+      "file": "05_buildings_structures/pir_structure-platform-dock.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "structure-platform-dock.glb",
+      "size_bytes": 33336
+    },
+    {
+      "file": "05_buildings_structures/pir_structure-platform-small.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "structure-platform-small.glb",
+      "size_bytes": 23068
+    },
+    {
+      "file": "05_buildings_structures/pir_structure-platform.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "structure-platform.glb",
+      "size_bytes": 24248
+    },
+    {
+      "file": "05_buildings_structures/pir_structure-roof.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "structure-roof.glb",
+      "size_bytes": 34480
+    },
+    {
+      "file": "05_buildings_structures/pir_structure.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "structure.glb",
+      "size_bytes": 27988
+    },
+    {
+      "file": "05_buildings_structures/pir_tower-base-door.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "tower-base-door.glb",
+      "size_bytes": 12592
+    },
+    {
+      "file": "05_buildings_structures/pir_tower-base.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "tower-base.glb",
+      "size_bytes": 5772
+    },
+    {
+      "file": "05_buildings_structures/pir_tower-complete-large.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "tower-complete-large.glb",
+      "size_bytes": 54660
+    },
+    {
+      "file": "05_buildings_structures/pir_tower-complete-small.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "tower-complete-small.glb",
+      "size_bytes": 58412
+    },
+    {
+      "file": "05_buildings_structures/pir_tower-middle-windows.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "tower-middle-windows.glb",
+      "size_bytes": 23188
+    },
+    {
+      "file": "05_buildings_structures/pir_tower-middle.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "tower-middle.glb",
+      "size_bytes": 21112
+    },
+    {
+      "file": "05_buildings_structures/pir_tower-roof.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "tower-roof.glb",
+      "size_bytes": 11772
+    },
+    {
+      "file": "05_buildings_structures/pir_tower-top.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "tower-top.glb",
+      "size_bytes": 29484
+    },
+    {
+      "file": "05_buildings_structures/pir_tower-watch.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "tower-watch.glb",
+      "size_bytes": 21672
+    },
+    {
+      "file": "05_buildings_structures/td_snow-wood-structure-high-part.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-wood-structure-high-part.glb",
+      "size_bytes": 14924
+    },
+    {
+      "file": "05_buildings_structures/td_snow-wood-structure-high.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-wood-structure-high.glb",
+      "size_bytes": 44272
+    },
+    {
+      "file": "05_buildings_structures/td_snow-wood-structure-part.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-wood-structure-part.glb",
+      "size_bytes": 10540
+    },
+    {
+      "file": "05_buildings_structures/td_snow-wood-structure.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "snow-wood-structure.glb",
+      "size_bytes": 27912
+    },
+    {
+      "file": "05_buildings_structures/td_spawn-round.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "spawn-round.glb",
+      "size_bytes": 18988
+    },
+    {
+      "file": "05_buildings_structures/td_spawn-square.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "spawn-square.glb",
+      "size_bytes": 14080
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-base.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-base.glb",
+      "size_bytes": 37208
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-bottom-a.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-bottom-a.glb",
+      "size_bytes": 35824
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-bottom-b.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-bottom-b.glb",
+      "size_bytes": 33088
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-bottom-c.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-bottom-c.glb",
+      "size_bytes": 37016
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-build-a.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-build-a.glb",
+      "size_bytes": 50572
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-build-b.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-build-b.glb",
+      "size_bytes": 62516
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-build-c.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-build-c.glb",
+      "size_bytes": 74448
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-build-d.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-build-d.glb",
+      "size_bytes": 78888
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-build-e.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-build-e.glb",
+      "size_bytes": 88524
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-build-f.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-build-f.glb",
+      "size_bytes": 102764
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-crystals.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-crystals.glb",
+      "size_bytes": 71488
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-middle-a.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-middle-a.glb",
+      "size_bytes": 61072
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-middle-b.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-middle-b.glb",
+      "size_bytes": 58896
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-middle-c.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-middle-c.glb",
+      "size_bytes": 53720
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-roof-a.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-roof-a.glb",
+      "size_bytes": 72876
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-roof-b.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-roof-b.glb",
+      "size_bytes": 75740
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-roof-c.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-roof-c.glb",
+      "size_bytes": 71664
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-top-a.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-top-a.glb",
+      "size_bytes": 44552
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-top-b.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-top-b.glb",
+      "size_bytes": 47416
+    },
+    {
+      "file": "05_buildings_structures/td_tower-round-top-c.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-round-top-c.glb",
+      "size_bytes": 46936
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-bottom-a.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-bottom-a.glb",
+      "size_bytes": 12936
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-bottom-b.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-bottom-b.glb",
+      "size_bytes": 35648
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-bottom-c.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-bottom-c.glb",
+      "size_bytes": 25228
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-build-a.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-build-a.glb",
+      "size_bytes": 75984
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-build-b.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-build-b.glb",
+      "size_bytes": 79436
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-build-c.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-build-c.glb",
+      "size_bytes": 69052
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-build-d.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-build-d.glb",
+      "size_bytes": 85384
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-build-e.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-build-e.glb",
+      "size_bytes": 89244
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-build-f.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-build-f.glb",
+      "size_bytes": 78452
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-middle-a.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-middle-a.glb",
+      "size_bytes": 45332
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-middle-b.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-middle-b.glb",
+      "size_bytes": 24868
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-middle-c.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-middle-c.glb",
+      "size_bytes": 25724
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-roof-a.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-roof-a.glb",
+      "size_bytes": 75588
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-roof-b.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-roof-b.glb",
+      "size_bytes": 55328
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-roof-c.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-roof-c.glb",
+      "size_bytes": 54952
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-top-a.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-top-a.glb",
+      "size_bytes": 66184
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-top-b.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-top-b.glb",
+      "size_bytes": 45512
+    },
+    {
+      "file": "05_buildings_structures/td_tower-square-top-c.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "tower-square-top-c.glb",
+      "size_bytes": 45548
+    },
+    {
+      "file": "05_buildings_structures/td_wood-structure-high-part.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "wood-structure-high-part.glb",
+      "size_bytes": 9660
+    },
+    {
+      "file": "05_buildings_structures/td_wood-structure-high.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "wood-structure-high.glb",
+      "size_bytes": 24560
+    },
+    {
+      "file": "05_buildings_structures/td_wood-structure-part.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "wood-structure-part.glb",
+      "size_bytes": 8040
+    },
+    {
+      "file": "05_buildings_structures/td_wood-structure.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "wood-structure.glb",
+      "size_bytes": 17996
+    },
+    {
+      "file": "06_props_decor/hex_unit-ship-large.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "unit-ship-large.glb",
+      "size_bytes": 17536
+    },
+    {
+      "file": "06_props_decor/hex_unit-ship.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Hexagon Kit",
+      "original_name": "unit-ship.glb",
+      "size_bytes": 13268
+    },
+    {
+      "file": "06_props_decor/nat_bed.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bed.glb",
+      "size_bytes": 19108
+    },
+    {
+      "file": "06_props_decor/nat_bed_floor.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "bed_floor.glb",
+      "size_bytes": 10688
+    },
+    {
+      "file": "06_props_decor/nat_campfire_bricks.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "campfire_bricks.glb",
+      "size_bytes": 10220
+    },
+    {
+      "file": "06_props_decor/nat_campfire_logs.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "campfire_logs.glb",
+      "size_bytes": 9284
+    },
+    {
+      "file": "06_props_decor/nat_campfire_planks.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "campfire_planks.glb",
+      "size_bytes": 8148
+    },
+    {
+      "file": "06_props_decor/nat_campfire_stones.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "campfire_stones.glb",
+      "size_bytes": 17344
+    },
+    {
+      "file": "06_props_decor/nat_canoe.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "canoe.glb",
+      "size_bytes": 15780
+    },
+    {
+      "file": "06_props_decor/nat_canoe_paddle.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Nature Kit",
+      "original_name": "canoe_paddle.glb",
+      "size_bytes": 3952
+    },
+    {
+      "file": "06_props_decor/pir_barrel.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "barrel.glb",
+      "size_bytes": 14092
+    },
+    {
+      "file": "06_props_decor/pir_boat-row-large.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "boat-row-large.glb",
+      "size_bytes": 15972
+    },
+    {
+      "file": "06_props_decor/pir_boat-row-small.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "boat-row-small.glb",
+      "size_bytes": 17616
+    },
+    {
+      "file": "06_props_decor/pir_bottle-large.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "bottle-large.glb",
+      "size_bytes": 12232
+    },
+    {
+      "file": "06_props_decor/pir_bottle.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "bottle.glb",
+      "size_bytes": 13796
+    },
+    {
+      "file": "06_props_decor/pir_cannon-ball.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "cannon-ball.glb",
+      "size_bytes": 7192
+    },
+    {
+      "file": "06_props_decor/pir_cannon-mobile.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "cannon-mobile.glb",
+      "size_bytes": 43824
+    },
+    {
+      "file": "06_props_decor/pir_cannon.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "cannon.glb",
+      "size_bytes": 24024
+    },
+    {
+      "file": "06_props_decor/pir_chest.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "chest.glb",
+      "size_bytes": 25240
+    },
+    {
+      "file": "06_props_decor/pir_crate-bottles.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "crate-bottles.glb",
+      "size_bytes": 58588
+    },
+    {
+      "file": "06_props_decor/pir_crate.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "crate.glb",
+      "size_bytes": 9232
+    },
+    {
+      "file": "06_props_decor/pir_ship-ghost.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "ship-ghost.glb",
+      "size_bytes": 155692
+    },
+    {
+      "file": "06_props_decor/pir_ship-large.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "ship-large.glb",
+      "size_bytes": 155792
+    },
+    {
+      "file": "06_props_decor/pir_ship-medium.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "ship-medium.glb",
+      "size_bytes": 144944
+    },
+    {
+      "file": "06_props_decor/pir_ship-pirate-large.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "ship-pirate-large.glb",
+      "size_bytes": 177216
+    },
+    {
+      "file": "06_props_decor/pir_ship-pirate-medium.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "ship-pirate-medium.glb",
+      "size_bytes": 166388
+    },
+    {
+      "file": "06_props_decor/pir_ship-pirate-small.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "ship-pirate-small.glb",
+      "size_bytes": 131464
+    },
+    {
+      "file": "06_props_decor/pir_ship-small.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "ship-small.glb",
+      "size_bytes": 116440
+    },
+    {
+      "file": "06_props_decor/pir_ship-wreck.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "ship-wreck.glb",
+      "size_bytes": 223676
+    },
+    {
+      "file": "06_props_decor/pir_tool-paddle.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "tool-paddle.glb",
+      "size_bytes": 6864
+    },
+    {
+      "file": "06_props_decor/pir_tool-shovel.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Pirate Kit",
+      "original_name": "tool-shovel.glb",
+      "size_bytes": 16144
+    },
+    {
+      "file": "06_props_decor/td_enemy-ufo-a-weapon.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "enemy-ufo-a-weapon.glb",
+      "size_bytes": 97084
+    },
+    {
+      "file": "06_props_decor/td_enemy-ufo-a.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "enemy-ufo-a.glb",
+      "size_bytes": 42688
+    },
+    {
+      "file": "06_props_decor/td_enemy-ufo-b-weapon.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "enemy-ufo-b-weapon.glb",
+      "size_bytes": 89992
+    },
+    {
+      "file": "06_props_decor/td_enemy-ufo-b.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "enemy-ufo-b.glb",
+      "size_bytes": 37736
+    },
+    {
+      "file": "06_props_decor/td_enemy-ufo-beam-burst.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "enemy-ufo-beam-burst.glb",
+      "size_bytes": 9012
+    },
+    {
+      "file": "06_props_decor/td_enemy-ufo-beam.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "enemy-ufo-beam.glb",
+      "size_bytes": 6636
+    },
+    {
+      "file": "06_props_decor/td_enemy-ufo-c-weapon.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "enemy-ufo-c-weapon.glb",
+      "size_bytes": 88492
+    },
+    {
+      "file": "06_props_decor/td_enemy-ufo-c.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "enemy-ufo-c.glb",
+      "size_bytes": 35240
+    },
+    {
+      "file": "06_props_decor/td_enemy-ufo-d-weapon.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "enemy-ufo-d-weapon.glb",
+      "size_bytes": 90892
+    },
+    {
+      "file": "06_props_decor/td_enemy-ufo-d.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "enemy-ufo-d.glb",
+      "size_bytes": 45320
+    },
+    {
+      "file": "06_props_decor/td_selection-a.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "selection-a.glb",
+      "size_bytes": 19056
+    },
+    {
+      "file": "06_props_decor/td_selection-b.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "selection-b.glb",
+      "size_bytes": 4960
+    },
+    {
+      "file": "06_props_decor/td_weapon-ammo-arrow.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "weapon-ammo-arrow.glb",
+      "size_bytes": 9040
+    },
+    {
+      "file": "06_props_decor/td_weapon-ammo-boulder.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "weapon-ammo-boulder.glb",
+      "size_bytes": 10192
+    },
+    {
+      "file": "06_props_decor/td_weapon-ammo-bullet.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "weapon-ammo-bullet.glb",
+      "size_bytes": 16640
+    },
+    {
+      "file": "06_props_decor/td_weapon-ammo-cannonball.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "weapon-ammo-cannonball.glb",
+      "size_bytes": 19688
+    },
+    {
+      "file": "06_props_decor/td_weapon-ballista.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "weapon-ballista.glb",
+      "size_bytes": 58676
+    },
+    {
+      "file": "06_props_decor/td_weapon-cannon.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "weapon-cannon.glb",
+      "size_bytes": 58876
+    },
+    {
+      "file": "06_props_decor/td_weapon-catapult.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "weapon-catapult.glb",
+      "size_bytes": 57896
+    },
+    {
+      "file": "06_props_decor/td_weapon-turret.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "Kenney Tower Defense Kit",
+      "original_name": "weapon-turret.glb",
+      "size_bytes": 59996
+    }
+  ]
+}

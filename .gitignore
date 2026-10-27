@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Godot
+.godot/
+*.import
+export.cfg
+export_credentials.cfg
+remote/
+
+# Редакторы / ОС
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
