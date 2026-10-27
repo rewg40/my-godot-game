@@ -12,6 +12,16 @@
 | `nat_` | Kenney Nature Kit | `nat_ground_grass.glb`, `nat_ground_pathBend.glb`, `nat_path_stone.glb`, `nat_path_wood.glb` |
 | `td_` | Kenney Tower Defense Kit | `td_tile.glb`, `td_tile-slope.glb`, `td_tile-hill.glb`, `td_snow-tile-straight.glb` |
 | `pir_` | Kenney Pirate Kit | `pir_patch-grass.glb`, `pir_patch-sand.glb` |
-| `gen_` | сгенерировано | `gen_terrain_large.glb` (64×64 м), `gen_terrain_small.glb` (32×32 м), `gen_hex_tiles.glb` (гексы радиусом 1 м, как `hex_grass.glb`) |
+| `kay_` | KayKit Medieval Hexagon | `kay_hex_grass.glb`, `kay_hex_grass_sloped_high.glb`, `kay_hex_road_A.glb`, `kay_hill_single_A.glb`, `kay_hills_A_trees.glb` |
+| `gen_` | сгенерировано | `gen_terrain_large.glb` (64×64 м), `gen_terrain_small.glb` (32×32 м), `gen_hex_tiles.glb` |
 
-Модели: **121**. Полный список — в `../inventory.json`.
+**Три системы тайлов** в одной папке — не путайте их между собой внутри одной
+зоны: `hex_*` и `kay_hex_*` — гексагональная сетка (соседей 6, шов стыкуется
+только со своей сетью), `td_tile*` — квадратная сетка (соседей 4). Модели
+KayKit и Kenney между собой не совместимы по размеру гекса, хоть и выглядят
+похоже: у KayKit гекс шире и ниже.
+
+Холмы (`kay_hill_*`, `kay_hills_*`) и `td_tile-hill.glb` — это надстройки над
+тайлом, а не отдельный рельеф: ставьте их поверх тайла той же системы.
+
+Модели: **149**. Полный список — в `../inventory.json`.

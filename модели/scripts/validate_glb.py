@@ -8,7 +8,9 @@ validate_glb.py — проверка целостности всех .glb в п�
   * длины и типы чанков JSON и BIN;
   * что JSON разбирается и BIN ровно столько, сколько заявлено в buffers[0];
   * что каждый accessor (byteOffset + count * stride) не выходит за BIN;
-  * что у каждого меша есть POSITION, а индексы ссылаются на существующие вершины.
+  * что у каждого меша есть POSITION, а индексы ссылаются на существующие вершины;
+  * что цепочка materials -> textures -> images -> bufferViews цела и ни один
+    индекс не выходит за диапазон (важно для .glb, собранных из glTF separate).
 
 Запуск:
     python3 validate_glb.py <папка>        # рекурсивно по *.glb
@@ -132,6 +134,78 @@ def validate(path: Path) -> list[str]:
     for i, node in enumerate(gltf.get("nodes", [])):
         if "mesh" in node and node["mesh"] >= len(meshes):
             errors.append(f"nodes[{i}] ссылается на несуществующий mesh {node['mesh']}")
+
+    errors.extend(_check_materials(gltf, len(bin_chunk)))
+    return errors
+
+
+def _check_materials(gltf: dict, bin_len: int) -> list[str]:
+    """
+    Целостность цепочки materials -> textures -> images -> bufferViews.
+    Важно для .glb, собранных из glTF separate (см. convert_kaykit.py):
+    там текстура вшита как bufferView вместо внешнего uri, и любую ошибку
+    в индексах видно именно здесь.
+    """
+    errors: list[str] = []
+    views = gltf.get("bufferViews", [])
+    textures = gltf.get("textures", [])
+    images = gltf.get("images", [])
+    samplers = gltf.get("samplers", [])
+    materials = gltf.get("materials", [])
+    meshes = gltf.get("meshes", [])
+
+    for i, image in enumerate(images):
+        has_uri = "uri" in image
+        has_view = "bufferView" in image
+        if has_uri == has_view:
+            errors.append(f"images[{i}]: должен быть ровно один из uri / bufferView")
+            continue
+        if has_view:
+            if not image.get("mimeType"):
+                errors.append(f"images[{i}]: bufferView без mimeType")
+            view_index = image["bufferView"]
+            if view_index >= len(views):
+                errors.append(f"images[{i}]: bufferView {view_index} вне диапазона")
+                continue
+            view = views[view_index]
+            if view.get("byteOffset", 0) + view.get("byteLength", 0) > bin_len:
+                errors.append(f"images[{i}]: данные текстуры вне BIN-чанка")
+
+    for i, texture in enumerate(textures):
+        source = texture.get("source")
+        if source is None or source >= len(images):
+            errors.append(f"textures[{i}]: source {source} вне диапазона")
+        if "sampler" in texture and texture["sampler"] >= len(samplers):
+            errors.append(f"textures[{i}]: sampler {texture['sampler']} вне диапазона")
+
+    def check_index(label: str, value, limit: int, what: str):
+        if value is not None and value >= limit:
+            return f"{label}: {what} {value} вне диапазона ({limit})"
+        return None
+
+    for i, material in enumerate(materials):
+        pbr = material.get("pbrMetallicRoughness", {})
+        for key, source in (
+            ("baseColorTexture", pbr),
+            ("metallicRoughnessTexture", pbr),
+            ("normalTexture", material),
+            ("occlusionTexture", material),
+            ("emissiveTexture", material),
+        ):
+            entry = source.get(key)
+            if entry is None:
+                continue
+            problem = check_index(f"materials[{i}].{key}", entry.get("index"), len(textures), "texture")
+            if problem:
+                errors.append(problem)
+
+    for i, mesh in enumerate(meshes):
+        for p, prim in enumerate(mesh.get("primitives", [])):
+            problem = check_index(
+                f"meshes[{i}].primitives[{p}]", prim.get("material"), len(materials), "material"
+            )
+            if problem:
+                errors.append(problem)
 
     return errors
 

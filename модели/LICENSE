@@ -1,17 +1,39 @@
-CC0 1.0 Universal (CC0 1.0) — Public Domain Dedication
-https://creativecommons.org/publicdomain/zero/1.0/
+Папка «модели» распространяется под лицензией CC0 1.0 Universal.
 
-Содержимое папки «модели»:
+    CC0 1.0 Universal (CC0 1.0) — Public Domain Dedication
+    https://creativecommons.org/publicdomain/zero/1.0/
 
-1. Скачанные модели (префиксы hex_, nat_, td_, pir_)
-   Автор: Kenney — https://kenney.nl
-   Источник: https://github.com/shorepine/kenney (каталог 3d/, паки
-   Hexagon Kit, Nature Kit, Tower Defense Kit, Pirate Kit)
-   Лицензия автора: CC0 1.0.
+---------------------------------------------------------------------------
+1. Скачанные модели Kenney (префиксы hex_, nat_, td_, pir_)
+---------------------------------------------------------------------------
+    Автор: Kenney — https://kenney.nl
+    Источник: https://github.com/shorepine/kenney (каталог 3d/)
+    Паки: Hexagon Kit, Nature Kit, Tower Defense Kit, Pirate Kit
+    Лицензия автора: CC0 1.0
 
-   You can use this content for personal, educational, and commercial purposes.
-   Support by crediting 'Kenney' or 'www.kenney.nl' (this is not a requirement).
+    You can use this content for personal, educational, and commercial
+    purposes. Support by crediting 'Kenney' or 'www.kenney.nl'
+    (this is not a requirement).
 
-2. Сгенерированные модели (префикс gen_) и скрипты в scripts/
-   Созданы скриптом generate_islands.py в рамках этого репозитория.
-   Лицензия: CC0 1.0.
+---------------------------------------------------------------------------
+2. Скачанные модели KayKit (префикс kay_)
+---------------------------------------------------------------------------
+    Автор: Kay Lousberg — https://www.kaylousberg.com
+    Источник: https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0
+    Пак: Medieval Hexagon Pack 1.0
+    Лицензия автора: CC0 1.0
+
+    This content is free to use in personal, educational and commercial
+    projects. Crediting Kay Lousberg, www.kaylousberg.com is appreciated
+    but not mandatory.
+
+    Файлы сконвертированы из glTF separate (.gltf + .bin + атлас) в
+    самодостаточный .glb скриптом scripts/convert_kaykit.py. Геометрия не
+    изменялась: менялась только упаковка (данные буфера и текстура вшиты
+    в один файл вместо внешних ссылок).
+
+---------------------------------------------------------------------------
+3. Сгенерированные модели (префикс gen_), скрипты, превью и документация
+---------------------------------------------------------------------------
+    Созданы в рамках этого репозитория (scripts/generate_islands.py и др.).
+    Лицензия: CC0 1.0.

@@ -1,11 +1,39 @@
 {
   "description": "Инвентарь 3D-моделей местности и островов",
   "sources": {
-    "downloaded": {
-      "repository": "https://github.com/shorepine/kenney (каталог 3d/)",
-      "author": "Kenney — https://kenney.nl",
-      "license": "CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/"
-    },
+    "downloaded": [
+      {
+        "name": "Kenney",
+        "repository": "https://github.com/shorepine/kenney (каталог 3d/)",
+        "packs": [
+          "Hexagon Kit",
+          "Nature Kit",
+          "Tower Defense Kit",
+          "Pirate Kit"
+        ],
+        "author": "Kenney — https://kenney.nl",
+        "license": "CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/",
+        "prefixes": [
+          "hex_",
+          "nat_",
+          "td_",
+          "pir_"
+        ]
+      },
+      {
+        "name": "KayKit",
+        "repository": "https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0",
+        "packs": [
+          "Medieval Hexagon Pack 1.0"
+        ],
+        "author": "Kay Lousberg — https://www.kaylousberg.com",
+        "license": "CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/",
+        "prefixes": [
+          "kay_"
+        ],
+        "note": "Конвертировано из glTF separate (.gltf + .bin + атлас) в самодостаточный .glb скриптом scripts/convert_kaykit.py; геометрия не изменялась."
+      }
+    ],
     "generated": {
       "script": "scripts/generate_islands.py",
       "license": "CC0 1.0 (та же, что и у остального контента папки)"
@@ -19,18 +47,19 @@
     "05_buildings_structures": "Постройки и конструкции — дома, доки, причалы, мосты, стены, башни",
     "06_props_decor": "Реквизит и декор — бочки, ящики, корабли, оружие, противники"
   },
-  "total_models": 641,
-  "total_textures": 3,
+  "total_models": 862,
+  "total_textures": 4,
   "per_category": {
-    "01_terrain_ground": 121,
-    "02_islands": 51,
-    "03_cliffs_rocks": 129,
-    "04_vegetation": 136,
-    "05_buildings_structures": 153,
-    "06_props_decor": 51
+    "01_terrain_ground": 149,
+    "02_islands": 97,
+    "03_cliffs_rocks": 143,
+    "04_vegetation": 148,
+    "05_buildings_structures": 250,
+    "06_props_decor": 75
   },
   "textures": [
     "hex_Textures_colormap.png",
+    "kay_hexagons_medieval.png",
     "pir_Textures_colormap.png",
     "td_Textures_colormap.png"
   ],
@@ -258,6 +287,230 @@
       "pack": "Kenney Hexagon Kit",
       "original_name": "stone.glb",
       "size_bytes": 4656
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_grass.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_grass.gltf",
+      "size_bytes": 19548
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_grass_bottom.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_grass_bottom.gltf",
+      "size_bytes": 18396
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_grass_sloped_high.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_grass_sloped_high.gltf",
+      "size_bytes": 19208
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_grass_sloped_low.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_grass_sloped_low.gltf",
+      "size_bytes": 19144
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_A.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_A.gltf",
+      "size_bytes": 20828
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_A_sloped_high.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_A_sloped_high.gltf",
+      "size_bytes": 22672
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_A_sloped_low.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_A_sloped_low.gltf",
+      "size_bytes": 22780
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_B.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_B.gltf",
+      "size_bytes": 23432
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_C.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_C.gltf",
+      "size_bytes": 23724
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_D.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_D.gltf",
+      "size_bytes": 25348
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_E.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_E.gltf",
+      "size_bytes": 24432
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_F.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_F.gltf",
+      "size_bytes": 24432
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_G.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_G.gltf",
+      "size_bytes": 25020
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_H.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_H.gltf",
+      "size_bytes": 27160
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_I.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_I.gltf",
+      "size_bytes": 27064
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_J.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_J.gltf",
+      "size_bytes": 25864
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_K.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_K.gltf",
+      "size_bytes": 28524
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_L.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_L.gltf",
+      "size_bytes": 30612
+    },
+    {
+      "file": "01_terrain_ground/kay_hex_road_M.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_road_M.gltf",
+      "size_bytes": 21908
+    },
+    {
+      "file": "01_terrain_ground/kay_hill_single_A.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hill_single_A.gltf",
+      "size_bytes": 20364
+    },
+    {
+      "file": "01_terrain_ground/kay_hill_single_B.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hill_single_B.gltf",
+      "size_bytes": 20428
+    },
+    {
+      "file": "01_terrain_ground/kay_hill_single_C.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hill_single_C.gltf",
+      "size_bytes": 20456
+    },
+    {
+      "file": "01_terrain_ground/kay_hills_A.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hills_A.gltf",
+      "size_bytes": 39228
+    },
+    {
+      "file": "01_terrain_ground/kay_hills_A_trees.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hills_A_trees.gltf",
+      "size_bytes": 48208
+    },
+    {
+      "file": "01_terrain_ground/kay_hills_B.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hills_B.gltf",
+      "size_bytes": 30428
+    },
+    {
+      "file": "01_terrain_ground/kay_hills_B_trees.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hills_B_trees.gltf",
+      "size_bytes": 42400
+    },
+    {
+      "file": "01_terrain_ground/kay_hills_C.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hills_C.gltf",
+      "size_bytes": 31556
+    },
+    {
+      "file": "01_terrain_ground/kay_hills_C_trees.glb",
+      "category": "01_terrain_ground",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hills_C_trees.gltf",
+      "size_bytes": 56564
     },
     {
       "file": "01_terrain_ground/nat_ground_grass.glb",
@@ -1180,6 +1433,374 @@
       "size_bytes": 3468
     },
     {
+      "file": "02_islands/kay_hex_coast_A.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_coast_A.gltf",
+      "size_bytes": 22856
+    },
+    {
+      "file": "02_islands/kay_hex_coast_A_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_coast_A_waterless.gltf",
+      "size_bytes": 22600
+    },
+    {
+      "file": "02_islands/kay_hex_coast_B.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_coast_B.gltf",
+      "size_bytes": 22524
+    },
+    {
+      "file": "02_islands/kay_hex_coast_B_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_coast_B_waterless.gltf",
+      "size_bytes": 22676
+    },
+    {
+      "file": "02_islands/kay_hex_coast_C.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_coast_C.gltf",
+      "size_bytes": 22636
+    },
+    {
+      "file": "02_islands/kay_hex_coast_C_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_coast_C_waterless.gltf",
+      "size_bytes": 22484
+    },
+    {
+      "file": "02_islands/kay_hex_coast_D.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_coast_D.gltf",
+      "size_bytes": 21936
+    },
+    {
+      "file": "02_islands/kay_hex_coast_D_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_coast_D_waterless.gltf",
+      "size_bytes": 21724
+    },
+    {
+      "file": "02_islands/kay_hex_coast_E.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_coast_E.gltf",
+      "size_bytes": 21408
+    },
+    {
+      "file": "02_islands/kay_hex_coast_E_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_coast_E_waterless.gltf",
+      "size_bytes": 21428
+    },
+    {
+      "file": "02_islands/kay_hex_river_A.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_A.gltf",
+      "size_bytes": 21872
+    },
+    {
+      "file": "02_islands/kay_hex_river_A_curvy.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_A_curvy.gltf",
+      "size_bytes": 26236
+    },
+    {
+      "file": "02_islands/kay_hex_river_A_curvy_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_A_curvy_waterless.gltf",
+      "size_bytes": 24316
+    },
+    {
+      "file": "02_islands/kay_hex_river_A_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_A_waterless.gltf",
+      "size_bytes": 20656
+    },
+    {
+      "file": "02_islands/kay_hex_river_B.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_B.gltf",
+      "size_bytes": 25604
+    },
+    {
+      "file": "02_islands/kay_hex_river_B_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_B_waterless.gltf",
+      "size_bytes": 23916
+    },
+    {
+      "file": "02_islands/kay_hex_river_C.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_C.gltf",
+      "size_bytes": 25604
+    },
+    {
+      "file": "02_islands/kay_hex_river_C_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_C_waterless.gltf",
+      "size_bytes": 23596
+    },
+    {
+      "file": "02_islands/kay_hex_river_D.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_D.gltf",
+      "size_bytes": 27248
+    },
+    {
+      "file": "02_islands/kay_hex_river_D_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_D_waterless.gltf",
+      "size_bytes": 24764
+    },
+    {
+      "file": "02_islands/kay_hex_river_E.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_E.gltf",
+      "size_bytes": 25996
+    },
+    {
+      "file": "02_islands/kay_hex_river_E_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_E_waterless.gltf",
+      "size_bytes": 23372
+    },
+    {
+      "file": "02_islands/kay_hex_river_F.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_F.gltf",
+      "size_bytes": 25996
+    },
+    {
+      "file": "02_islands/kay_hex_river_F_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_F_waterless.gltf",
+      "size_bytes": 23372
+    },
+    {
+      "file": "02_islands/kay_hex_river_G.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_G.gltf",
+      "size_bytes": 27952
+    },
+    {
+      "file": "02_islands/kay_hex_river_G_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_G_waterless.gltf",
+      "size_bytes": 25204
+    },
+    {
+      "file": "02_islands/kay_hex_river_H.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_H.gltf",
+      "size_bytes": 29492
+    },
+    {
+      "file": "02_islands/kay_hex_river_H_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_H_waterless.gltf",
+      "size_bytes": 26088
+    },
+    {
+      "file": "02_islands/kay_hex_river_I.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_I.gltf",
+      "size_bytes": 29524
+    },
+    {
+      "file": "02_islands/kay_hex_river_I_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_I_waterless.gltf",
+      "size_bytes": 26124
+    },
+    {
+      "file": "02_islands/kay_hex_river_J.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_J.gltf",
+      "size_bytes": 28192
+    },
+    {
+      "file": "02_islands/kay_hex_river_J_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_J_waterless.gltf",
+      "size_bytes": 24696
+    },
+    {
+      "file": "02_islands/kay_hex_river_K.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_K.gltf",
+      "size_bytes": 31732
+    },
+    {
+      "file": "02_islands/kay_hex_river_K_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_K_waterless.gltf",
+      "size_bytes": 27412
+    },
+    {
+      "file": "02_islands/kay_hex_river_L.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_L.gltf",
+      "size_bytes": 34280
+    },
+    {
+      "file": "02_islands/kay_hex_river_L_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_L_waterless.gltf",
+      "size_bytes": 28740
+    },
+    {
+      "file": "02_islands/kay_hex_river_crossing_A.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_crossing_A.gltf",
+      "size_bytes": 25180
+    },
+    {
+      "file": "02_islands/kay_hex_river_crossing_A_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_crossing_A_waterless.gltf",
+      "size_bytes": 23812
+    },
+    {
+      "file": "02_islands/kay_hex_river_crossing_B.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_crossing_B.gltf",
+      "size_bytes": 25180
+    },
+    {
+      "file": "02_islands/kay_hex_river_crossing_B_waterless.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_river_crossing_B_waterless.gltf",
+      "size_bytes": 23812
+    },
+    {
+      "file": "02_islands/kay_hex_water.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "hex_water.gltf",
+      "size_bytes": 18596
+    },
+    {
+      "file": "02_islands/kay_waterlily_A.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "waterlily_A.gltf",
+      "size_bytes": 19768
+    },
+    {
+      "file": "02_islands/kay_waterlily_B.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "waterlily_B.gltf",
+      "size_bytes": 19992
+    },
+    {
+      "file": "02_islands/kay_waterplant_A.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "waterplant_A.gltf",
+      "size_bytes": 20160
+    },
+    {
+      "file": "02_islands/kay_waterplant_B.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "waterplant_B.gltf",
+      "size_bytes": 22984
+    },
+    {
+      "file": "02_islands/kay_waterplant_C.glb",
+      "category": "02_islands",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "waterplant_C.gltf",
+      "size_bytes": 29032
+    },
+    {
       "file": "02_islands/nat_ground_riverBend.glb",
       "category": "02_islands",
       "origin": "downloaded",
@@ -1434,6 +2055,118 @@
       "pack": "Kenney Hexagon Kit",
       "original_name": "stone-rocks.glb",
       "size_bytes": 24700
+    },
+    {
+      "file": "03_cliffs_rocks/kay_mountain_A.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "mountain_A.gltf",
+      "size_bytes": 24804
+    },
+    {
+      "file": "03_cliffs_rocks/kay_mountain_A_grass.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "mountain_A_grass.gltf",
+      "size_bytes": 32544
+    },
+    {
+      "file": "03_cliffs_rocks/kay_mountain_A_grass_trees.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "mountain_A_grass_trees.gltf",
+      "size_bytes": 44520
+    },
+    {
+      "file": "03_cliffs_rocks/kay_mountain_B.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "mountain_B.gltf",
+      "size_bytes": 24804
+    },
+    {
+      "file": "03_cliffs_rocks/kay_mountain_B_grass.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "mountain_B_grass.gltf",
+      "size_bytes": 32416
+    },
+    {
+      "file": "03_cliffs_rocks/kay_mountain_B_grass_trees.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "mountain_B_grass_trees.gltf",
+      "size_bytes": 50376
+    },
+    {
+      "file": "03_cliffs_rocks/kay_mountain_C.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "mountain_C.gltf",
+      "size_bytes": 29892
+    },
+    {
+      "file": "03_cliffs_rocks/kay_mountain_C_grass.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "mountain_C_grass.gltf",
+      "size_bytes": 42596
+    },
+    {
+      "file": "03_cliffs_rocks/kay_mountain_C_grass_trees.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "mountain_C_grass_trees.gltf",
+      "size_bytes": 60552
+    },
+    {
+      "file": "03_cliffs_rocks/kay_rock_single_A.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "rock_single_A.gltf",
+      "size_bytes": 18380
+    },
+    {
+      "file": "03_cliffs_rocks/kay_rock_single_B.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "rock_single_B.gltf",
+      "size_bytes": 18804
+    },
+    {
+      "file": "03_cliffs_rocks/kay_rock_single_C.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "rock_single_C.gltf",
+      "size_bytes": 19368
+    },
+    {
+      "file": "03_cliffs_rocks/kay_rock_single_D.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "rock_single_D.gltf",
+      "size_bytes": 18524
+    },
+    {
+      "file": "03_cliffs_rocks/kay_rock_single_E.glb",
+      "category": "03_cliffs_rocks",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "rock_single_E.gltf",
+      "size_bytes": 21480
     },
     {
       "file": "03_cliffs_rocks/nat_cliff_blockCave_rock.glb",
@@ -2450,6 +3183,102 @@
       "pack": "Kenney Hexagon Kit",
       "original_name": "unit-tree.glb",
       "size_bytes": 6800
+    },
+    {
+      "file": "04_vegetation/kay_tree_single_A.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "tree_single_A.gltf",
+      "size_bytes": 20516
+    },
+    {
+      "file": "04_vegetation/kay_tree_single_A_cut.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "tree_single_A_cut.gltf",
+      "size_bytes": 18236
+    },
+    {
+      "file": "04_vegetation/kay_tree_single_B.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "tree_single_B.gltf",
+      "size_bytes": 24548
+    },
+    {
+      "file": "04_vegetation/kay_tree_single_B_cut.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "tree_single_B_cut.gltf",
+      "size_bytes": 18976
+    },
+    {
+      "file": "04_vegetation/kay_trees_A_cut.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "trees_A_cut.gltf",
+      "size_bytes": 36188
+    },
+    {
+      "file": "04_vegetation/kay_trees_A_large.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "trees_A_large.gltf",
+      "size_bytes": 74212
+    },
+    {
+      "file": "04_vegetation/kay_trees_A_medium.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "trees_A_medium.gltf",
+      "size_bytes": 48868
+    },
+    {
+      "file": "04_vegetation/kay_trees_A_small.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "trees_A_small.gltf",
+      "size_bytes": 45692
+    },
+    {
+      "file": "04_vegetation/kay_trees_B_cut.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "trees_B_cut.gltf",
+      "size_bytes": 29908
+    },
+    {
+      "file": "04_vegetation/kay_trees_B_large.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "trees_B_large.gltf",
+      "size_bytes": 69148
+    },
+    {
+      "file": "04_vegetation/kay_trees_B_medium.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "trees_B_medium.gltf",
+      "size_bytes": 54284
+    },
+    {
+      "file": "04_vegetation/kay_trees_B_small.glb",
+      "category": "04_vegetation",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "trees_B_small.gltf",
+      "size_bytes": 39348
     },
     {
       "file": "04_vegetation/nat_cactus_short.glb",
@@ -3724,6 +4553,782 @@
       "size_bytes": 16024
     },
     {
+      "file": "05_buildings_structures/kay_building_archeryrange_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_archeryrange_blue.gltf",
+      "size_bytes": 219572
+    },
+    {
+      "file": "05_buildings_structures/kay_building_archeryrange_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_archeryrange_green.gltf",
+      "size_bytes": 219576
+    },
+    {
+      "file": "05_buildings_structures/kay_building_archeryrange_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_archeryrange_red.gltf",
+      "size_bytes": 219572
+    },
+    {
+      "file": "05_buildings_structures/kay_building_archeryrange_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_archeryrange_yellow.gltf",
+      "size_bytes": 219576
+    },
+    {
+      "file": "05_buildings_structures/kay_building_barracks_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_barracks_blue.gltf",
+      "size_bytes": 246868
+    },
+    {
+      "file": "05_buildings_structures/kay_building_barracks_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_barracks_green.gltf",
+      "size_bytes": 246872
+    },
+    {
+      "file": "05_buildings_structures/kay_building_barracks_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_barracks_red.gltf",
+      "size_bytes": 246868
+    },
+    {
+      "file": "05_buildings_structures/kay_building_barracks_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_barracks_yellow.gltf",
+      "size_bytes": 246872
+    },
+    {
+      "file": "05_buildings_structures/kay_building_blacksmith_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_blacksmith_blue.gltf",
+      "size_bytes": 140252
+    },
+    {
+      "file": "05_buildings_structures/kay_building_blacksmith_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_blacksmith_green.gltf",
+      "size_bytes": 140252
+    },
+    {
+      "file": "05_buildings_structures/kay_building_blacksmith_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_blacksmith_red.gltf",
+      "size_bytes": 140248
+    },
+    {
+      "file": "05_buildings_structures/kay_building_blacksmith_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_blacksmith_yellow.gltf",
+      "size_bytes": 140256
+    },
+    {
+      "file": "05_buildings_structures/kay_building_bridge_A.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_bridge_A.gltf",
+      "size_bytes": 42732
+    },
+    {
+      "file": "05_buildings_structures/kay_building_bridge_B.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_bridge_B.gltf",
+      "size_bytes": 42732
+    },
+    {
+      "file": "05_buildings_structures/kay_building_castle_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_castle_blue.gltf",
+      "size_bytes": 334920
+    },
+    {
+      "file": "05_buildings_structures/kay_building_castle_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_castle_green.gltf",
+      "size_bytes": 334924
+    },
+    {
+      "file": "05_buildings_structures/kay_building_castle_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_castle_red.gltf",
+      "size_bytes": 334920
+    },
+    {
+      "file": "05_buildings_structures/kay_building_castle_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_castle_yellow.gltf",
+      "size_bytes": 334924
+    },
+    {
+      "file": "05_buildings_structures/kay_building_church_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_church_blue.gltf",
+      "size_bytes": 106940
+    },
+    {
+      "file": "05_buildings_structures/kay_building_church_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_church_green.gltf",
+      "size_bytes": 106944
+    },
+    {
+      "file": "05_buildings_structures/kay_building_church_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_church_red.gltf",
+      "size_bytes": 106940
+    },
+    {
+      "file": "05_buildings_structures/kay_building_church_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_church_yellow.gltf",
+      "size_bytes": 106944
+    },
+    {
+      "file": "05_buildings_structures/kay_building_destroyed.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_destroyed.gltf",
+      "size_bytes": 73880
+    },
+    {
+      "file": "05_buildings_structures/kay_building_dirt.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_dirt.gltf",
+      "size_bytes": 24540
+    },
+    {
+      "file": "05_buildings_structures/kay_building_grain.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_grain.gltf",
+      "size_bytes": 30800
+    },
+    {
+      "file": "05_buildings_structures/kay_building_home_A_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_home_A_blue.gltf",
+      "size_bytes": 72552
+    },
+    {
+      "file": "05_buildings_structures/kay_building_home_A_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_home_A_green.gltf",
+      "size_bytes": 72556
+    },
+    {
+      "file": "05_buildings_structures/kay_building_home_A_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_home_A_red.gltf",
+      "size_bytes": 72552
+    },
+    {
+      "file": "05_buildings_structures/kay_building_home_A_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_home_A_yellow.gltf",
+      "size_bytes": 72556
+    },
+    {
+      "file": "05_buildings_structures/kay_building_home_B_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_home_B_blue.gltf",
+      "size_bytes": 99324
+    },
+    {
+      "file": "05_buildings_structures/kay_building_home_B_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_home_B_green.gltf",
+      "size_bytes": 99328
+    },
+    {
+      "file": "05_buildings_structures/kay_building_home_B_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_home_B_red.gltf",
+      "size_bytes": 99324
+    },
+    {
+      "file": "05_buildings_structures/kay_building_home_B_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_home_B_yellow.gltf",
+      "size_bytes": 99328
+    },
+    {
+      "file": "05_buildings_structures/kay_building_lumbermill_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_lumbermill_blue.gltf",
+      "size_bytes": 185344
+    },
+    {
+      "file": "05_buildings_structures/kay_building_lumbermill_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_lumbermill_green.gltf",
+      "size_bytes": 185348
+    },
+    {
+      "file": "05_buildings_structures/kay_building_lumbermill_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_lumbermill_red.gltf",
+      "size_bytes": 185336
+    },
+    {
+      "file": "05_buildings_structures/kay_building_lumbermill_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_lumbermill_yellow.gltf",
+      "size_bytes": 185356
+    },
+    {
+      "file": "05_buildings_structures/kay_building_market_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_market_blue.gltf",
+      "size_bytes": 169368
+    },
+    {
+      "file": "05_buildings_structures/kay_building_market_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_market_green.gltf",
+      "size_bytes": 169368
+    },
+    {
+      "file": "05_buildings_structures/kay_building_market_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_market_red.gltf",
+      "size_bytes": 169364
+    },
+    {
+      "file": "05_buildings_structures/kay_building_market_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_market_yellow.gltf",
+      "size_bytes": 169372
+    },
+    {
+      "file": "05_buildings_structures/kay_building_mine_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_mine_blue.gltf",
+      "size_bytes": 83220
+    },
+    {
+      "file": "05_buildings_structures/kay_building_mine_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_mine_green.gltf",
+      "size_bytes": 83224
+    },
+    {
+      "file": "05_buildings_structures/kay_building_mine_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_mine_red.gltf",
+      "size_bytes": 83220
+    },
+    {
+      "file": "05_buildings_structures/kay_building_mine_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_mine_yellow.gltf",
+      "size_bytes": 83224
+    },
+    {
+      "file": "05_buildings_structures/kay_building_scaffolding.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_scaffolding.gltf",
+      "size_bytes": 182744
+    },
+    {
+      "file": "05_buildings_structures/kay_building_stage_A.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_stage_A.gltf",
+      "size_bytes": 58988
+    },
+    {
+      "file": "05_buildings_structures/kay_building_stage_B.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_stage_B.gltf",
+      "size_bytes": 66512
+    },
+    {
+      "file": "05_buildings_structures/kay_building_stage_C.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_stage_C.gltf",
+      "size_bytes": 86104
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tavern_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tavern_blue.gltf",
+      "size_bytes": 188056
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tavern_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tavern_green.gltf",
+      "size_bytes": 188060
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tavern_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tavern_red.gltf",
+      "size_bytes": 188056
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tavern_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tavern_yellow.gltf",
+      "size_bytes": 188060
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_A_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_A_blue.gltf",
+      "size_bytes": 130880
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_A_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_A_green.gltf",
+      "size_bytes": 130884
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_A_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_A_red.gltf",
+      "size_bytes": 130876
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_A_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_A_yellow.gltf",
+      "size_bytes": 130888
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_B_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_B_blue.gltf",
+      "size_bytes": 148980
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_B_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_B_green.gltf",
+      "size_bytes": 148984
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_B_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_B_red.gltf",
+      "size_bytes": 148976
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_B_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_B_yellow.gltf",
+      "size_bytes": 148988
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_base_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_base_blue.gltf",
+      "size_bytes": 98884
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_base_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_base_green.gltf",
+      "size_bytes": 98888
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_base_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_base_red.gltf",
+      "size_bytes": 98884
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_base_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_base_yellow.gltf",
+      "size_bytes": 98888
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_catapult_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_catapult_blue.gltf",
+      "size_bytes": 164152
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_catapult_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_catapult_green.gltf",
+      "size_bytes": 164156
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_catapult_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_catapult_red.gltf",
+      "size_bytes": 164144
+    },
+    {
+      "file": "05_buildings_structures/kay_building_tower_catapult_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_tower_catapult_yellow.gltf",
+      "size_bytes": 164164
+    },
+    {
+      "file": "05_buildings_structures/kay_building_watermill_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_watermill_blue.gltf",
+      "size_bytes": 129464
+    },
+    {
+      "file": "05_buildings_structures/kay_building_watermill_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_watermill_green.gltf",
+      "size_bytes": 129468
+    },
+    {
+      "file": "05_buildings_structures/kay_building_watermill_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_watermill_red.gltf",
+      "size_bytes": 129460
+    },
+    {
+      "file": "05_buildings_structures/kay_building_watermill_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_watermill_yellow.gltf",
+      "size_bytes": 129472
+    },
+    {
+      "file": "05_buildings_structures/kay_building_well_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_well_blue.gltf",
+      "size_bytes": 59540
+    },
+    {
+      "file": "05_buildings_structures/kay_building_well_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_well_green.gltf",
+      "size_bytes": 59544
+    },
+    {
+      "file": "05_buildings_structures/kay_building_well_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_well_red.gltf",
+      "size_bytes": 59540
+    },
+    {
+      "file": "05_buildings_structures/kay_building_well_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_well_yellow.gltf",
+      "size_bytes": 59544
+    },
+    {
+      "file": "05_buildings_structures/kay_building_windmill_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_windmill_blue.gltf",
+      "size_bytes": 160684
+    },
+    {
+      "file": "05_buildings_structures/kay_building_windmill_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_windmill_green.gltf",
+      "size_bytes": 160688
+    },
+    {
+      "file": "05_buildings_structures/kay_building_windmill_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_windmill_red.gltf",
+      "size_bytes": 160676
+    },
+    {
+      "file": "05_buildings_structures/kay_building_windmill_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "building_windmill_yellow.gltf",
+      "size_bytes": 160696
+    },
+    {
+      "file": "05_buildings_structures/kay_fence_stone_straight.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "fence_stone_straight.gltf",
+      "size_bytes": 30996
+    },
+    {
+      "file": "05_buildings_structures/kay_fence_stone_straight_gate.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "fence_stone_straight_gate.gltf",
+      "size_bytes": 34228
+    },
+    {
+      "file": "05_buildings_structures/kay_fence_wood_straight.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "fence_wood_straight.gltf",
+      "size_bytes": 32208
+    },
+    {
+      "file": "05_buildings_structures/kay_fence_wood_straight_gate.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "fence_wood_straight_gate.gltf",
+      "size_bytes": 37496
+    },
+    {
+      "file": "05_buildings_structures/kay_flag_blue.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "flag_blue.gltf",
+      "size_bytes": 19612
+    },
+    {
+      "file": "05_buildings_structures/kay_flag_green.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "flag_green.gltf",
+      "size_bytes": 19616
+    },
+    {
+      "file": "05_buildings_structures/kay_flag_red.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "flag_red.gltf",
+      "size_bytes": 19612
+    },
+    {
+      "file": "05_buildings_structures/kay_flag_yellow.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "flag_yellow.gltf",
+      "size_bytes": 19616
+    },
+    {
+      "file": "05_buildings_structures/kay_projectile_catapult.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "projectile_catapult.gltf",
+      "size_bytes": 29460
+    },
+    {
+      "file": "05_buildings_structures/kay_wall_corner_A_gate.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "wall_corner_A_gate.gltf",
+      "size_bytes": 64716
+    },
+    {
+      "file": "05_buildings_structures/kay_wall_corner_A_inside.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "wall_corner_A_inside.gltf",
+      "size_bytes": 38528
+    },
+    {
+      "file": "05_buildings_structures/kay_wall_corner_A_outside.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "wall_corner_A_outside.gltf",
+      "size_bytes": 41964
+    },
+    {
+      "file": "05_buildings_structures/kay_wall_corner_B_inside.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "wall_corner_B_inside.gltf",
+      "size_bytes": 33848
+    },
+    {
+      "file": "05_buildings_structures/kay_wall_corner_B_outside.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "wall_corner_B_outside.gltf",
+      "size_bytes": 39932
+    },
+    {
+      "file": "05_buildings_structures/kay_wall_straight.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "wall_straight.gltf",
+      "size_bytes": 48220
+    },
+    {
+      "file": "05_buildings_structures/kay_wall_straight_gate.glb",
+      "category": "05_buildings_structures",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "wall_straight_gate.gltf",
+      "size_bytes": 66192
+    },
+    {
       "file": "05_buildings_structures/nat_bridge_center_stone.glb",
       "category": "05_buildings_structures",
       "origin": "downloaded",
@@ -4770,6 +6375,198 @@
       "pack": "Kenney Hexagon Kit",
       "original_name": "unit-ship.glb",
       "size_bytes": 13268
+    },
+    {
+      "file": "06_props_decor/kay_barrel.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "barrel.gltf",
+      "size_bytes": 32724
+    },
+    {
+      "file": "06_props_decor/kay_bucket_arrows.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "bucket_arrows.gltf",
+      "size_bytes": 33400
+    },
+    {
+      "file": "06_props_decor/kay_bucket_empty.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "bucket_empty.gltf",
+      "size_bytes": 24156
+    },
+    {
+      "file": "06_props_decor/kay_bucket_water.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "bucket_water.gltf",
+      "size_bytes": 24156
+    },
+    {
+      "file": "06_props_decor/kay_cloud_big.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "cloud_big.gltf",
+      "size_bytes": 32016
+    },
+    {
+      "file": "06_props_decor/kay_cloud_small.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "cloud_small.gltf",
+      "size_bytes": 25288
+    },
+    {
+      "file": "06_props_decor/kay_crate_A_big.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "crate_A_big.gltf",
+      "size_bytes": 24180
+    },
+    {
+      "file": "06_props_decor/kay_crate_A_small.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "crate_A_small.gltf",
+      "size_bytes": 24180
+    },
+    {
+      "file": "06_props_decor/kay_crate_B_big.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "crate_B_big.gltf",
+      "size_bytes": 24180
+    },
+    {
+      "file": "06_props_decor/kay_crate_B_small.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "crate_B_small.gltf",
+      "size_bytes": 24180
+    },
+    {
+      "file": "06_props_decor/kay_crate_long_A.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "crate_long_A.gltf",
+      "size_bytes": 31368
+    },
+    {
+      "file": "06_props_decor/kay_crate_long_B.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "crate_long_B.gltf",
+      "size_bytes": 31368
+    },
+    {
+      "file": "06_props_decor/kay_crate_long_C.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "crate_long_C.gltf",
+      "size_bytes": 27524
+    },
+    {
+      "file": "06_props_decor/kay_crate_long_empty.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "crate_long_empty.gltf",
+      "size_bytes": 19844
+    },
+    {
+      "file": "06_props_decor/kay_crate_open.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "crate_open.gltf",
+      "size_bytes": 29236
+    },
+    {
+      "file": "06_props_decor/kay_ladder.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "ladder.gltf",
+      "size_bytes": 23048
+    },
+    {
+      "file": "06_props_decor/kay_pallet.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "pallet.gltf",
+      "size_bytes": 22188
+    },
+    {
+      "file": "06_props_decor/kay_resource_lumber.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "resource_lumber.gltf",
+      "size_bytes": 29060
+    },
+    {
+      "file": "06_props_decor/kay_resource_stone.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "resource_stone.gltf",
+      "size_bytes": 28744
+    },
+    {
+      "file": "06_props_decor/kay_sack.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "sack.gltf",
+      "size_bytes": 20404
+    },
+    {
+      "file": "06_props_decor/kay_target.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "target.gltf",
+      "size_bytes": 24256
+    },
+    {
+      "file": "06_props_decor/kay_tent.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "tent.gltf",
+      "size_bytes": 23288
+    },
+    {
+      "file": "06_props_decor/kay_weaponrack.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "weaponrack.gltf",
+      "size_bytes": 20092
+    },
+    {
+      "file": "06_props_decor/kay_wheelbarrow.glb",
+      "category": "06_props_decor",
+      "origin": "downloaded",
+      "pack": "KayKit Medieval Hexagon Pack",
+      "original_name": "wheelbarrow.gltf",
+      "size_bytes": 36200
     },
     {
       "file": "06_props_decor/nat_bed.glb",

@@ -20,6 +20,7 @@ PACK_BY_PREFIX = {
     "nat": "Kenney Nature Kit",
     "td": "Kenney Tower Defense Kit",
     "pir": "Kenney Pirate Kit",
+    "kay": "KayKit Medieval Hexagon Pack",
 }
 
 CATEGORY_TITLES = {
@@ -49,7 +50,10 @@ def main() -> int:
         else:
             origin = "downloaded"
             pack = PACK_BY_PREFIX.get(prefix, prefix)
-            original = f"{rest}.glb"
+            # KayKit поставляется в формате glTF separate (.gltf + .bin),
+            # остальные паки — уже .glb.
+            source_ext = ".gltf" if pack == PACK_BY_PREFIX["kay"] else ".glb"
+            original = f"{rest}{source_ext}"
         models.append(
             {
                 "file": f"{category}/{path.name}",
@@ -70,11 +74,29 @@ def main() -> int:
     payload = {
         "description": "Инвентарь 3D-моделей местности и островов",
         "sources": {
-            "downloaded": {
-                "repository": "https://github.com/shorepine/kenney (каталог 3d/)",
-                "author": "Kenney — https://kenney.nl",
-                "license": "CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/",
-            },
+            "downloaded": [
+                {
+                    "name": "Kenney",
+                    "repository": "https://github.com/shorepine/kenney (каталог 3d/)",
+                    "packs": ["Hexagon Kit", "Nature Kit", "Tower Defense Kit", "Pirate Kit"],
+                    "author": "Kenney — https://kenney.nl",
+                    "license": "CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/",
+                    "prefixes": ["hex_", "nat_", "td_", "pir_"],
+                },
+                {
+                    "name": "KayKit",
+                    "repository": "https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0",
+                    "packs": ["Medieval Hexagon Pack 1.0"],
+                    "author": "Kay Lousberg — https://www.kaylousberg.com",
+                    "license": "CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/",
+                    "prefixes": ["kay_"],
+                    "note": (
+                        "Конвертировано из glTF separate (.gltf + .bin + атлас) в "
+                        "самодостаточный .glb скриптом scripts/convert_kaykit.py; "
+                        "геометрия не изменялась."
+                    ),
+                },
+            ],
             "generated": {
                 "script": "scripts/generate_islands.py",
                 "license": "CC0 1.0 (та же, что и у остального контента папки)",
