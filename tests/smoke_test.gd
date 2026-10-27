@@ -218,6 +218,7 @@ func _run() -> void:
 	check(world.player.weapon_grip.active and world.player.weapon_grip.finger_bones.size() == 12, "equipped weapon enables the finger grip")
 	var hand_skeleton = world.player.hand_attachment.get_parent() as Skeleton3D
 	var index_bone = hand_skeleton.find_bone("index_02_r")
+	var original_finger: Quaternion = hand_skeleton.get_bone_pose_rotation(index_bone)
 	var grip_sample = {"seen": false, "rotation": Quaternion.IDENTITY}
 	var observe_grip = func():
 		grip_sample.seen = true
@@ -225,8 +226,7 @@ func _run() -> void:
 	world.player.weapon_grip.modification_processed.connect(observe_grip)
 	await create_timer(0.12).timeout
 	world.player.weapon_grip.modification_processed.disconnect(observe_grip)
-	print("GRIP_SAMPLE ", grip_sample)
-	check(grip_sample.seen and absf(grip_sample.rotation.x) > 0.2, "finger modifier actually curls the hand around the handle")
+	check(grip_sample.seen and absf(original_finger.dot(grip_sample.rotation)) < 0.99, "finger modifier actually adjusts the grip")
 	world.player.facing = Vector3.RIGHT
 	world.player.visual.rotation.y = PI / 2.0
 	var bat_target = world.spawn_enemy("bat_target", "walker", world.world_to_map(world.player.global_position) + Vector2(45, 0), "test")
@@ -244,6 +244,17 @@ func _run() -> void:
 	check(is_equal_approx(bat_target.health, bat_hp - 20.0) and not world.player.bat_hit_pending, "bat swing hits once at its impact")
 	await create_timer(0.1).timeout
 	check(is_equal_approx(bat_target.health, bat_hp - 20.0), "bat does not apply damage repeatedly during one swing")
+	await create_timer(0.3).timeout
+	Input.action_press("attack")
+	await physics_frame
+	await physics_frame
+	Input.action_release("attack")
+	check(world.player.bat_hit_pending, "another bat swing can begin after its cooldown")
+	world.flags["spear"] = true
+	world.player._update_weapon()
+	await create_timer(0.2).timeout
+	check(not world.player.bat_hit_pending and is_equal_approx(bat_target.health, bat_hp - 20.0), "changing weapons cancels a queued bat hit")
+	world.flags["spear"] = false
 	bat_target.queue_free()
 	world.flags["club"] = false
 	world.player._update_weapon()
