@@ -42,6 +42,7 @@ jobs:
           result=${PIPESTATUS[0]}
           set -e
           if [ "$result" -ne 0 ] || ! grep -q 'ALL SMOKE TESTS PASSED' "$RUNNER_TEMP/smoke.log" || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:' "$RUNNER_TEMP/smoke.log"; then
+            echo "::error::Godot exited with code $result"
             tail -n 100 "$RUNNER_TEMP/smoke.log" | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
           fi
