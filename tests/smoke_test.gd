@@ -66,6 +66,8 @@ func _run() -> void:
 	check(terrain.mesh.surface_get_material(0) is ShaderMaterial, "terrain uses blended photographic surface materials")
 	var grass = world.environment_3d.get_node_or_null("GrassCover")
 	check(grass is MultiMeshInstance3D and grass.multimesh.instance_count > 500, "3D grass is batched across the island")
+	var weeds = world.environment_3d.get_node_or_null("GroundWeeds")
+	check(weeds is MultiMeshInstance3D and weeds.multimesh.instance_count > 300, "broad-leaved ground vegetation is batched")
 	var forest = world.environment_3d.get_node_or_null("ForestColliders")
 	check(forest is StaticBody3D and forest.get_child_count() > 0, "3D forest trunks have physical collision")
 	check(world.environment_3d.get_node_or_null("ForestBroadleaf") is Node3D, "forest includes photoreal broadleaf trees")

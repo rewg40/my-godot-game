@@ -204,6 +204,7 @@ func _scatter_scenery() -> void:
 		stump.position = Vector3(p.x * SCALE, height_at(p.x * SCALE, p.y * SCALE), p.y * SCALE)
 		add_child(stump)
 	_build_grass(rng)
+	_build_sorrel(rng)
 
 func _build_grass(rng: RandomNumberGenerator) -> void:
 	# One shared 3D grass mesh and one MultiMesh draw rather than thousands of
@@ -243,6 +244,44 @@ func _build_grass(rng: RandomNumberGenerator) -> void:
 	cover.multimesh = multi
 	cover.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(cover)
+	MeshCleanup.before_free(source)
+	source.free()
+
+func _build_sorrel(rng: RandomNumberGenerator) -> void:
+	# Broad-leaved weeds add readable detail alongside the finer grass blades.
+	# Like grass, they are one batched draw and do not add collision obstacles.
+	var scene = load("res://assets/models/nature_real/sorrel.glb") as PackedScene
+	var source = scene.instantiate()
+	var candidates = source.find_children("*", "MeshInstance3D", true, false)
+	if source is MeshInstance3D:
+		candidates.push_front(source)
+	if candidates.is_empty():
+		source.free()
+		return
+	var weed_mesh = (candidates[0] as MeshInstance3D).mesh
+	var mask = SURFACE_MASK.get_image()
+	var transforms: Array[Transform3D] = []
+	for i in range(2300):
+		var p = Vector2(rng.randf_range(150, 3050), rng.randf_range(130, 2070))
+		var uv = Vector2i(clampi(int(p.x / 3200.0 * mask.get_width()), 0, mask.get_width() - 1), clampi(int(p.y / 2200.0 * mask.get_height()), 0, mask.get_height() - 1))
+		var pixel = mask.get_pixelv(uv)
+		if pixel.a < 0.95 or pixel.r > 0.06 or pixel.g > 0.12 or pixel.b > 0.45:
+			continue
+		var size = rng.randf_range(4.5, 7.5)
+		var basis = Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * size)
+		var origin = Vector3(p.x * SCALE, height_at(p.x * SCALE, p.y * SCALE) - 0.01, p.y * SCALE)
+		transforms.append(Transform3D(basis, origin))
+	var multi = MultiMesh.new()
+	multi.transform_format = MultiMesh.TRANSFORM_3D
+	multi.mesh = weed_mesh
+	multi.instance_count = transforms.size()
+	for i in range(transforms.size()):
+		multi.set_instance_transform(i, transforms[i])
+	var weeds = MultiMeshInstance3D.new()
+	weeds.name = "GroundWeeds"
+	weeds.multimesh = multi
+	weeds.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(weeds)
 	MeshCleanup.before_free(source)
 	source.free()
 
