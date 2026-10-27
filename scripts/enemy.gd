@@ -19,6 +19,8 @@ var call_timer: float = 8.0
 var is_dead: bool = false
 var facing := Vector3.FORWARD
 var knockback := Vector3.ZERO
+var avoidance_side: float = 0.0
+var avoidance_grace: float = 0.0
 var visual: Node3D
 var name_label: Label3D
 
@@ -90,7 +92,7 @@ func _physics_process(delta: float) -> void:
 	offset.y = 0
 	var distance = offset.length()
 	if aggressive and distance > 1.52:
-		facing = offset.normalized()
+		facing = _steer_around_obstacles(offset.normalized(), delta)
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(facing.x, facing.z), minf(1.0, delta * 7.0))
 		velocity.x = facing.x * speed + knockback.x
 		velocity.z = facing.z * speed + knockback.z
@@ -118,6 +120,33 @@ func _physics_process(delta: float) -> void:
 		visual.play("Run" if kind == "runner" else "Walk")
 	else:
 		visual.play("Idle")
+
+# The island contains solid 3D houses, trees and rocks. A direct pursuit
+# vector alone can get stuck forever against them, so follow a consistent
+# tangent until the route ahead is clear. Rays only query world geometry.
+func _steer_around_obstacles(wanted: Vector3, delta: float) -> Vector3:
+	var origin = global_position + Vector3.UP * 0.8
+	var query = PhysicsRayQueryParameters3D.create(origin, origin + wanted * 2.1, 1)
+	var hit = get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		avoidance_grace = maxf(0.0, avoidance_grace - delta)
+		if avoidance_grace == 0.0:
+			avoidance_side = 0.0
+		return wanted
+	var normal: Vector3 = hit.normal
+	normal.y = 0.0
+	if normal.length_squared() < 0.01:
+		return wanted
+	normal = normal.normalized()
+	var tangent = Vector3(-normal.z, 0.0, normal.x)
+	if avoidance_side == 0.0:
+		var alignment = tangent.dot(wanted)
+		if absf(alignment) < 0.02:
+			avoidance_side = 1.0 if enemy_id.hash() % 2 == 0 else -1.0
+		else:
+			avoidance_side = 1.0 if alignment > 0 else -1.0
+	avoidance_grace = 0.6
+	return (tangent * avoidance_side + normal * 0.28).normalized()
 
 func take_damage(amount: float, from_pos: Vector3) -> void:
 	if is_dead:
