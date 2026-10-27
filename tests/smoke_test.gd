@@ -223,8 +223,9 @@ func _run() -> void:
 		grip_sample.seen = true
 		grip_sample.rotation = hand_skeleton.get_bone_pose_rotation(index_bone)
 	world.player.weapon_grip.modification_processed.connect(observe_grip)
-	await process_frame
+	await create_timer(0.12).timeout
 	world.player.weapon_grip.modification_processed.disconnect(observe_grip)
+	print("GRIP_SAMPLE ", grip_sample)
 	check(grip_sample.seen and absf(grip_sample.rotation.x) > 0.2, "finger modifier actually curls the hand around the handle")
 	world.player.facing = Vector3.RIGHT
 	world.player.visual.rotation.y = PI / 2.0
