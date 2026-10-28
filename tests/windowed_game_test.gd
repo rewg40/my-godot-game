@@ -119,6 +119,18 @@ func _run() -> void:
 			moved = true
 			break
 	check(moved, "player movement works while the 3D world is rendered")
+	check(is_instance_valid(world.hud.minimap) and world.hud.minimap.visible, "a player-centred minimap is visible in the rendered HUD")
+	await press_key(KEY_TAB)
+	check(world.hud.modal_kind == "inventory" and world.hud.inventory_grid.get_child_count() == 24, "Tab opens the rendered icon inventory")
+	check(await visible_frame_has_content(), "icon inventory renders in the game window")
+	await press_key(KEY_TAB)
+	check(not world.hud.is_modal_open(), "Tab closes the inventory")
+	await press_key(KEY_M)
+	var rendered_map = world.hud.modal.find_child("IslandMap", true, false) if world.hud.is_modal_open() else null
+	check(world.hud.modal_kind == "map" and is_instance_valid(rendered_map), "M opens the rendered interactive island map")
+	check(await visible_frame_has_content(), "island map renders in the game window")
+	await press_key(KEY_M)
+	check(not world.hud.is_modal_open(), "M closes the map")
 
 	# Use the real keyboard, cursor ray and left click through the window, not
 	# just direct calls to the building API.

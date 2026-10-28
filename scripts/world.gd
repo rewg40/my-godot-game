@@ -392,6 +392,21 @@ func _process(delta: float) -> void:
 		autosave_clock = 0.0
 		save_progress(false)
 
+func _input(event: InputEvent) -> void:
+	# Tab is normally consumed by GUI focus navigation before unhandled input.
+	# Catch the matching shortcut first so a modal can always be closed again.
+	if not is_instance_valid(hud) or not event is InputEventKey or not event.pressed or event.echo:
+		return
+	var key: int = event.physical_keycode if event.physical_keycode != 0 else event.keycode
+	if hud.is_modal_open():
+		if (key == KEY_TAB and hud.modal_kind == "inventory") or (key == KEY_M and hud.modal_kind == "map"):
+			hud.close_modal()
+			get_viewport().set_input_as_handled()
+	elif not building.active and key in [KEY_TAB, KEY_M]:
+		if key == KEY_TAB: hud.show_inventory()
+		else: hud.show_map()
+		get_viewport().set_input_as_handled()
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if building.active and not hud.is_modal_open():

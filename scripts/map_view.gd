@@ -126,7 +126,7 @@ func _draw_lake() -> void:
 	var points := PackedVector2Array()
 	for i in range(48):
 		var angle := TAU * float(i) / 48.0
-		var radius := Vector2(8.0, 6.0) / world.MAP_SCALE
+		var radius: Vector2 = Vector2(8.0, 6.0) / float(world.MAP_SCALE)
 		points.append(map_to_screen(center + Vector2(cos(angle) * radius.x, sin(angle) * radius.y)))
 	draw_colored_polygon(points, Color("487b7b"))
 
