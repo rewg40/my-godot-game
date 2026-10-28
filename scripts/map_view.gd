@@ -106,6 +106,7 @@ func _draw() -> void:
 		var src := Rect2((clipped.position - chart.position) / chart.size * texture_size, clipped.size / chart.size * texture_size)
 		draw_texture_rect_region(CHART, clipped, src)
 	_draw_lake()
+	_draw_resources()
 	_draw_bases()
 	if not minimap:
 		_draw_landmark("hotel", "Отель")
@@ -131,6 +132,21 @@ func _draw_lake() -> void:
 		var radius: Vector2 = Vector2(8.0, 6.0) / float(world.MAP_SCALE)
 		points.append(map_to_screen(center + Vector2(cos(angle) * radius.x, sin(angle) * radius.y)))
 	draw_colored_polygon(points, Color("487b7b"))
+
+func _draw_resources() -> void:
+	# Show real resource locations rather than painting a decorative forest:
+	# as trees and boulders are harvested their symbols also disappear.
+	for prop in world.props:
+		if not is_instance_valid(prop) or not prop.usable or prop.kind not in ["tree", "rock"]:
+			continue
+		var screen := map_to_screen(world.world_to_map(prop.global_position))
+		if not _inside(screen, 3.0):
+			continue
+		if prop.kind == "tree":
+			var tint := Color("355641") if not minimap else Color("31523f")
+			draw_colored_polygon(PackedVector2Array([screen + Vector2(0, -3), screen + Vector2(3, 2), screen + Vector2(-3, 2)]), tint)
+		else:
+			draw_circle(screen, 2.0, Color("a6aca0"))
 
 func _draw_bases() -> void:
 	if not is_instance_valid(world.building):

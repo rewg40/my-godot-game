@@ -25,6 +25,7 @@ var player
 var hud
 var building: Node3D
 var props: Array = []
+var resource_reservations: Array[Vector2] = []
 var enemies: Array = []
 var inventory: Dictionary = {"wood": 0, "stone": 0, "iron": 0, "cloth": 1, "food": 2, "water": 2, "herbs": 0, "bandage": 1}
 var flags: Dictionary = {}
@@ -244,9 +245,13 @@ func _build_world() -> void:
 	_make("boat", "boat", "Лодка у причала", SITES.boat, {"collision": 15})
 	var trees = [Vector2(330,1530),Vector2(460,1515),Vector2(535,1580),Vector2(290,1320),Vector2(445,1260),Vector2(1160,1010),Vector2(1220,1170),Vector2(1330,1200),Vector2(1300,850),Vector2(1440,720),Vector2(1535,665),Vector2(1600,540),Vector2(1420,350),Vector2(1280,430),Vector2(1140,470),Vector2(860,420),Vector2(780,590),Vector2(350,600),Vector2(480,700),Vector2(1790,940),Vector2(1850,1150),Vector2(1850,1730),Vector2(2400,1750),Vector2(900,1820),Vector2(650,1830)]
 	for i in range(trees.size()):
+		var spot: Vector3 = map_to_world(trees[i])
+		resource_reservations.append(Vector2(spot.x, spot.z))
 		_make("tree_%d" % i, "tree", "Дерево", trees[i], {"collision": 14})
 	var rocks = [Vector2(415,1640),Vector2(520,1410),Vector2(310,1120),Vector2(1170,1420),Vector2(1270,1510),Vector2(1310,950),Vector2(750,680),Vector2(650,550),Vector2(490,470),Vector2(800,320),Vector2(1640,760),Vector2(1810,1400),Vector2(2400,1220),Vector2(2800,1510)]
 	for i in range(rocks.size()):
+		var spot: Vector3 = map_to_world(rocks[i])
+		resource_reservations.append(Vector2(spot.x, spot.z))
 		_make("rock_%d" % i, "rock", "Камни", rocks[i], {"collision": 15})
 	var scrap = [Vector2(2200,1630),Vector2(2350,1380),Vector2(2510,800),Vector2(2700,540),Vector2(2770,850),Vector2(2440,680),Vector2(1270,1700),Vector2(650,1740)]
 	for i in range(scrap.size()):
@@ -258,6 +263,7 @@ func _build_world() -> void:
 	for i in range(bushes.size()):
 		_make("bush_%d" % i, "bush", "Ягоды и травы", bushes[i])
 	_scatter_resource_nodes()
+	_add_shore_resources()
 
 func _resource_near_base(pos: Vector3) -> bool:
 	if not is_instance_valid(building):
@@ -280,8 +286,8 @@ func _scatter_resource_nodes() -> void:
 	var placed: Array[Vector2] = []
 	var landmarks := [STARTING_SHORE, SITES.hotel, SITES.safe, SITES.keycard, SITES.chip, SITES.coil, SITES.cell, SITES.lighthouse, SITES.boat]
 	var accepted := 0
-	for i in range(1100):
-		if accepted >= 245:
+	for i in range(1600):
+		if accepted >= 320:
 			break
 		var point := Vector2(rng.randf_range(180, 3020), rng.randf_range(160, 2040))
 		var tree := rng.randf() < 0.70
@@ -309,6 +315,7 @@ func _scatter_resource_nodes() -> void:
 		if _resource_near_base(pos):
 			continue
 		placed.append(world_point)
+		resource_reservations.append(world_point)
 		accepted += 1
 		var id := ("grove_tree_%04d" if tree else "grove_rock_%04d") % i
 		var model := "res://assets/models/nature_real/broadleaf.glb" if broadleaf else "res://assets/models/nature_real/pine.glb"
@@ -316,6 +323,37 @@ func _scatter_resource_nodes() -> void:
 			_make(id, "tree", "Дерево", point, {"collision": 14, "model": model, "model_scale": size, "yaw": yaw})
 		else:
 			_make(id, "rock", "Камень", point, {"collision": 15, "model_scale": rock_size, "yaw": yaw})
+
+func _add_shore_resources() -> void:
+	# A small, accessible stand of independent trees makes the first resource
+	# gathering visible from the starting shore, rather than only deep inland.
+	# Existing saves keep their buildings and any previously depleted ids.
+	var stand := [
+		{"id":"shore_tree_0", "point":Vector2(350, 1700), "kind":"tree", "model": "res://assets/models/nature_real/broadleaf.glb", "model_scale":1.25},
+		{"id":"shore_tree_1", "point":Vector2(300, 1700), "kind":"tree", "model": "res://assets/models/nature_real/pine.glb", "model_scale":0.57},
+		{"id":"shore_tree_2", "point":Vector2(450, 1650), "kind":"tree", "model": "res://assets/models/nature_real/pine.glb", "model_scale":0.60},
+		{"id":"shore_tree_3", "point":Vector2(550, 1700), "kind":"tree", "model": "res://assets/models/nature_real/broadleaf.glb", "model_scale":1.20},
+		{"id":"shore_rock_0", "point":Vector2(250, 1700), "kind":"rock", "model_scale":4.2},
+	]
+	for item in stand:
+		var point: Vector2 = item.point
+		var position := point * MAP_SCALE
+		if not environment_3d.is_walkable(position.x, position.y, 1.5) or environment_3d._near_road(point):
+			continue
+		var occupied := false
+		for reserved in resource_reservations:
+			if reserved.distance_to(position) < 3.0:
+				occupied = true
+				break
+		if occupied:
+			continue
+		for prop in props:
+			if is_instance_valid(prop) and prop.kind in ["tree", "rock", "water", "crate", "deco"]:
+				if Vector2(prop.position.x, prop.position.z).distance_to(position) < 3.0:
+					occupied = true
+					break
+		if not occupied:
+			_make(item.id, item.kind, "Дерево" if item.kind == "tree" else "Камень", point, {"collision": 14 if item.kind == "tree" else 15, "model": item.get("model", ""), "model_scale": item.model_scale})
 
 func _make(identity: String, kind: String, title: String, pos: Vector2, detail: Dictionary = {}):
 	if kind in ["tree", "rock"] and identity in depleted_resources:

@@ -79,11 +79,13 @@ func visible_frame_has_content() -> bool:
 	return high - low > 0.08 and high > 0.1
 
 func capture_for_review(label: String) -> void:
+	if not OS.get_environment("GODOT_CONSOLE").contains("4.6.3"):
+		return
 	await RenderingServer.frame_post_draw
 	var image = root.get_texture().get_image()
-	image.resize(320, 180, Image.INTERPOLATE_LANCZOS)
+	image.resize(640, 360, Image.INTERPOLATE_LANCZOS)
 	image.convert(Image.FORMAT_RGB8)
-	var encoded := Marshalls.raw_to_base64(image.save_jpg_to_buffer(0.32))
+	var encoded := Marshalls.raw_to_base64(image.save_jpg_to_buffer(0.40))
 	for part in range(ceili(float(encoded.length()) / 3500.0)):
 		print("::notice title=CAPTURE_%s_%02d::%s" % [label, part, encoded.substr(part * 3500, 3500)])
 
@@ -129,6 +131,17 @@ func _run() -> void:
 			break
 	check(moved, "player movement works while the 3D world is rendered")
 	await capture_for_review("WORLD")
+	if OS.get_environment("GODOT_CONSOLE").contains("4.6.3"):
+		var original_position: Vector3 = world.player.global_position
+		var lake: Vector2 = world.environment_3d.lake_map_position * world.MAP_SCALE
+		var shore := lake + Vector2(-6.0, 8.0)
+		world.player.set_physics_process(false)
+		world.player.global_position = Vector3(shore.x, world.environment_3d.height_at(shore.x, shore.y) + 0.15, shore.y)
+		await process_frame
+		await process_frame
+		await capture_for_review("LAKE")
+		world.player.global_position = original_position
+		world.player.set_physics_process(true)
 	check(is_instance_valid(world.hud.minimap) and world.hud.minimap.visible, "a player-centred minimap is visible in the rendered HUD")
 	await press_key(KEY_TAB)
 	check(world.hud.modal_kind == "inventory" and world.hud.inventory_grid.get_child_count() == 24, "Tab opens the rendered icon inventory")

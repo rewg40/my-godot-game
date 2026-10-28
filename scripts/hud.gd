@@ -38,6 +38,7 @@ var clock_label: Label
 var quest_name: Label
 var quest_text: Label
 var objective_direction: Label
+var waypoint_direction: Label
 var interact_panel: PanelContainer
 var interact_label: Label
 var quick_label: Label
@@ -104,6 +105,9 @@ func _build_hud() -> void:
 	qbox.add_child(quest_text)
 	objective_direction = UI.label("", 12, Color("d8c594"))
 	qbox.add_child(objective_direction)
+	waypoint_direction = UI.label("", 11, Color("86c9ce"))
+	waypoint_direction.visible = false
+	qbox.add_child(waypoint_direction)
 	var map_frame = UI.panel()
 	map_frame.position = Vector2(1072, 20)
 	map_frame.size = Vector2(186, 186)
@@ -196,6 +200,10 @@ func _process(delta: float) -> void:
 		else:
 			arrow = "↑" if forward > 0 else "↓"
 	objective_direction.text = "%s  %s  ·  %d м" % [arrow, world.objective_name(), int(delta_to_goal.length())]
+	waypoint_direction.visible = world.waypoint_map.x >= 0.0
+	if waypoint_direction.visible:
+		var waypoint_meters: float = world.player_map_position().distance_to(world.waypoint_map) * world.MAP_SCALE
+		waypoint_direction.text = "◆  Моя метка  ·  %d м" % int(waypoint_meters)
 	quick_label.text = "[ 1 ] Еда %d      [ 2 ] Вода %d      [ 3 ] Бинт %d      ◈ %d / 7" % [world.count("food"), world.count("water"), world.count("bandage"), 1 if world.flags.get("fragment", false) else 0]
 	if world.building.active:
 		interact_panel.visible = false
@@ -434,7 +442,7 @@ func show_map() -> void:
 	box.add_theme_constant_override("separation", 8)
 	panel.add_child(box)
 	box.add_child(UI.label("ПРИЮТ  /  КАРТА ОСТРОВА", 22, UI.GOLD, true))
-	box.add_child(UI.label("▲ Вы    •    ● Цель    •    ■ Фундамент    •    ◆ Метка    |    Колесо — масштаб  ·  ЛКМ — метка/перетащить  ·  ПКМ — убрать", 12, UI.MUTED))
+	box.add_child(UI.label("▲ Вы    •    ● Цель    •    ■ База    •    ◆ Метка    •    Деревья / камни   |   Колесо — масштаб  ·  ЛКМ — метка или перетаскивание  ·  ПКМ — убрать", 11, UI.MUTED))
 	var map = MapView.new()
 	map.world = world
 	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL

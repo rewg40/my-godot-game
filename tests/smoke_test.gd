@@ -132,12 +132,15 @@ func _run() -> void:
 	var forest_count := 0
 	var rock_count := 0
 	var broadleaf_count := 0
+	var near_shore_tree := false
 	for object in world.props:
 		if object.kind == "tree":
 			forest_count += 1
 			if "broadleaf" in String(object.detail.get("model", "")): broadleaf_count += 1
+			if Vector2(object.global_position.x, object.global_position.z).distance_to(Vector2(world.player.global_position.x, world.player.global_position.z)) < 20.0:
+				near_shore_tree = true
 		if object.kind == "rock": rock_count += 1
-	check(forest_count > 60 and rock_count > 20 and broadleaf_count > 0, "the enlarged island has physical harvestable forest and boulders")
+	check(forest_count > 100 and rock_count > 30 and broadleaf_count > 0 and near_shore_tree, "the enlarged island has physical harvestable forest and boulders, including near the starting shore")
 	var lake_center: Vector2 = world.environment_3d.lake_map_position * world.MAP_SCALE
 	var near_lake: Vector2 = world.environment_3d.nearest_walkable(lake_center.x, lake_center.y)
 	check(world.environment_3d.get_node_or_null("ForestLake") is MeshInstance3D and not world.environment_3d.is_walkable(lake_center.x, lake_center.y) and world.environment_3d.is_walkable(near_lake.x, near_lake.y), "lake has visible water, blocks building and relocates unsafe spawns to its shore")
