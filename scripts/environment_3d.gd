@@ -321,6 +321,10 @@ func _build_terrain() -> void:
 	material.set_shader_parameter("dirt_tex", load("res://assets/environment/textures/dirt_diff_1k.jpg"))
 	material.set_shader_parameter("sand_tex", load("res://assets/environment/textures/sand.jpg"))
 	material.set_shader_parameter("asphalt_tex", load("res://assets/environment/textures/asphalt.jpg"))
+	material.set_shader_parameter("snow_tex", load("res://assets/environment/textures/biome_snow.png"))
+	material.set_shader_parameter("desert_tex", load("res://assets/environment/textures/biome_desert.png"))
+	material.set_shader_parameter("rad_tex", load("res://assets/environment/textures/biome_radioactive.png"))
+	material.set_shader_parameter("island_size", Vector2(WIDTH, DEPTH))
 	ground_mesh.surface_set_material(0, material)
 	var ground = MeshInstance3D.new()
 	ground.name = "IslandTerrain"
