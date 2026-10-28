@@ -87,11 +87,6 @@ func _physics_process(delta: float) -> void:
 	offset_to_player.y = 0
 	var distance_to_player = offset_to_player.length()
 	var aggressive = distance_to_player < (15.2 if world.is_night() else 11.8)
-	var attacking_camp = false
-	if group_name in ["wave", "raid"] and distance_to_player > 7.0:
-		target = world.map_to_world(world.camp_position)
-		aggressive = true
-		attacking_camp = true
 	var offset = target - global_position
 	offset.y = 0
 	var distance = offset.length()
@@ -111,10 +106,13 @@ func _physics_process(delta: float) -> void:
 		velocity.y = -0.1
 	move_and_slide()
 	if aggressive and distance <= 1.92 and attack_timer <= 0.0:
-		attack_timer = 1.15
-		if attacking_camp and distance < 2.2:
-			world.damage_camp(damage)
-		else:
+		# Walls and closed doors must physically protect the player; do not
+		# apply a melee hit through solid geometry merely because targets are near.
+		var from = global_position + Vector3.UP * 0.85
+		var to = world.player.global_position + Vector3.UP * 0.85
+		var query = PhysicsRayQueryParameters3D.create(from, to, 1)
+		if get_world_3d().direct_space_state.intersect_ray(query).is_empty():
+			attack_timer = 1.15
 			world.player.take_damage(damage)
 	if kind == "screamer" and aggressive and call_timer <= 0.0:
 		call_timer = 11.0

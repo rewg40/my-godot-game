@@ -115,15 +115,15 @@ func _run() -> void:
 	check(collision_shape.shape is ConcavePolygonShape3D and (collision_shape.shape as ConcavePolygonShape3D).get_faces().size() == 360000, "physical collision uses the complete island mesh")
 	var repaired_point: Vector2 = world.environment_3d.nearest_walkable(67.0, 22.0)
 	check(world.environment_3d.is_walkable(repaired_point.x, repaired_point.y), "a saved position inside the new geometry moves to connected ground")
-	for site in ["marta", "grom", "hotel", "safe", "keycard", "chip", "coil", "cell", "teddy", "lighthouse", "boat", "plot_0", "plot_1", "plot_2"]:
+	for site in ["hotel", "safe", "keycard", "chip", "coil", "cell", "lighthouse", "boat", "water_0"]:
 		var landmark = prop(world, site)
 		check(landmark != null and world.environment_3d.is_walkable(landmark.position.x, landmark.position.z), "landmark is on connected, unobstructed ground: " + site)
 	var path = world.environment_3d.navigation_path(world.map_to_world(Vector2(360, 1830)), world.map_to_world(world.SITES.hotel))
 	check(path.size() > 4, "navigation can route from the shore around the model to the hotel")
-	path = world.environment_3d.navigation_path(world.map_to_world(world.CAMP), world.map_to_world(world.SITES.keycard))
-	check(path.size() > 4, "navigation can route from the camp to the airfield")
+	path = world.environment_3d.navigation_path(world.map_to_world(Vector2(850, 1280)), world.map_to_world(world.SITES.keycard))
+	check(path.size() > 4, "navigation can route from the central island to the airfield")
 	for site in ["boat", "lighthouse", "coil", "cell"]:
-		path = world.environment_3d.navigation_path(world.map_to_world(world.CAMP), world.map_to_world(world.SITES[site]))
+		path = world.environment_3d.navigation_path(world.map_to_world(Vector2(850, 1280)), world.map_to_world(world.SITES[site]))
 		check(path.size() > 4, "navigation reaches the new island landmark: " + site)
 	var grass = world.environment_3d.get_node_or_null("GrassCover")
 	check(grass is MultiMeshInstance3D and grass.multimesh.instance_count > 500, "3D grass is batched across the island")
@@ -171,12 +171,12 @@ func _run() -> void:
 	for body in world.find_children("*", "StaticBody3D", true, false):
 		if body != island_body:
 			excluded.append(body.get_rid())
-	for sample in [Vector2(360, 1830), world.CAMP, world.SITES.coil, world.SITES.keycard, world.SITES.lighthouse]:
+	for sample in [Vector2(360, 1830), Vector2(850, 1280), world.SITES.coil, world.SITES.keycard, world.SITES.lighthouse]:
 		var point: Vector3 = world.map_to_world(sample)
 		var ray = PhysicsRayQueryParameters3D.create(Vector3(point.x, 40.0, point.z), Vector3(point.x, -3.0, point.z), 1, excluded)
 		var hit = world.get_world_3d().direct_space_state.intersect_ray(ray)
 		check(not hit.is_empty() and hit.collider == island_body and absf(hit.position.y - point.y) < 0.25, "sampled placement height matches island collision at " + str(sample))
-	for identity in ["marta", "grom", "hotel", "safe", "keycard", "chip", "coil", "cell", "teddy", "lighthouse", "boat", "plot_0", "plot_1", "plot_2"]:
+	for identity in ["hotel", "safe", "keycard", "chip", "coil", "cell", "lighthouse", "boat", "water_0"]:
 		check(has_interaction_space(world, prop(world, identity), island_body), "landmark has a clear, usable interaction approach: " + identity)
 	var tree_position: Vector3 = prop(world, "tree_8").global_position
 	var rescued: Vector3 = world._safe_player_spawn(world.world_to_map(tree_position))
@@ -277,26 +277,11 @@ func _run() -> void:
 	world.player_attack(Vector3.RIGHT)
 	check(target.health < target.max_health, "directional player attack damages a nearby enemy")
 	target.queue_free()
-	var marta = prop(world, "marta")
-	var grom = prop(world, "grom")
-	check(marta.idle_actor.model.scene_file_path == "res://assets/models/survivors/female.glb" and grom.idle_actor.model.scene_file_path == "res://assets/models/survivors/male.glb", "female and male NPCs keep their existing models")
-	check(marta.idle_actor.animation != null and marta.idle_actor.animation.has_animation("Walk"), "female survivor rig imports its animations")
-	world.player.global_position = marta.global_position + Vector3(0, 0, -2.4)
-	check(world.nearest_prop() == marta, "nearby interaction selects Marta")
-	var interact_key = InputEventKey.new()
-	interact_key.keycode = KEY_E
-	interact_key.physical_keycode = KEY_E
-	interact_key.pressed = true
-	Input.parse_input_event(interact_key)
-	Input.flush_buffered_events()
-	var release_key = InputEventKey.new()
-	release_key.keycode = KEY_E
-	release_key.physical_keycode = KEY_E
-	release_key.pressed = false
-	Input.parse_input_event(release_key)
-	Input.flush_buffered_events()
-	check(world.quest_stage == 1 and world.hud.is_modal_open(), "E opens Marta's defense quest")
-	world.hud.close_modal()
+	check(prop(world, "marta") == null and prop(world, "grom") == null and prop(world, "plot_0") == null, "NPC camp and fixed defence plots are removed")
+	world.player.global_position = world._safe_player_spawn(Vector2(850, 1280)) + Vector3.UP * 0.12
+	var water_before = world.count("water")
+	world.interact(prop(world, "water_0"))
+	check(world.count("water") == water_before + 3, "water remains renewable without an NPC camp")
 	var wood_before = world.count("wood")
 	var first_tree = prop(world, "tree_0")
 	world.interact(first_tree)
@@ -382,43 +367,7 @@ func _run() -> void:
 	check(world.weapon_id() == "spear" and world.player.weapon_root.get_node_or_null("SpearShaft") != null, "Q switches back to the spear")
 	world.player_attack(Vector3.RIGHT)
 	check(choice_target.is_dead, "selected spear deals spear damage")
-	for i in range(3):
-		world.interact(prop(world, "plot_%d" % i))
-	check(world.tower_count() == 3, "three towers can be built")
-	check(prop(world, "plot_0").find_children("*", "StaticBody3D", true, false).size() > 0, "built tower has 3D collision")
-	world.interact(marta)
-	var begin_defense = button(world.hud.modal, "НАЧАТЬ ОБОРОНУ")
-	check(begin_defense != null, "Marta offers the defense after three towers")
-	if begin_defense:
-		begin_defense.pressed.emit()
-	check(world.quest_stage == 2 and world.save_progress(false), "dialogue starts the scripted wave and it can be saved")
-	var during_wave = SaveGame.load_data()
-	check(int(during_wave.get("quest_stage", -1)) == 1, "saving during raid restarts it safely")
-	var wave_first = enemy(world, "wave_0")
-	wave_first.global_position = world.map_to_world(world.tower_positions[0] + Vector2(100, 0)) + Vector3.UP * 0.12
-	var old_hp: float = wave_first.health
-	world._update_towers(0.1)
-	check(wave_first.health < old_hp, "built tower damages enemies in range")
-	# Let the actual physics, enemy AI and towers resolve the wave rather than
-	# instantly defeating the enemies. Only protect the idle test player.
-	world.player.global_position = world.map_to_world(world.camp_position + Vector2(0, 60)) + Vector3.UP * 0.12
-	world.player.invulnerable = 999.0
-	Engine.time_scale = 2.0
-	for i in range(25):
-		await create_timer(1.0).timeout
-		if world.quest_stage != 2:
-			break
-	Engine.time_scale = 1.0
-	world.player.invulnerable = 0.0
-	if world.quest_stage != 3 or world.wave_kills != 5:
-		print("Wave diagnostics: stage=", world.quest_stage, " kills=", world.wave_kills, " camp_hp=", world.camp_health)
-		for raider in world.enemies:
-			if is_instance_valid(raider) and raider.group_name == "wave" and not raider.is_dead:
-				print("  ", raider.enemy_id, " map=", world.world_to_map(raider.global_position), " hp=", raider.health, " floor=", raider.is_on_floor())
-	check(world.quest_stage == 3 and world.wave_kills == 5, "AI and towers defeat all five raiders and advance the story")
-	if world.quest_stage != 3:
-		# Preserve the failed assertion while allowing later systems to be tested.
-		world.quest_stage = 3
+	check(world.quest_stage == 0, "survival and building do not require an NPC defence quest")
 	world.interact(prop(world, "hotel"))
 	check(world.quest_stage == 4 and enemy(world, "boss_hotel") != null, "hotel boss encounter starts")
 	world.hud.close_modal()
@@ -456,12 +405,6 @@ func _run() -> void:
 	world.interact(prop(world, "safe"))
 	check(world.quest_stage == 6 and world.flags.get("fragment", false), "key-card opens safe and grants fragment")
 	world.hud.close_modal()
-	world.interact(prop(world, "tim"))
-	world.hud.close_modal()
-	world.interact(prop(world, "teddy"))
-	world.interact(prop(world, "tim"))
-	check(world.side_stage == 3, "Tim's side quest can be completed")
-	world.hud.close_modal()
 	for key in ["coil", "chip", "cell"]:
 		world.interact(prop(world, key))
 	check(world.component_count() == 3, "all antenna components can be found")
@@ -470,10 +413,7 @@ func _run() -> void:
 	world.hud.close_modal()
 	var screamer = enemy(world, "boss_lighthouse")
 	screamer.take_damage(9999, world.player.global_position)
-	check(world.quest_stage == 8 and world.flags.get("lighthouse", false), "screamer defeat repairs antenna")
-	world.hud.close_modal()
-	world.interact(prop(world, "grom"))
-	check(world.quest_stage == 9, "Grom unlocks boat repair")
+	check(world.quest_stage == 9 and world.flags.get("lighthouse", false), "screamer defeat repairs antenna and unlocks the boat")
 	world.hud.close_modal()
 	world.inventory["wood"] = 15
 	world.inventory["iron"] = 5
@@ -486,12 +426,11 @@ func _run() -> void:
 	world.use_item("bandage")
 	check(world.player.health == 90 and world.count("bandage") == 0, "bandage heals and is consumed")
 	world.player_defeated()
-	check(world.player.health > 0 and world.world_to_map(world.player.global_position).distance_to(world.camp_position) < 150, "defeated player respawns")
+	check(world.player.health > 0 and world.world_to_map(world.player.global_position).distance_to(world.STARTING_SHORE) < 150, "defeated player respawns")
 	world.minute = 1201
 	world.day = 2
-	world.last_raid_day = 0
 	world._process(0.1)
-	check(world.last_raid_day == 2 and enemy(world, "raid_2_0") != null, "night raid triggers once per day")
+	check(enemy(world, "raid_2_0") == null, "no forced camp-defence raid starts at night")
 	check(world.save_progress(false), "save writes successfully")
 	var saved = SaveGame.load_data()
 	check(int(saved.get("quest_stage", -1)) == 10 and bool(saved.get("flags", {}).get("boat", false)), "completed story persists")

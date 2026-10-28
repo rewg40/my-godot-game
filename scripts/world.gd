@@ -8,44 +8,35 @@ const SaveGame = preload("res://scripts/save_game.gd")
 const Environment3D = preload("res://scripts/environment_3d.gd")
 const Roadside3D = preload("res://scripts/roadside_3d.gd")
 const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
+const BuildingSystem = preload("res://scripts/build_system.gd")
 const MAP_SCALE := 0.04
-const CAMP = Vector2(850, 1280)
+const STARTING_SHORE = Vector2(360, 1830)
 const SITES = {
-	"marta": Vector2(900, 1240), "grom": Vector2(1050, 1375),
 	"hotel": Vector2(2150, 1440), "safe": Vector2(2250, 1510),
 	"keycard": Vector2(2850, 500), "chip": Vector2(2850, 700),
 	"coil": Vector2(590, 430), "cell": Vector2(1360, 450),
-	"teddy": Vector2(1390, 565), "lighthouse": Vector2(2750, 1800),
-	"boat": Vector2(380, 1950),
+	"lighthouse": Vector2(2750, 1800), "boat": Vector2(380, 1950),
 }
 
 var main
 var load_data: Dictionary = {}
 var player
 var hud
-var camp_position = CAMP
+var building: Node3D
 var props: Array = []
 var enemies: Array = []
 var inventory: Dictionary = {"wood": 0, "stone": 0, "iron": 0, "cloth": 1, "food": 2, "water": 2, "herbs": 0, "bandage": 1}
 var flags: Dictionary = {}
 var equipped_weapon: String = ""
 var dead_ids: Array = []
-var towers: Array = [false, false, false]
-var tower_timers: Array = [0.0, 0.0, 0.0]
-var tower_positions: Array = [Vector2(610, 1180), Vector2(1060, 1110), Vector2(1090, 1530)]
 var quest_stage: int = 0
-var side_stage: int = 0
-var wave_kills: int = 0
-var camp_health: float = 100.0
 var day: int = 1
 var minute: float = 480.0
 var elapsed: float = 0.0
-var last_raid_day: int = 0
 var autosave_clock: float = 0.0
 var environment_3d: Node3D
 var goal_marker: Node3D
 var sound: AudioStreamPlayer
-var effects: Array = []
 
 func _ready() -> void:
 	name = "ShelterWorld3D"
@@ -58,6 +49,12 @@ func _ready() -> void:
 	roadside.name = "RoadsideDetails"
 	add_child(roadside)
 	roadside.build(self)
+	building = BuildingSystem.new()
+	building.world = self
+	add_child(building)
+	var saved_buildings = load_data.get("buildings", [])
+	if saved_buildings is Array:
+		building.restore(saved_buildings)
 	player = PlayerScript.new()
 	player.world = self
 	player.position = _safe_player_spawn(_saved_position()) + Vector3.UP * 0.12
@@ -78,7 +75,7 @@ func _ready() -> void:
 	_spawn_initial_enemies()
 	_setup_goal_marker()
 	if load_data.is_empty():
-		hud.dialogue("День обнуления — 200 лет спустя", "Море выбросило вас на берег Приюта. Антенны подавления гаснут, а заражённые снова приближаются к поселениям. Найдите «Очаг» и поговорите со старейшиной Мартой.")
+		hud.dialogue("Один на острове", "Вы на берегу Приюта. Собирайте древесину и камень, выберите место и нажмите B, чтобы построить собственную базу. Исследуйте остров, но берегитесь заражённых.")
 		save_progress(false)
 	else:
 		hud.toast("С возвращением на остров Приют.")
@@ -99,15 +96,15 @@ func world_to_map(point: Vector3) -> Vector2:
 	return Vector2(point.x, point.z) / MAP_SCALE
 
 func _safe_player_spawn(point: Vector2) -> Vector3:
-	# Besides the island's baked-in rocks, old saves can land inside a tree,
-	# building, fence or a previously built tower. Check the current static
-	# colliders before spawning rather than relying on physics to push the
-	# character out of an enclosed object.
+	# Legacy positions may be in water or inside scenery. Player-built floors
+	# are traversable supports rather than spawn obstacles; a saved player can
+	# resume inside their own base and stands above the saved foundation.
 	var origin = map_to_world(point)
+	origin.y = _spawn_height(origin.x, origin.z)
 	var circles: Array[Vector3] = [] # x / z / conservative horizontal radius
 	var island_body = environment_3d.get_node("IslandCollision")
 	for body in find_children("*", "StaticBody3D", true, false):
-		if body == island_body:
+		if body == island_body or body.get_meta("player_built", false):
 			continue
 		for item in body.find_children("*", "CollisionShape3D", true, false):
 			var shape = item as CollisionShape3D
@@ -137,8 +134,14 @@ func _safe_player_spawn(point: Vector2) -> Vector3:
 			var angle = TAU * float(i) / float(steps)
 			var candidate = horizontal + Vector2(cos(angle), sin(angle)) * radius
 			if environment_3d.is_walkable(candidate.x, candidate.y) and _spawn_clear(candidate, circles):
-				return Vector3(candidate.x, environment_3d.height_at(candidate.x, candidate.y), candidate.y)
+				return Vector3(candidate.x, _spawn_height(candidate.x, candidate.y), candidate.y)
 	return origin
+
+func _spawn_height(x: float, z: float) -> float:
+	var height: float = environment_3d.height_at(x, z)
+	if is_instance_valid(building):
+		height = maxf(height, building.floor_height_at(Vector2(x, z)))
+	return height
 
 func _spawn_clear(point: Vector2, circles: Array[Vector3]) -> bool:
 	for obstacle in circles:
@@ -166,10 +169,6 @@ func _setup_goal_marker() -> void:
 func _build_world() -> void:
 	# The first-island landmarks now use actual 3D geometry. Their map
 	# coordinates match the original quest, which also keeps old saves usable.
-	_deco(Vector2(690, 1110), "res://assets/models/kenney/city-suburban/building-type-a.glb", 5.0, 34)
-	_deco(Vector2(997, 1178), "res://assets/models/kenney/city-suburban/building-type-c.glb", 4.7, 34)
-	_deco(Vector2(600, 1490), "res://assets/models/kenney/city-suburban/building-type-g.glb", 4.3, 31)
-	_deco(Vector2(1110, 1640), "res://assets/models/kenney/survival/structure.glb", 6.0, 28)
 	_deco(Vector2(2314, 1443), "res://assets/models/kenney/city-industrial/building-a.glb", 3.5, 35)
 	_deco(Vector2(2500, 500), "res://assets/models/kenney/city-industrial/building-a.glb", 3.8, 33)
 	_deco(Vector2(570, 345), "res://assets/models/kenney/nature/cliff_cave_rock.glb", 5.0, 30)
@@ -179,22 +178,17 @@ func _build_world() -> void:
 	_deco(Vector2(1530, 1510), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, 0.35)
 	_deco(Vector2(2128, 1589), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, 2.4)
 	_deco(Vector2(2460, 960), "res://assets/models/props/abandoned_sedan.glb", 0.08, 24, -0.6)
-	_make("marta", "npc", "Старейшина Марта", SITES.marta, {"collision": 12})
-	_make("grom", "npc", "Старик Гром", SITES.grom, {"collision": 12})
-	_make("borg", "npc", "Кузнец Борг", Vector2(655, 1365), {"collision": 12})
-	_make("lina", "npc", "Лина-Травница", Vector2(960, 1390), {"collision": 12})
-	_make("tim", "npc", "Мальчик Тим", Vector2(720, 1290), {"collision": 10})
-	_make("fire", "fire", "Костёр «Очага»", CAMP, {"collision": 14})
-	_make("well", "well", "Колодец", Vector2(785, 1410), {"collision": 15})
-	for i in range(3):
-		_make("plot_%d" % i, "plot", "Место для башни", tower_positions[i], {"index": i, "built": towers[i]})
+	# No NPC camp, fixed tower plots or defence wave: the player chooses where
+	# to build. Refillable water barrels keep survival possible without a well.
+	var water_points = [Vector2(475, 1770), Vector2(1010, 1410), Vector2(1950, 1450), Vector2(2620, 780)]
+	for i in range(water_points.size()):
+		_make("water_%d" % i, "water", "Бочка с водой", water_points[i], {"collision": 10})
 	_make("hotel", "hotel", "Руины отеля «Аврора»", SITES.hotel)
 	_make("safe", "safe", "Сейф в руинах «Авроры»", SITES.safe, {"collision": 15})
 	_make("keycard", "keycard", "Ключ-карта на аэродроме", SITES.keycard)
 	_make("chip", "chip", "Микросхема на аэродроме", SITES.chip, {"collision": 14})
 	_make("coil", "coil", "Медная катушка у пещеры", SITES.coil, {"collision": 14})
 	_make("cell", "cell", "Энергоячейка в лесу", SITES.cell, {"collision": 14})
-	_make("teddy", "teddy", "Потерянный медвежонок", SITES.teddy)
 	_make("lighthouse", "lighthouse", "Старый маяк", SITES.lighthouse, {"collision": 23})
 	_make("boat", "boat", "Лодка у причала", SITES.boat, {"collision": 15})
 	var trees = [Vector2(330,1530),Vector2(460,1515),Vector2(535,1580),Vector2(290,1320),Vector2(445,1260),Vector2(1160,1010),Vector2(1220,1170),Vector2(1330,1200),Vector2(1300,850),Vector2(1440,720),Vector2(1535,665),Vector2(1600,540),Vector2(1420,350),Vector2(1280,430),Vector2(1140,470),Vector2(860,420),Vector2(780,590),Vector2(350,600),Vector2(480,700),Vector2(1790,940),Vector2(1850,1150),Vector2(1850,1730),Vector2(2400,1750),Vector2(900,1820),Vector2(650,1830)]
@@ -226,7 +220,7 @@ func _make(identity: String, kind: String, title: String, pos: Vector2, detail: 
 	var clearance = 2.5 if kind == "deco" and "building-" in String(detail.get("model", "")) else 1.0
 	prop.position = map_to_world(pos, clearance)
 	add_child(prop)
-	if kind in ["keycard", "chip", "coil", "cell", "teddy"] and flags.get(kind, false):
+	if kind in ["keycard", "chip", "coil", "cell"] and flags.get(kind, false):
 		prop.visible = false
 	props.append(prop)
 	return prop
@@ -282,17 +276,6 @@ func _process(delta: float) -> void:
 	elif minute < 360:
 		light = 1.0 - (minute - 300.0) / 60.0
 	environment_3d.set_night(light)
-	if is_night() and quest_stage >= 3 and last_raid_day != day:
-		last_raid_day = day
-		_start_night_raid()
-	_update_towers(delta)
-	for i in range(effects.size() - 1, -1, -1):
-		effects[i]["time"] -= delta
-		if effects[i]["time"] <= 0:
-			if is_instance_valid(effects[i]["node"]):
-				MeshCleanup.before_free(effects[i]["node"])
-				effects[i]["node"].queue_free()
-			effects.remove_at(i)
 	if is_instance_valid(goal_marker):
 		goal_marker.position = map_to_world(objective_position()) + Vector3.UP * (3.0 + 0.18 * sin(elapsed * 3.0))
 		goal_marker.rotation.y += delta * 0.8
@@ -301,6 +284,11 @@ func _process(delta: float) -> void:
 		save_progress(false)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if building.active and not hud.is_modal_open():
+			building.place_current()
+			get_viewport().set_input_as_handled()
+		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
 	var key: int = event.physical_keycode
@@ -309,17 +297,41 @@ func _unhandled_input(event: InputEvent) -> void:
 	if key == KEY_ESCAPE:
 		if hud.is_modal_open():
 			hud.close_modal()
+		elif building.active:
+			building.set_active(false)
 		else:
 			hud.show_pause()
 		get_viewport().set_input_as_handled()
 		return
 	if hud.is_modal_open():
 		return
+	if key == KEY_B:
+		building.toggle()
+		get_viewport().set_input_as_handled()
+		return
+	if building.active:
+		match key:
+			KEY_1: building.select_type("foundation")
+			KEY_2: building.select_type("wall")
+			KEY_3: building.select_type("roof")
+			KEY_4: building.select_type("doorway")
+			KEY_5: building.select_type("door")
+			KEY_R: building.rotate_selection()
+			KEY_X: building.remove_current()
+			KEY_E:
+				var door = building.nearest_door()
+				if door: building.interact_door(door)
+			KEY_F5: save_progress(true)
+		get_viewport().set_input_as_handled()
+		return
 	match key:
 		KEY_E:
-			var prop = nearest_prop()
-			if prop:
-				interact(prop)
+			var door = building.nearest_door()
+			if door:
+				building.interact_door(door)
+			else:
+				var prop = nearest_prop()
+				if prop: interact(prop)
 		KEY_C: hud.show_crafting()
 		KEY_TAB: hud.show_inventory()
 		KEY_M: hud.show_map()
@@ -373,7 +385,7 @@ func nearest_prop():
 	for prop in props:
 		if not is_instance_valid(prop) or prop.kind == "deco" or not prop.usable:
 			continue
-		if prop.kind in ["keycard", "chip", "coil", "cell", "teddy"] and flags.get(prop.kind, false):
+		if prop.kind in ["keycard", "chip", "coil", "cell"] and flags.get(prop.kind, false):
 			continue
 		var d: float = world_to_map(player.global_position).distance_to(world_to_map(prop.global_position))
 		if d < distance:
@@ -382,21 +394,16 @@ func nearest_prop():
 	return nearest
 
 func prompt_for(prop) -> String:
-	if prop.kind == "plot" and not towers[int(prop.detail.get("index", 0))]:
-		return "Построить башню  ·  10 дерева + 5 камня"
 	if prop.kind == "boat" and quest_stage == 9:
 		return "Починить лодку  ·  15 дерева + 5 металла + 5 ткани"
 	return prop.title
 
 func interact(prop) -> void:
 	match prop.kind:
-		"npc": _talk_to(prop.prop_id)
-		"tree", "rock", "scrap", "crate", "bush", "well": _harvest(prop)
-		"plot": _build_tower(prop)
-		"fire": hud.dialogue("Очаг", "Костёр — сердце поселения. Враг будет пытаться добраться до него во время набега. Построенные башни обстреливают заражённых рядом с поселением.")
+		"tree", "rock", "scrap", "crate", "bush", "water": _harvest(prop)
 		"hotel": _enter_hotel()
 		"safe": _open_safe()
-		"keycard", "chip", "coil", "cell", "teddy": _collect_quest_item(prop)
+		"keycard", "chip", "coil", "cell": _collect_quest_item(prop)
 		"lighthouse": _repair_lighthouse()
 		"boat": _repair_boat()
 
@@ -413,149 +420,10 @@ func _harvest(prop) -> void:
 		"scrap": give("iron", 3); message = "+3 металлолома"
 		"crate": give("cloth", 2); message = "+2 ткани"
 		"bush": give("food", 2); give("herbs", 1); message = "+2 еды и +1 трава"
-		"well": give("water", 3); message = "+3 воды"
-	prop.deplete(35.0 if prop.kind != "well" else 15.0)
+		"water": give("water", 3); message = "+3 воды"
+	prop.deplete(35.0 if prop.kind != "water" else 15.0)
 	play_sound("pickup")
 	hud.toast(message)
-
-func _build_tower(prop) -> void:
-	var index: int = int(prop.detail.get("index", 0))
-	if towers[index]:
-		hud.dialogue("Оборонительная башня", "Башня автоматически атакует заражённых, которые приблизятся к «Очагу».")
-		return
-	if quest_stage == 0:
-		hud.toast("Сначала поговорите с Мартой в поселении.")
-		return
-	if not spend({"wood": 10, "stone": 5}):
-		hud.toast("Не хватает ресурсов: нужно 10 дерева и 5 камня.")
-		return
-	towers[index] = true
-	prop.detail["built"] = true
-	prop.set_built()
-	play_sound("complete")
-	hud.toast("Башня построена: %d / 3" % tower_count())
-	save_progress(false)
-
-func tower_count() -> int:
-	var total = 0
-	for built in towers:
-		if built:
-			total += 1
-	return total
-
-func _talk_to(who: String) -> void:
-	match who:
-		"marta": _talk_marta()
-		"grom":
-			if quest_stage == 8:
-				quest_stage = 9
-				hud.dialogue("Старик Гром", "ПРОМЕТЕЙ ещё жив. Семь фрагментов откроют путь к его ядру. Первый у нас. Почини лодку на берегу: нужны 15 дерева, 5 металлолома и 5 ткани.")
-				save_progress(false)
-			else:
-				hud.dialogue("Старик Гром", "До Обнуления ПРОМЕТЕЙ управлял медицинскими нанороботами. Потом он решил, что человечество надо спасать от самого себя. На других островах спрятаны оставшиеся части кода.")
-		"borg": hud.dialogue("Кузнец Борг", "В рюкзаке открой крафт клавишей C. Из дерева получится бита, а дерево и камень станут копьём. Каменный топор помогает добывать больше ресурсов.")
-		"lina":
-			hud.dialogue("Лина-Травница", "Ягоды утоляют голод, колодец даёт воду. Из ткани сделай бинты; две травы и вода станут лечебной мазью. Следи за собой — в лесу помощь далеко.")
-		"tim": _talk_tim()
-
-func _talk_marta() -> void:
-	if quest_stage == 0:
-		quest_stage = 1
-		give("cloth", 1)
-		hud.dialogue("Старейшина Марта", "Ты жив! Добро пожаловать в Очаг. Мы видели заражённых у леса. Собери древесину и камень, затем построй три башни на отмеченных площадках. Держи немного ткани — пригодится для бинта.")
-		save_progress(false)
-	elif quest_stage == 1 and tower_count() < 3:
-		hud.dialogue("Старейшина Марта", "Для защиты нужны три башни. На каждой отмеченной площадке нажми E. Одна башня стоит 10 древесины и 5 камня. Деревья и камни со временем восстанавливаются.")
-	elif quest_stage == 1:
-		hud.dialogue("Старейшина Марта", "Башни готовы. Заражённые уже идут к костру. Начнём оборону?", [
-			{"text": "НАЧАТЬ ОБОРОНУ", "action": Callable(self, "start_wave")}, {"text": "ПОЗЖЕ"}
-		])
-	elif quest_stage == 2:
-		hud.dialogue("Старейшина Марта", "Защити костёр! Башни помогут, но их стрелам нужно время.")
-	elif quest_stage < 8:
-		hud.dialogue("Старейшина Марта", "Держи путь к своей цели. Все отмеченные места видны на карте — нажми M. А если понадобится оружие, загляни к Боргу.")
-	elif quest_stage == 8:
-		hud.dialogue("Старейшина Марта", "Маяк снова светит. Гром знает, что делать с фрагментом. Поговори с ним у восточного края поселения.")
-	else:
-		hud.dialogue("Старейшина Марта", "Теперь у нас есть надежда. Следующий путь начинается у старой лодки на берегу.")
-
-func _talk_tim() -> void:
-	if side_stage == 3:
-		hud.dialogue("Тим", "Спасибо, что нашёл медвежонка. Теперь он снова охраняет мой сон!")
-	elif flags.get("teddy", false):
-		side_stage = 3
-		give("food", 3); give("bandage", 1)
-		play_sound("complete")
-		hud.dialogue("Тим", "Мишка! Я думал, что потерял его навсегда. Спасибо! Я сохранил для тебя немного еды и бинт.")
-		save_progress(false)
-	else:
-		side_stage = 1
-		hud.dialogue("Тим", "Я потерял своего медвежонка в Лесу Шёпотов, недалеко от старых руин. Если найдёшь его, пожалуйста, принеси мне.")
-		save_progress(false)
-
-func start_wave() -> void:
-	quest_stage = 2
-	wave_kills = 0
-	camp_health = 100.0
-	for i in range(5):
-		var angle = TAU * float(i) / 5.0
-		var pos = CAMP + Vector2(cos(angle), sin(angle)) * 510.0
-		spawn_enemy("wave_%d" % i, "walker", pos, "wave")
-	hud.toast("Набег начался! Защитите костёр: 0 / 5", 5.0)
-	save_progress(false)
-
-func _start_night_raid() -> void:
-	for i in range(3):
-		var angle = TAU * float(i) / 3.0 + float(day) * 0.4
-		spawn_enemy("raid_%d_%d" % [day, i], "runner" if i == 0 else "walker", CAMP + Vector2(cos(angle), sin(angle)) * 570.0, "raid")
-	hud.toast("Ночь. Заражённые идут к Очагу!", 5.0)
-
-func _update_towers(delta: float) -> void:
-	for i in range(3):
-		if not towers[i]:
-			continue
-		tower_timers[i] = maxf(0.0, float(tower_timers[i]) - delta)
-		if tower_timers[i] > 0.0:
-			continue
-		var target = null
-		var best_distance = 300.0
-		for enemy in enemies:
-			if not is_instance_valid(enemy) or enemy.is_dead:
-				continue
-			var distance: float = tower_positions[i].distance_to(world_to_map(enemy.global_position))
-			if distance < best_distance:
-				best_distance = distance
-				target = enemy
-		if target:
-			tower_timers[i] = 1.25
-			var from = map_to_world(tower_positions[i]) + Vector3.UP * 3.2
-			var to: Vector3 = target.global_position + Vector3.UP * 1.0
-			_spawn_tracer(from, to)
-			target.take_damage(13.0, from)
-
-func _spawn_tracer(from: Vector3, to: Vector3) -> void:
-	var difference = to - from
-	if difference.length() < 0.01:
-		return
-	var material = StandardMaterial3D.new()
-	material.albedo_color = Color("f4cf87")
-	material.emission_enabled = true
-	material.emission = Color("f4cf87")
-	var beam = CylinderMesh.new()
-	beam.top_radius = 0.035
-	beam.bottom_radius = 0.035
-	beam.height = difference.length()
-	beam.radial_segments = 6
-	beam.material = material
-	var instance = MeshInstance3D.new()
-	instance.mesh = beam
-	var up = difference.normalized()
-	var reference = Vector3.FORWARD if absf(up.dot(Vector3.FORWARD)) < 0.95 else Vector3.RIGHT
-	var right = up.cross(reference).normalized()
-	instance.basis = Basis(right, up, right.cross(up).normalized())
-	instance.position = (from + to) * 0.5
-	add_child(instance)
-	effects.append({"node": instance, "time": 0.25})
 
 func player_attack(direction: Vector3) -> void:
 	var weapon = weapon_id()
@@ -567,8 +435,12 @@ func player_attack(direction: Vector3) -> void:
 		var offset: Vector3 = enemy.global_position - player.global_position
 		offset.y = 0
 		if offset.length() <= 3.4 and (offset.length() < 0.48 or offset.normalized().dot(direction) > -0.05):
-			enemy.take_damage(damage, player.global_position)
-			hit = true
+			var from: Vector3 = player.global_position + Vector3.UP * 0.85
+			var to: Vector3 = enemy.global_position + Vector3.UP * 0.85
+			var query = PhysicsRayQueryParameters3D.create(from, to, 1)
+			if get_world_3d().direct_space_state.intersect_ray(query).is_empty():
+				enemy.take_damage(damage, player.global_position)
+				hit = true
 	if hit:
 		play_sound("hit")
 
@@ -576,45 +448,18 @@ func enemy_defeated(enemy) -> void:
 	if enemy.group_name == "wild" and enemy.enemy_id not in dead_ids:
 		dead_ids.append(enemy.enemy_id)
 		give("cloth", 1)
-	if enemy.group_name == "wave" and quest_stage == 2:
-		wave_kills += 1
-		if wave_kills >= 5:
-			quest_stage = 3
-			give("food", 3)
-			play_sound("complete")
-			hud.toast("Набег отражён! Исследуйте отель «Аврора».", 5.0)
-			save_progress(false)
-		else:
-			hud.toast("Набег: %d / 5. Костёр: %d%%" % [wave_kills, int(camp_health)])
-	elif enemy.enemy_id == "boss_hotel" and quest_stage == 4:
+	if enemy.enemy_id == "boss_hotel" and quest_stage == 4:
 		quest_stage = 5
 		give("bandage", 2)
 		play_sound("complete")
 		hud.toast("Раздутый повержен. Найдите ключ-карту на аэродроме.", 5.0)
 		save_progress(false)
 	elif enemy.enemy_id == "boss_lighthouse" and quest_stage == 7:
-		quest_stage = 8
+		quest_stage = 9
 		flags["lighthouse"] = true
 		play_sound("complete")
-		hud.dialogue("Маяк надежды", "Крикун повержен, антенна снова работает. Свет маяка разгоняет туман над Приютом. Вернитесь в Очаг и поговорите с Громом.")
+		hud.dialogue("Маяк надежды", "Крикун повержен, антенна снова работает. Теперь можно восстановить лодку на берегу и продолжить путь.")
 		save_progress(false)
-
-func damage_camp(amount: float) -> void:
-	camp_health = maxf(0.0, camp_health - amount)
-	if camp_health > 0.0:
-		return
-	for enemy in enemies:
-		if is_instance_valid(enemy) and enemy.group_name in ["wave", "raid"]:
-			enemy.is_dead = true
-			enemy.queue_free()
-	camp_health = 100.0
-	if quest_stage == 2:
-		quest_stage = 1
-		wave_kills = 0
-		hud.toast("Очаг повреждён. Подготовьтесь и снова поговорите с Мартой.", 6.0)
-	else:
-		hud.toast("Поселение отбилось, но костёр пришлось восстановить.", 5.0)
-	save_progress(false)
 
 func screamer_call(pos: Vector3) -> void:
 	var active = 0
@@ -632,16 +477,16 @@ func player_defeated() -> void:
 	player.stamina = 100.0
 	player.hunger = maxf(player.hunger, 25.0)
 	player.thirst = maxf(player.thirst, 25.0)
-	player.global_position = _safe_player_spawn(CAMP + Vector2(-40, 100)) + Vector3.UP * 0.12
+	var base: Vector3 = building.first_foundation_position()
+	var spawn = world_to_map(base) if base.is_finite() else STARTING_SHORE
+	player.global_position = _safe_player_spawn(spawn) + Vector3.UP * 0.12
 	player.velocity = Vector3.ZERO
 	player.invulnerable = 3.0
-	hud.toast("Вы потеряли сознание и очнулись у костра Очага.", 5.0)
+	hud.toast("Вы потеряли сознание и очнулись на своей базе." if base.is_finite() else "Вы потеряли сознание и очнулись на берегу.", 5.0)
 	save_progress(false)
 
 func _enter_hotel() -> void:
-	if quest_stage < 3:
-		hud.dialogue("Отель «Аврора»", "Заросшие руины бывшего отеля. Сначала помогите жителям укрепить Очаг.")
-	elif quest_stage == 3:
+	if quest_stage <= 3:
 		quest_stage = 4
 		spawn_enemy("boss_hotel", "bloated", SITES.hotel + Vector2(110, 70), "boss")
 		hud.dialogue("Тени в «Авроре»", "Под обвалившимся входом обнаружен запертый сейф. Из руин выходит Раздутый — не стойте рядом, когда он погибнет: он взрывается.")
@@ -673,7 +518,6 @@ func _collect_quest_item(prop) -> void:
 		"chip": hud.toast("Найдена микросхема для антенны.")
 		"coil": hud.toast("Найдена медная катушка для антенны.")
 		"cell": hud.toast("Найдена энергоячейка для антенны.")
-		"teddy": hud.toast("Найден медвежонок Тима. Верните его в Очаг.")
 	prop.visible = false
 	save_progress(false)
 
@@ -700,7 +544,7 @@ func _repair_lighthouse() -> void:
 
 func _repair_boat() -> void:
 	if quest_stage < 9:
-		hud.dialogue("Лодка на берегу", "Старая лодка нуждается в ремонте. Сначала помогите Очагу и поговорите с Громом.")
+		hud.dialogue("Лодка на берегу", "Старая лодка нуждается в ремонте. Сначала найдите фрагмент кода и восстановите маяк.")
 	elif quest_stage == 9:
 		if not spend({"wood": 15, "iron": 5, "cloth": 5}):
 			hud.toast("Для лодки нужно 15 дерева, 5 металлолома и 5 ткани.")
@@ -708,7 +552,7 @@ func _repair_boat() -> void:
 		quest_stage = 10
 		flags["boat"] = true
 		play_sound("complete")
-		hud.dialogue("Путь вперёд", "Лодка готова. Первый фрагмент найден, маяк восстановлен, а Очаг защищён. Глава «Приют» пройдена! Остальные острова и финал истории пока не созданы.")
+		hud.dialogue("Путь вперёд", "Лодка готова. Первый фрагмент найден, маяк восстановлен. Глава «Приют» пройдена! Остальные острова и финал истории пока не созданы.")
 		save_progress(false)
 	else:
 		hud.dialogue("Путь вперёд", "Лодка готова. История Приюта завершена; другие острова архипелага пока находятся в разработке.")
@@ -796,9 +640,8 @@ func use_item(item: String) -> void:
 
 func quest_title() -> String:
 	match quest_stage:
-		0: return "Пробуждение"
-		1, 2: return "Стены держат"
-		3, 4: return "Тени в «Авроре»"
+		0, 1, 2, 3: return "Выживание на острове"
+		4: return "Тени в «Авроре»"
 		5: return "Ключ от прошлого"
 		6, 7: return "Маяк надежды"
 		8, 9: return "Путь вперёд"
@@ -806,40 +649,22 @@ func quest_title() -> String:
 
 func quest_description() -> String:
 	match quest_stage:
-		0: return "Найдите поселение Очаг и поговорите с Мартой."
-		1:
-			if tower_count() == 3: return "Башни готовы. Поговорите с Мартой."
-			return "Постройте башни вокруг Очага: %d / 3." % tower_count()
-		2: return "Отразите набег: %d / 5. Костёр: %d%%." % [wave_kills, int(camp_health)]
-		3: return "Исследуйте руины отеля «Аврора»."
+		0, 1, 2, 3: return "Собирайте ресурсы, стройте базу (B) или исследуйте отель «Аврора»."
 		4: return "Победите Раздутого у отеля."
 		5:
 			if flags.get("keycard", false): return "Откройте сейф в руинах «Авроры»."
 			return "Найдите ключ-карту на аэродроме."
 		6: return "Соберите детали антенны: %d / 3." % component_count() if component_count() < 3 else "Установите детали на маяке."
 		7: return "Победите Крикуна у маяка."
-		8: return "Поговорите со стариком Громом в Очаге."
-		9: return "Почините лодку на берегу."
+		8, 9: return "Почините лодку на берегу."
 		_: return "Первый фрагмент найден. Другие острова пока не созданы."
 
 func _objective() -> Dictionary:
 	match quest_stage:
-		0: return {"name":"Марта · Очаг", "position": SITES.marta}
-		1:
-			var chosen = -1
-			var best = INF
-			for i in range(3):
-				if not towers[i]:
-					var d: float = world_to_map(player.global_position).distance_to(tower_positions[i])
-					if d < best:
-						best = d; chosen = i
-			if chosen >= 0: return {"name":"Площадка башни", "position":tower_positions[chosen]}
-			return {"name":"Марта · Очаг", "position":SITES.marta}
-		2: return {"name":"Защита Очага", "position":CAMP}
-		3, 4: return {"name":"Отель «Аврора»", "position":SITES.hotel}
+		0, 1, 2, 3, 4: return {"name":"Отель «Аврора»", "position": SITES.hotel}
 		5:
-			if flags.get("keycard", false): return {"name":"Сейф «Авроры»", "position":SITES.safe}
-			return {"name":"Ключ-карта · аэродром", "position":SITES.keycard}
+			if flags.get("keycard", false): return {"name":"Сейф «Авроры»", "position": SITES.safe}
+			return {"name":"Ключ-карта · аэродром", "position": SITES.keycard}
 		6:
 			var best_key = ""
 			var best_dist = INF
@@ -853,9 +678,8 @@ func _objective() -> Dictionary:
 				return {"name":labels[best_key], "position":SITES[best_key]}
 			return {"name":"Старый маяк", "position":SITES.lighthouse}
 		7: return {"name":"Крикун · маяк", "position":SITES.lighthouse}
-		8: return {"name":"Гром · Очаг", "position":SITES.grom}
-		9, 10: return {"name":"Лодка · берег", "position":SITES.boat}
-	return {"name":"Очаг", "position":CAMP}
+		8, 9, 10: return {"name":"Лодка · берег", "position":SITES.boat}
+	return {"name":"Отель «Аврора»", "position":SITES.hotel}
 
 func objective_name() -> String:
 	return _objective()["name"]
@@ -864,12 +688,15 @@ func objective_position() -> Vector2:
 	return _objective()["position"]
 
 func map_markers() -> Array:
-	return [
-		{"name":"Очаг", "position":CAMP}, {"name":"Пещеры", "position":SITES.coil},
-		{"name":"Лес Шёпотов", "position":SITES.cell}, {"name":"Аэродром", "position":SITES.keycard},
-		{"name":"Отель «Аврора»", "position":SITES.hotel}, {"name":"Маяк", "position":SITES.lighthouse},
-		{"name":"Лодка", "position":SITES.boat},
+	var marks = [
+		{"name":"Пещеры", "position":SITES.coil}, {"name":"Лес Шёпотов", "position":SITES.cell},
+		{"name":"Аэродром", "position":SITES.keycard}, {"name":"Отель «Аврора»", "position":SITES.hotel},
+		{"name":"Маяк", "position":SITES.lighthouse}, {"name":"Лодка", "position":SITES.boat},
 	]
+	if is_instance_valid(building):
+		var base: Vector3 = building.first_foundation_position()
+		if base.is_finite(): marks.append({"name":"Моя база", "position":world_to_map(base)})
+	return marks
 
 func _saved_position() -> Vector2:
 	var ps = load_data.get("player", {})
@@ -894,30 +721,30 @@ func _apply_save(data: Dictionary) -> void:
 		equipped_weapon = saved_weapon
 	else:
 		equipped_weapon = weapon_id()
+	# Old tower-defence saves keep their progress. Refund the removed towers
+	# once; newly written saves no longer contain the legacy tower field.
 	var saved_towers = data.get("towers", [])
-	if saved_towers is Array and saved_towers.size() == 3:
-		for i in range(3): towers[i] = bool(saved_towers[i])
+	if saved_towers is Array and not data.has("buildings"):
+		for built in saved_towers:
+			if bool(built):
+				inventory["wood"] = mini(9999, count("wood") + 10)
+				inventory["stone"] = mini(9999, count("stone") + 5)
 	var saved_dead = data.get("dead_ids", [])
 	if saved_dead is Array:
 		dead_ids = saved_dead.duplicate()
 	quest_stage = clampi(int(data.get("quest_stage", 0)), 0, 10)
-	# The scripted raid is restarted safely after a reload, never left half-resolved.
-	if quest_stage == 2: quest_stage = 1
-	side_stage = clampi(int(data.get("side_stage", 0)), 0, 3)
+	# The old stage 8 asked the removed NPC for boat instructions.
+	if quest_stage == 8: quest_stage = 9
 	day = maxi(1, int(data.get("day", 1)))
 	minute = clampf(float(data.get("minute", 480.0)), 0, 1439.99)
-	last_raid_day = maxi(0, int(data.get("last_raid_day", 0)))
-	camp_health = 100.0
 
 func save_progress(show_message: bool = false) -> bool:
 	if not is_instance_valid(player):
 		return false
 	var data = {
-		"quest_stage": 1 if quest_stage == 2 else quest_stage,
-		"side_stage": side_stage, "inventory": inventory.duplicate(), "flags": flags.duplicate(),
-		"equipped_weapon": weapon_id(),
-		"towers": towers.duplicate(), "dead_ids": dead_ids.duplicate(), "day": day,
-		"minute": minute, "last_raid_day": last_raid_day,
+		"quest_stage": quest_stage, "inventory": inventory.duplicate(), "flags": flags.duplicate(),
+		"equipped_weapon": weapon_id(), "buildings": building.serialize(),
+		"dead_ids": dead_ids.duplicate(), "day": day, "minute": minute,
 		"player": {"position": [world_to_map(player.global_position).x, world_to_map(player.global_position).y], "health":player.health, "stamina":player.stamina, "hunger":player.hunger, "thirst":player.thirst},
 	}
 	var ok = SaveGame.save_data(data)

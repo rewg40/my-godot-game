@@ -151,7 +151,7 @@ func _physics_process(delta: float) -> void:
 	if global_position.y < -5.0:
 		world.player_defeated()
 	var has_bat: bool = world.weapon_id() == "club"
-	if Input.is_action_just_pressed("attack") and attack_cooldown <= 0.0:
+	if not world.building.active and Input.is_action_just_pressed("attack") and attack_cooldown <= 0.0:
 		if has_bat:
 			attack_cooldown = 0.58
 			attack_flash = BAT_SWING_DURATION

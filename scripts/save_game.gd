@@ -23,7 +23,78 @@ static func _is_number(value: Variant) -> bool:
 static func _is_boolean(value: Variant) -> bool:
 	return typeof(value) == TYPE_BOOL or _is_number(value)
 
+static func _valid_buildings(value: Variant) -> bool:
+	if not value is Array or value.size() > 10000:
+		return false
+	var foundations := {}
+	var edges := {}
+	var records := {}
+	for piece in value:
+		if not piece is Dictionary:
+			return false
+		var kind = piece.get("type", "")
+		if kind not in ["foundation", "wall", "roof", "doorway", "door"]:
+			return false
+		for key in ["x", "z", "y"]:
+			if not piece.has(key) or not _is_number(piece[key]):
+				return false
+		var x := int(piece["x"])
+		var z := int(piece["z"])
+		var y := float(piece["y"])
+		if float(piece["x"]) != x or float(piece["z"]) != z or y < -5.0 or y > 12.0:
+			return false
+		var identity := ""
+		if kind in ["foundation", "roof"]:
+			if x < 0 or x > 43 or z < 0 or z > 30:
+				return false
+			identity = ("f:%d:%d" if kind == "foundation" else "r:%d:%d") % [x, z]
+			if kind == "foundation": foundations["%d:%d" % [x, z]] = y
+		else:
+			if x < 0 or x > 86 or z < 0 or z > 60 or not piece.has("axis") or not _is_number(piece["axis"]):
+				return false
+			var axis := int(piece["axis"])
+			if float(piece["axis"]) != axis or axis not in [0, 1]:
+				return false
+			if (axis == 0 and (x % 2 != 0 or z % 2 != 1)) or (axis == 1 and (x % 2 != 1 or z % 2 != 0)):
+				return false
+			var edge_id = "%d:%d:%d" % [axis, x, z]
+			identity = ("d:" if kind == "door" else "e:") + edge_id
+			if kind != "door": edges[edge_id] = piece
+			if kind == "door":
+				if not piece.has("hinge") or not _is_number(piece["hinge"]) or float(piece["hinge"]) not in [-1.0, 1.0] or typeof(piece.get("open")) != TYPE_BOOL:
+					return false
+		if records.has(identity):
+			return false
+		records[identity] = piece
+	# Check structural relationships before loading; never silently discard a
+	# malformed base and overwrite its only save with an incomplete structure.
+	for piece in value:
+		var kind: String = piece["type"]
+		var x := int(piece["x"])
+		var z := int(piece["z"])
+		var y := float(piece["y"])
+		if kind == "roof":
+			var floor_key = "%d:%d" % [x, z]
+			if not foundations.has(floor_key) or absf(float(foundations[floor_key]) - y) > 0.08:
+				return false
+		elif kind in ["wall", "doorway", "door"]:
+			var axis := int(piece["axis"])
+			var a := Vector2i(x / 2, (z - 1) / 2) if axis == 0 else Vector2i((x - 1) / 2, z / 2)
+			var b := Vector2i(x / 2, (z + 1) / 2) if axis == 0 else Vector2i((x + 1) / 2, z / 2)
+			var akey = "%d:%d" % [a.x, a.y]
+			var bkey = "%d:%d" % [b.x, b.y]
+			var supported = (foundations.has(akey) and absf(float(foundations[akey]) - y) <= 0.08) or (foundations.has(bkey) and absf(float(foundations[bkey]) - y) <= 0.08)
+			if not supported:
+				return false
+			if kind == "door":
+				var edge_id = "%d:%d:%d" % [axis, x, z]
+				if not edges.has(edge_id) or edges[edge_id].get("type", "") != "doorway" or absf(float(edges[edge_id]["y"]) - y) > 0.08:
+					return false
+	return true
+
 static func _valid_data(data: Dictionary) -> bool:
+	if data.has("buildings") and not _valid_buildings(data["buildings"]):
+		return false
 	if not data.has("version") or not _is_number(data["version"]) or float(data["version"]) != VERSION:
 		return false
 	for key in ["quest_stage", "side_stage", "day", "minute", "last_raid_day"]:

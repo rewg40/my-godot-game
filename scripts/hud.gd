@@ -2,6 +2,7 @@ extends CanvasLayer
 
 const UI = preload("res://scripts/ui_style.gd")
 const MapView = preload("res://scripts/map_view.gd")
+const BuildingSystem = preload("res://scripts/build_system.gd")
 var world
 var root: Control
 var modal: Control
@@ -16,6 +17,11 @@ var interact_panel: PanelContainer
 var interact_label: Label
 var quick_label: Label
 var toast_label: Label
+var build_panel: PanelContainer
+var build_status: Label
+var build_buttons: Dictionary = {}
+var quick_panel: PanelContainer
+var controls_panel: PanelContainer
 var toast_time: float = 0.0
 
 func _ready() -> void:
@@ -80,17 +86,18 @@ func _build_hud() -> void:
 	interact_label = UI.label("", 14, UI.TEXT, true)
 	interact_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	interact_panel.add_child(interact_label)
-	var bottom = UI.panel()
-	bottom.position = Vector2(22, 655)
-	bottom.size = Vector2(525, 43)
-	root.add_child(bottom)
+	quick_panel = UI.panel()
+	quick_panel.position = Vector2(22, 655)
+	quick_panel.size = Vector2(525, 43)
+	root.add_child(quick_panel)
 	quick_label = UI.label("", 12, UI.TEXT)
-	bottom.add_child(quick_label)
-	var controls = UI.panel()
-	controls.position = Vector2(865, 655)
-	controls.size = Vector2(393, 43)
-	root.add_child(controls)
-	controls.add_child(UI.label("[ C ] Крафт   [ Tab ] Рюкзак   [ M ] Карта   [ Q ] Оружие", 12, UI.MUTED))
+	quick_panel.add_child(quick_label)
+	controls_panel = UI.panel()
+	controls_panel.position = Vector2(805, 655)
+	controls_panel.size = Vector2(453, 43)
+	root.add_child(controls_panel)
+	controls_panel.add_child(UI.label("[ B ] Стройка   [ C ] Крафт   [ Tab ] Рюкзак   [ M ] Карта", 12, UI.MUTED))
+	_build_construction_panel()
 	toast_label = UI.label("", 15, UI.TEXT, true)
 	toast_label.position = Vector2(320, 90)
 	toast_label.size = Vector2(640, 55)
@@ -100,6 +107,38 @@ func _build_hud() -> void:
 	toast_label.add_theme_constant_override("shadow_offset_x", 2)
 	toast_label.add_theme_constant_override("shadow_offset_y", 2)
 	root.add_child(toast_label)
+
+func _build_construction_panel() -> void:
+	build_panel = UI.panel()
+	build_panel.position = Vector2(20, 472)
+	build_panel.size = Vector2(1240, 170)
+	build_panel.visible = false
+	root.add_child(build_panel)
+	var column = VBoxContainer.new()
+	column.add_theme_constant_override("separation", 7)
+	build_panel.add_child(column)
+	column.add_child(UI.label("СТРОИТЕЛЬСТВО  /  ВЫБЕРИТЕ ЭЛЕМЕНТ", 14, UI.GOLD, true))
+	var row = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 7)
+	column.add_child(row)
+	var titles = ["1  ФУНДАМЕНТ\n4 дерево + 2 камня", "2  СТЕНА\n3 дерева", "3  КРЫША\n3 дерева", "4  ПРОЁМ\n3 дерева", "5  ДВЕРЬ\n2 дерева + 1 металл"]
+	for i in range(BuildingSystem.TYPES.size()):
+		var kind: String = BuildingSystem.TYPES[i]
+		var button = UI.button(titles[i], Vector2(218, 47))
+		button.add_theme_font_size_override("font_size", 11)
+		button.focus_mode = Control.FOCUS_NONE
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.pressed.connect(func(): world.building.select_type(kind))
+		row.add_child(button)
+		build_buttons[kind] = button
+	build_status = UI.label("", 13, UI.TEXT, true)
+	column.add_child(build_status)
+	column.add_child(UI.label("ЛКМ — построить  •  R — повернуть сторону / петлю  •  X — разобрать  •  E — дверь  •  B / Esc — выход", 12, UI.MUTED))
+
+func set_build_mode(enabled: bool) -> void:
+	build_panel.visible = enabled
+	quick_panel.visible = not enabled
+	controls_panel.visible = not enabled
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(world) or not is_instance_valid(world.player):
@@ -123,10 +162,22 @@ func _process(delta: float) -> void:
 			arrow = "↑" if forward > 0 else "↓"
 	objective_direction.text = "%s  %s  ·  %d м" % [arrow, world.objective_name(), int(delta_to_goal.length())]
 	quick_label.text = "[ 1 ] Еда %d      [ 2 ] Вода %d      [ 3 ] Бинт %d      ◈ %d / 7" % [world.count("food"), world.count("water"), world.count("bandage"), 1 if world.flags.get("fragment", false) else 0]
-	var nearest = world.nearest_prop()
-	interact_panel.visible = nearest != null and not is_modal_open()
-	if nearest:
-		interact_label.text = "[ E ]  " + world.prompt_for(nearest)
+	if world.building.active:
+		interact_panel.visible = false
+		var selected: String = world.building.selected
+		var color = Color("92dcb1") if world.building.valid else Color("e8a095")
+		build_status.add_theme_color_override("font_color", color)
+		build_status.text = "%s  •  %s     |     Дерево %d  Камень %d  Металл %d" % [BuildingSystem.NAMES[selected], world.building.reason, world.count("wood"), world.count("stone"), world.count("iron")]
+		for kind in build_buttons:
+			build_buttons[kind].modulate = Color.WHITE if kind == selected else Color(0.67, 0.72, 0.69)
+	else:
+		var door = world.building.nearest_door()
+		var nearest = world.nearest_prop()
+		interact_panel.visible = (door != null or nearest != null) and not is_modal_open()
+		if door:
+			interact_label.text = "[ E ]  Закрыть дверь" if bool(door.data.get("open", false)) else "[ E ]  Открыть дверь"
+		elif nearest:
+			interact_label.text = "[ E ]  " + world.prompt_for(nearest)
 	if toast_time > 0.0:
 		toast_time -= delta
 		toast_label.modulate.a = minf(1.0, toast_time * 2.0)
@@ -295,5 +346,5 @@ func show_pause() -> void:
 		else:
 			toast("Не удалось сохранить. Выход отменён.")
 	)
-	content.add_child(UI.label("WASD — движение  •  Shift — бег  •  Пробел — прыжок\nЛКМ/F — удар  •  E — взаимодействие  •  Q — сменить оружие\nПКМ + мышь — камера  •  M — карта  •  C — крафт", 14, UI.MUTED))
+	content.add_child(UI.label("WASD — движение  •  Shift — бег  •  Пробел — прыжок\nЛКМ/F — удар  •  E — предмет или дверь  •  Q — оружие\nB — строительство  •  1–5 — элемент  •  R — сторона  •  X — разобрать\nПКМ + мышь — камера  •  M — карта  •  C — крафт", 14, UI.MUTED))
 	resume.grab_focus()

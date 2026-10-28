@@ -71,6 +71,7 @@ func _build_visual() -> void:
 		"bush": _add_model(REAL_NATURE + "fern_02.glb", 1.8)
 		"scrap":
 			_build_scrap()
+		"water": _build_water_barrel()
 		"crate": _build_crate()
 		"deco":
 			var path = String(detail.get("model", ""))
@@ -211,6 +212,21 @@ func _build_scrap() -> void:
 	var sheet = _box(Vector3(0.8, 0.08, 0.52), Vector3(0.52, 0.08, 0.25), Color.WHITE)
 	sheet.rotation.y = 0.3
 	sheet.material_override = _surface(METAL_TEXTURE, Color("9e9a8c"))
+
+func _build_water_barrel() -> void:
+	var barrel = CylinderMesh.new()
+	barrel.bottom_radius = 0.38
+	barrel.top_radius = 0.38
+	barrel.height = 1.0
+	barrel.radial_segments = 20
+	barrel.material = _surface(METAL_TEXTURE, Color("72969a"))
+	var node = MeshInstance3D.new()
+	node.mesh = barrel
+	node.position.y = 0.5
+	visual.add_child(node)
+	_cylinder(0.39, 0.39, 0.05, Vector3(0, 0.25, 0), Color("475c5e"))
+	_cylinder(0.39, 0.39, 0.05, Vector3(0, 0.8, 0), Color("475c5e"))
+	_cylinder(0.30, 0.30, 0.02, Vector3(0, 1.01, 0), Color("72a9b1"))
 
 func _add_name_tag() -> void:
 	var label = Label3D.new()
