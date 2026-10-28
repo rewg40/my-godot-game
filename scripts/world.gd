@@ -264,6 +264,7 @@ func _build_world() -> void:
 		_make("bush_%d" % i, "bush", "Ягоды и травы", bushes[i])
 	_scatter_resource_nodes()
 	_add_shore_resources()
+	_add_lake_resources()
 
 func _resource_near_base(pos: Vector3) -> bool:
 	if not is_instance_valid(building):
@@ -334,6 +335,11 @@ func _add_shore_resources() -> void:
 		{"id":"shore_tree_2", "point":Vector2(450, 1650), "kind":"tree", "model": "res://assets/models/nature_real/pine.glb", "model_scale":0.60},
 		{"id":"shore_tree_3", "point":Vector2(550, 1700), "kind":"tree", "model": "res://assets/models/nature_real/broadleaf.glb", "model_scale":1.20},
 		{"id":"shore_rock_0", "point":Vector2(250, 1700), "kind":"rock", "model_scale":4.2},
+		# A nearer stand frames the default camera without blocking the road or
+		# the player's spawn. These remain separate, harvestable objects.
+		{"id":"shore_tree_4", "point":Vector2(355, 1745), "kind":"tree", "model": "res://assets/models/nature_real/broadleaf.glb", "model_scale":1.18},
+		{"id":"shore_tree_5", "point":Vector2(270, 1750), "kind":"tree", "model": "res://assets/models/nature_real/pine.glb", "model_scale":0.55},
+		{"id":"shore_tree_6", "point":Vector2(530, 1820), "kind":"tree", "model": "res://assets/models/nature_real/broadleaf.glb", "model_scale":1.18},
 	]
 	for item in stand:
 		var point: Vector2 = item.point
@@ -354,6 +360,44 @@ func _add_shore_resources() -> void:
 					break
 		if not occupied:
 			_make(item.id, item.kind, "Дерево" if item.kind == "tree" else "Камень", point, {"collision": 14 if item.kind == "tree" else 15, "model": item.get("model", ""), "model_scale": item.model_scale})
+
+func _add_lake_resources() -> void:
+	if environment_3d.lake_map_position == Vector2.ZERO:
+		return
+	# Keep an open shoreline while surrounding the clearing with individually
+	# harvestable trees and boulders. A saved house always takes priority.
+	var center: Vector2 = environment_3d.lake_map_position * MAP_SCALE
+	for i in range(16):
+		var angle := TAU * (float(i) + 0.35) / 16.0
+		var point := center + Vector2(cos(angle) * (Environment3D.LAKE_RADII.x + 3.5), sin(angle) * (Environment3D.LAKE_RADII.y + 3.5))
+		var map_point := point / MAP_SCALE
+		if not environment_3d.is_walkable(point.x, point.y, 1.5) or environment_3d._near_road(map_point):
+			continue
+		var occupied := false
+		for reserved in resource_reservations:
+			if reserved.distance_to(point) < 3.1:
+				occupied = true
+				break
+		if occupied:
+			continue
+		for prop in props:
+			if is_instance_valid(prop) and prop.kind in ["tree", "rock", "water", "crate", "deco"] and Vector2(prop.position.x, prop.position.z).distance_to(point) < 3.1:
+				occupied = true
+				break
+		if occupied:
+			continue
+		var rock := i % 4 == 3
+		var broadleaf := i % 3 == 0
+		var kind := "rock" if rock else "tree"
+		var model := "res://assets/models/nature_real/broadleaf.glb" if broadleaf else "res://assets/models/nature_real/pine.glb"
+		var size := 4.0 if rock else (1.16 if broadleaf else 0.53)
+		var id := ("lake_rock_%02d" if rock else "lake_tree_%02d") % i
+		var position := Vector3(point.x, environment_3d.height_at(point.x, point.y), point.y)
+		if _resource_near_base(position):
+			continue
+		# Keep depleted ids reserved so neighbours cannot move on reload.
+		resource_reservations.append(point)
+		_make(id, kind, "Камень" if rock else "Дерево", map_point, {"collision": 15 if rock else 14, "model": model, "model_scale": size, "yaw": angle})
 
 func _make(identity: String, kind: String, title: String, pos: Vector2, detail: Dictionary = {}):
 	if kind in ["tree", "rock"] and identity in depleted_resources:

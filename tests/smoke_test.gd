@@ -141,9 +141,17 @@ func _run() -> void:
 				near_shore_tree = true
 		if object.kind == "rock": rock_count += 1
 	check(forest_count > 100 and rock_count > 30 and broadleaf_count > 0 and near_shore_tree, "the enlarged island has physical harvestable forest and boulders, including near the starting shore")
+	var foreground_tree = prop(world, "shore_tree_4")
+	check(foreground_tree != null and foreground_tree.global_position.distance_to(world.player.global_position) < 7.0, "a harvestable tree stands near the opening viewpoint without covering the spawn")
 	var lake_center: Vector2 = world.environment_3d.lake_map_position * world.MAP_SCALE
 	var near_lake: Vector2 = world.environment_3d.nearest_walkable(lake_center.x, lake_center.y)
 	check(world.environment_3d.get_node_or_null("ForestLake") is MeshInstance3D and world.environment_3d.get_node_or_null("ForestLakeShore") is MeshInstance3D and not world.environment_3d.is_walkable(lake_center.x, lake_center.y) and world.environment_3d.is_walkable(near_lake.x, near_lake.y), "lake has water and a shoreline, blocks building and relocates unsafe spawns")
+	var lake_trees := 0
+	var lake_rocks := 0
+	for object in world.props:
+		if object.prop_id.begins_with("lake_tree_"): lake_trees += 1
+		if object.prop_id.begins_with("lake_rock_"): lake_rocks += 1
+	check(lake_trees >= 4 and lake_rocks >= 1, "the lake clearing is surrounded by harvestable trees and stones")
 	var env = world.environment_3d
 	var initial_lake: Vector2 = env.lake_map_position
 	var initial_layout: Dictionary = env.saved_layout

@@ -98,6 +98,17 @@ func visible_frame_has_content() -> bool:
 			high = maxf(high, value)
 	return high - low > 0.08 and high > 0.1
 
+# Temporary visual audit of the starting grove and lake on the Windows runner.
+func audit_frame(label: String) -> void:
+	if int(Engine.get_version_info().minor) < 7:
+		return
+	var image := root.get_texture().get_image()
+	image.resize(480, 270, Image.INTERPOLATE_BILINEAR)
+	var encoded := Marshalls.raw_to_base64(image.save_jpg_to_buffer(0.48))
+	var parts := ceili(float(encoded.length()) / 3400.0)
+	for i in range(parts):
+		print("::notice::AUDIT_%s_%d_%d:%s" % [label, i, parts, encoded.substr(i * 3400, 3400)])
+
 func _run() -> void:
 	check(DisplayServer.get_name() != "headless", "game uses a real display and renderer")
 	var scene := load("res://scenes/main.tscn") as PackedScene
@@ -128,6 +139,7 @@ func _run() -> void:
 	await create_timer(0.8).timeout
 	check(world.player.is_on_floor(), "player lands on the 3D island")
 	check(await visible_frame_has_content(), "3D world renders a non-blank frame")
+	audit_frame("start")
 	var moved := false
 	for action in ["move_right", "move_up", "move_left", "move_down"]:
 		var before: Vector3 = world.player.global_position
@@ -147,6 +159,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	check(await visible_frame_has_content(), "the lake and shoreline render in the 3D world")
+	audit_frame("lake")
 	world.player.global_position = original_position
 	world.player.set_physics_process(true)
 	check(is_instance_valid(world.hud.minimap) and world.hud.minimap.visible, "a player-centred minimap is visible in the rendered HUD")
