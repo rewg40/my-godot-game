@@ -80,6 +80,14 @@ func edge_record(building, kind: String, x: int, z: int, side: int, level: float
 	record["y"] = level
 	return record
 
+func uses_model(piece: Node, suffix: String) -> bool:
+	if not is_instance_valid(piece):
+		return false
+	for node in piece.find_children("*", "Node3D", true, false):
+		if node.get_meta("construction_model", false) and String(node.scene_file_path).ends_with(suffix):
+			return true
+	return false
+
 func ray_blocked(world, from: Vector3, to: Vector3) -> bool:
 	var query = PhysicsRayQueryParameters3D.create(from, to, 1 | (1 << 3))
 	return not world.get_world_3d().direct_space_state.intersect_ray(query).is_empty()
@@ -243,6 +251,7 @@ func _run() -> void:
 	var wall_piece = building.pieces.get(building.piece_key(wall))
 	var frame_piece = building.pieces.get(building.piece_key(frame))
 	var roof_meshes: Array = roof_piece.find_children("*", "MeshInstance3D", true, false) if is_instance_valid(roof_piece) else []
+	check(uses_model(floor_piece, "pir_platform.glb") and uses_model(wall_piece, "td_wood-structure-high-part.glb") and uses_model(roof_piece, "pir_platform-planks.glb") and uses_model(door, "pir_platform.glb"), "foundation, wall, roof and door render adapted models from the repository library")
 	await move_player(world, center + Vector3(0, 0.12, 0))
 	await process_frame
 	check(not roof_meshes.is_empty() and not roof_meshes[0].visible, "roof hides visually when the player is inside")

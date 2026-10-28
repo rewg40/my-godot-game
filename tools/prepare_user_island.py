@@ -8,10 +8,11 @@ walkable area, and routes roads around the model's existing trees and rocks.
 Run from the repository root with Python 3, numpy, scipy and Pillow installed:
     python tools/prepare_user_island.py
 
-The dimensions, orientation and height calibration must match
-scripts/environment_3d.gd. The RGB data textures are deliberately opaque and
-lossless: R/G encode a 16-bit source height and B encodes clearance; the other
-texture encodes the index of the nearest safe pixel as a 24-bit integer.
+The atlases use the original 128 x 88 m calibration. The game doubles the
+horizontal, vertical and clearance scales together at runtime for a 256 x 176 m
+island; normalized map coordinates stay the same. R/G encode a 16-bit source
+height and B encodes the original clearance; the other lossless texture stores
+the index of the nearest safe pixel as a 24-bit integer.
 """
 from __future__ import annotations
 

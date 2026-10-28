@@ -147,6 +147,22 @@ func _run() -> void:
 	check(world.hud.modal_kind == "inventory" and world.hud.inventory_grid.get_child_count() == 24, "Tab opens the rendered icon inventory")
 	check(await visible_frame_has_content(), "icon inventory renders in the game window")
 	await capture_for_review("INVENTORY")
+	var food_slot: Control = null
+	for slot in world.hud.inventory_grid.get_children():
+		if slot.get_meta("item_id", "") == "food":
+			food_slot = slot
+			break
+	check(is_instance_valid(food_slot), "food has an inventory icon")
+	if is_instance_valid(food_slot):
+		var food_before: int = world.count("food")
+		world.player.hunger = 20.0
+		var food_click: Vector2 = food_slot.get_global_transform_with_canvas() * (food_slot.size * 0.5)
+		await click_at(food_click)
+		check(world.hud.selected_inventory_item == "food", "clicking the icon selects food in the actual window")
+		var use_button: Control = world.hud.inventory_action
+		var use_click: Vector2 = use_button.get_global_transform_with_canvas() * (use_button.size * 0.5)
+		await click_at(use_click)
+		check(world.count("food") == food_before - 1 and world.player.hunger > 20.0, "clicking Use consumes the selected food in the actual window")
 	await press_key(KEY_TAB)
 	check(not world.hud.is_modal_open(), "Tab closes the inventory")
 	await press_key(KEY_M)
@@ -154,6 +170,11 @@ func _run() -> void:
 	check(world.hud.modal_kind == "map" and is_instance_valid(rendered_map), "M opens the rendered interactive island map")
 	check(await visible_frame_has_content(), "island map renders in the game window")
 	await capture_for_review("MAP")
+	if is_instance_valid(rendered_map):
+		var waypoint := Vector2(1600, 1100)
+		var map_click: Vector2 = rendered_map.get_global_transform_with_canvas() * rendered_map.map_to_screen(waypoint)
+		await click_at(map_click)
+		check(world.waypoint_map.distance_to(waypoint) < 15.0, "clicking the displayed chart sets a map waypoint")
 	await press_key(KEY_M)
 	check(not world.hud.is_modal_open(), "M closes the map")
 
