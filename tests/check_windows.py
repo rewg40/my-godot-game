@@ -57,6 +57,11 @@ def run_editor_f5_probe(path: Path) -> bool:
     with tempfile.TemporaryDirectory(prefix="shards-editor-test-") as temp_dir:
         project = Path(temp_dir) / "Проверка редактора F5"
         shutil.copytree(path, project)
+        # Let this relocated copy finish any 3D-texture import detection
+        # before enabling the F5 probe. Otherwise the Windows editor can try
+        # to launch while its own progress dialog is still reimporting.
+        if not run("F5 project resource preflight", ["--headless", "--editor", "--path", str(project), "--quit"]):
+            return False
         plugin = project / "addons" / "f5_probe"
         plugin.mkdir(parents=True)
         shutil.copyfile(project / "tests" / "editor_f5_probe.gd.txt", plugin / "plugin.gd")

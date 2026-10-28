@@ -32,16 +32,20 @@ void fragment() {
 	float shore = smoothstep(0.15, 0.95, layout.b) * flat_ground;
 	float trail = smoothstep(0.05, 0.7, layout.g) * flat_ground;
 	float road = smoothstep(0.05, 0.6, layout.r) * flat_ground;
-	// Keep the supplied albedo visible, with subtle fine ground detail to
-	// match the rest of the game's more realistic vegetation and lighting.
+	// Retain the supplied colour on steep geometry, but layer photographic
+	// grass and leaf litter at two scales on the ground. The broader mottling
+	// prevents large, uniformly bright areas when viewed from the camera.
 	vec3 grass_detail = mix(texture(grass_tex, ground_uv).rgb, texture(litter_tex, ground_uv * 0.8).rgb, 0.28);
-	vec3 color = mix(painted_color, grass_detail, 0.68 * flat_ground);
+	vec3 macro_litter = texture(litter_tex, island_position.xz * 0.055).rgb;
+	grass_detail = mix(grass_detail, macro_litter, 0.24) * vec3(0.91, 0.95, 0.89);
+	vec3 color = mix(painted_color, grass_detail, 0.78 * flat_ground);
 	color = mix(color, texture(sand_tex, ground_uv * 0.7).rgb, shore * 0.45);
 	color = mix(color, texture(dirt_tex, ground_uv * 0.8).rgb, trail * 0.72);
 	color = mix(color, texture(asphalt_tex, ground_uv * 0.67).rgb * vec3(0.82, 0.85, 0.82), road * 0.82);
 	float overlay = max(road, max(trail, shore * 0.45));
+	float ground_material = max(overlay, flat_ground * 0.72);
 	ALBEDO = color;
-	ROUGHNESS = mix(mr.g, 0.94, overlay);
-	METALLIC = mix(mr.b, 0.0, overlay);
+	ROUGHNESS = mix(mr.g, 0.94, ground_material);
+	METALLIC = mix(mr.b, 0.0, ground_material);
 	NORMAL_MAP = mix(texture(normal_tex, UV).rgb, vec3(0.5, 0.5, 1.0), overlay);
 }

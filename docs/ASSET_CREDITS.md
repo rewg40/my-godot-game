@@ -96,4 +96,4 @@ python3 tools/rig_user_zombie.py /tmp/zombie-optimized.glb assets/models/zombie/
 
 ## Созданные для проекта материалы
 
-`assets/art/shelter_menu.png` — сгенерированная иллюстрация меню. Прежняя карта `assets/environment/island_ground.png` создана скриптом `tools/generate_original_art.py`; текущая карта создаётся из предоставленной модели острова. Несколько игровых объектов (например, маяк, башни и квестовые предметы) собраны из объёмных примитивов в `scripts/prop.gd`.
+`assets/art/shelter_menu.png` — сгенерированная иллюстрация меню. Прежняя карта `assets/environment/island_ground.png` создана скриптом `tools/generate_original_art.py`; текущая карта создаётся из предоставленной модели острова. Иконки рюкзака (`assets/icons/`) нарисованы для проекта скриптом `tools/generate_inventory_icons.py`; в некоторых используются перечисленные выше CC0-текстуры дерева, камня и металла. Несколько игровых объектов (например, маяк и квестовые предметы) собраны из объёмных примитивов в `scripts/prop.gd`.

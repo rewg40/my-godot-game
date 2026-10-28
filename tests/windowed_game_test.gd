@@ -83,9 +83,9 @@ func capture_for_review(label: String) -> void:
 		return
 	await RenderingServer.frame_post_draw
 	var image = root.get_texture().get_image()
-	image.resize(640, 360, Image.INTERPOLATE_LANCZOS)
+	image.resize(480, 270, Image.INTERPOLATE_LANCZOS)
 	image.convert(Image.FORMAT_RGB8)
-	var encoded := Marshalls.raw_to_base64(image.save_jpg_to_buffer(0.40))
+	var encoded := Marshalls.raw_to_base64(image.save_jpg_to_buffer(0.28))
 	for part in range(ceili(float(encoded.length()) / 3500.0)):
 		print("::notice title=CAPTURE_%s_%02d::%s" % [label, part, encoded.substr(part * 3500, 3500)])
 

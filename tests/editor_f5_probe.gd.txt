@@ -19,10 +19,28 @@ class DebuggerProbe extends EditorDebuggerPlugin:
 		return false
 
 var debugger := DebuggerProbe.new()
+var importing := false
+var last_filesystem_change := 0
 
 func _enter_tree() -> void:
 	add_debugger_plugin(debugger)
+	var filesystem = EditorInterface.get_resource_filesystem()
+	filesystem.resources_reimporting.connect(_on_reimport_started)
+	filesystem.resources_reimported.connect(_on_reimport_finished)
+	filesystem.filesystem_changed.connect(_on_filesystem_changed)
+	last_filesystem_change = Time.get_ticks_msec()
 	_run_probe.call_deferred()
+
+func _on_reimport_started(_paths: PackedStringArray) -> void:
+	importing = true
+	last_filesystem_change = Time.get_ticks_msec()
+
+func _on_reimport_finished(_paths: PackedStringArray) -> void:
+	importing = false
+	last_filesystem_change = Time.get_ticks_msec()
+
+func _on_filesystem_changed() -> void:
+	last_filesystem_change = Time.get_ticks_msec()
 
 func _exit_tree() -> void:
 	remove_debugger_plugin(debugger)
@@ -39,12 +57,17 @@ func _run_probe() -> void:
 		_fail("editor unexpectedly opened in recovery mode")
 		return
 	var filesystem = EditorInterface.get_resource_filesystem()
-	for i in range(30):
-		if not filesystem.is_scanning():
+	# is_scanning() alone does not report all texture reimports. Wait for a
+	# quiet filesystem as well: starting F5 from an import progress callback
+	# can otherwise race the editor's own post-reimport task on Windows.
+	var ready := false
+	for i in range(120):
+		if not filesystem.is_scanning() and not importing and Time.get_ticks_msec() - last_filesystem_change > 6000:
+			ready = true
 			break
-		await get_tree().create_timer(1.0).timeout
-	if filesystem.is_scanning():
-		_fail("editor did not finish scanning resources")
+		await get_tree().create_timer(0.5).timeout
+	if not ready:
+		_fail("editor did not finish scanning and reimporting resources")
 		return
 	if ProjectSettings.get_setting("application/run/main_scene", "") != "res://scenes/main.tscn":
 		_fail("main scene is not configured")

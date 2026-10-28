@@ -143,7 +143,7 @@ func _run() -> void:
 	check(forest_count > 100 and rock_count > 30 and broadleaf_count > 0 and near_shore_tree, "the enlarged island has physical harvestable forest and boulders, including near the starting shore")
 	var lake_center: Vector2 = world.environment_3d.lake_map_position * world.MAP_SCALE
 	var near_lake: Vector2 = world.environment_3d.nearest_walkable(lake_center.x, lake_center.y)
-	check(world.environment_3d.get_node_or_null("ForestLake") is MeshInstance3D and not world.environment_3d.is_walkable(lake_center.x, lake_center.y) and world.environment_3d.is_walkable(near_lake.x, near_lake.y), "lake has visible water, blocks building and relocates unsafe spawns to its shore")
+	check(world.environment_3d.get_node_or_null("ForestLake") is MeshInstance3D and world.environment_3d.get_node_or_null("ForestLakeShore") is MeshInstance3D and not world.environment_3d.is_walkable(lake_center.x, lake_center.y) and world.environment_3d.is_walkable(near_lake.x, near_lake.y), "lake has water and a shoreline, blocks building and relocates unsafe spawns")
 	var env = world.environment_3d
 	var initial_lake: Vector2 = env.lake_map_position
 	var initial_layout: Dictionary = env.saved_layout

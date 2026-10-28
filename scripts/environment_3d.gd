@@ -393,17 +393,71 @@ func _build_lake() -> void:
 	water.set_shader_parameter("light_color", Color("6c8c7b"))
 	water.set_shader_parameter("wave_scale", 1.2)
 	mesh.surface_set_material(0, water)
+	_build_lake_shore(center)
 	var lake := MeshInstance3D.new()
 	lake.name = "ForestLake"
 	lake.mesh = mesh
 	lake.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(lake)
 
+func _build_lake_shore(center: Vector2) -> void:
+	# A narrow sandy margin follows the actual terrain and joins the animated
+	# water to the surrounding clearing instead of a hard blue ellipse.
+	var vertices := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var indices := PackedInt32Array()
+	for i in range(65):
+		var angle := TAU * float(i) / 64.0
+		var wobble := 1.0 + 0.035 * sin(angle * 5.0) + 0.02 * cos(angle * 7.0)
+		for scale_factor in [0.97, 1.18]:
+			var offset := Vector2(cos(angle) * LAKE_RADII.x, sin(angle) * LAKE_RADII.y) * wobble * float(scale_factor)
+			var p := center + offset
+			vertices.append(Vector3(p.x, height_at(p.x, p.y) + 0.035, p.y))
+			normals.append(Vector3.UP)
+			uvs.append(p * 0.28)
+		if i > 0:
+			var previous := (i - 1) * 2
+			var current := i * 2
+			indices.append_array(PackedInt32Array([previous, current, previous + 1, previous + 1, current, current + 1]))
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var sand := StandardMaterial3D.new()
+	sand.albedo_texture = load("res://assets/environment/textures/sand.jpg")
+	sand.albedo_color = Color("b5ad8f")
+	sand.roughness = 1.0
+	sand.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	mesh.surface_set_material(0, sand)
+	var shore := MeshInstance3D.new()
+	shore.name = "ForestLakeShore"
+	shore.mesh = mesh
+	shore.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(shore)
+
 func _scatter_scenery() -> void:
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 2291
 	var fern_scene = load(FERN_PATH) as PackedScene
 	var stump_scene = load("res://assets/models/nature_real/tree_stump_01.glb") as PackedScene
+	if lake_map_position != Vector2.ZERO:
+		var center := lake_map_position * SCALE
+		for i in range(10):
+			var angle := TAU * float(i) / 10.0 + 0.22
+			var point := center + Vector2(cos(angle) * (LAKE_RADII.x + 2.5), sin(angle) * (LAKE_RADII.y + 2.5))
+			if not is_walkable(point.x, point.y, 0.5) or _near_road(point / SCALE):
+				continue
+			var fern := fern_scene.instantiate() as Node3D
+			fern.name = "LakeFern"
+			fern.position = Vector3(point.x, height_at(point.x, point.y), point.y)
+			fern.scale = Vector3.ONE * rng.randf_range(0.8, 1.2)
+			fern.rotation.y = rng.randf_range(0.0, TAU)
+			add_child(fern)
 	# Photographic fern clusters; no invisible blockers are added to routes.
 	for i in range(55):
 		var p = Vector2(rng.randf_range(250, 2950), rng.randf_range(220, 1980))
