@@ -18,6 +18,8 @@ var title: String = ""
 var detail: Dictionary = {}
 var usable: bool = true
 var respawn_at: float = 0.0
+var resource_health: int = 0
+var resource_max_health: int = 0
 var visual: Node3D
 var flame: Node3D
 var idle_actor: Node3D
@@ -28,6 +30,8 @@ func configure(owner_world, identity: String, prop_kind: String, display_title: 
 	kind = prop_kind
 	title = display_title
 	detail = properties
+	resource_max_health = 3 if kind == "tree" else (4 if kind == "rock" else 0)
+	resource_health = resource_max_health
 
 func _ready() -> void:
 	visual = Node3D.new()
@@ -67,8 +71,12 @@ func _build_visual() -> void:
 			visual.add_child(idle_actor)
 			idle_actor.setup(CHARACTERS + String(paths.get(prop_id, "Casual_Male.glb")), 0.42 if prop_id == "tim" else 0.55, skin_tones.get(prop_id, Color("b98060")))
 			_add_name_tag()
-		"tree": _add_model(REAL_NATURE + "pine.glb", 0.54)
-		"rock": _add_model(REAL_NATURE + "rock_07.glb", 4.2)
+		"tree":
+			_add_model(String(detail.get("model", REAL_NATURE + "pine.glb")), float(detail.get("model_scale", 0.54)))
+			visual.rotation.y = float(detail.get("yaw", 0.0))
+		"rock":
+			_add_model(REAL_NATURE + "rock_07.glb", float(detail.get("model_scale", 4.2)))
+			visual.rotation.y = float(detail.get("yaw", 0.0))
 		"bush": _add_model(REAL_NATURE + "fern_02.glb", 1.8)
 		"scrap":
 			_build_scrap()
@@ -113,10 +121,13 @@ func _add_model(path: String, model_scale: float) -> void:
 		return
 	var node = packed.instantiate() as Node3D
 	node.scale = Vector3.ONE * model_scale
-	if path == REAL_NATURE + "pine.glb":
+	if path in [REAL_NATURE + "pine.glb", REAL_NATURE + "broadleaf.glb"]:
 		node.add_to_group("tall_tree_visual")
-		node.set_meta("tree_height", 14.5 * model_scale)
-		node.set_meta("tree_radius", 3.6 * model_scale)
+		var broadleaf := path.ends_with("broadleaf.glb")
+		node.set_meta("tree_height", (4.6 if broadleaf else 14.5) * model_scale)
+		node.set_meta("tree_radius", (2.3 if broadleaf else 3.6) * model_scale)
+		for mesh in node.find_children("*", "MeshInstance3D", true, false):
+			(mesh as MeshInstance3D).visibility_range_end = 95.0
 	visual.add_child(node)
 
 func _add_collision(radius: float, height: float) -> void:

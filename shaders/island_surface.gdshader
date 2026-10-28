@@ -35,7 +35,7 @@ void fragment() {
 	// Keep the supplied albedo visible, with subtle fine ground detail to
 	// match the rest of the game's more realistic vegetation and lighting.
 	vec3 grass_detail = mix(texture(grass_tex, ground_uv).rgb, texture(litter_tex, ground_uv * 0.8).rgb, 0.28);
-	vec3 color = mix(painted_color, grass_detail, 0.40 * flat_ground);
+	vec3 color = mix(painted_color, grass_detail, 0.68 * flat_ground);
 	color = mix(color, texture(sand_tex, ground_uv * 0.7).rgb, shore * 0.45);
 	color = mix(color, texture(dirt_tex, ground_uv * 0.8).rgb, trail * 0.72);
 	color = mix(color, texture(asphalt_tex, ground_uv * 0.67).rgb * vec3(0.82, 0.85, 0.82), road * 0.82);

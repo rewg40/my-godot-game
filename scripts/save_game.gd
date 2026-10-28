@@ -99,6 +99,12 @@ static func _valid_data(data: Dictionary) -> bool:
 		return false
 	if data.has("island_revision") and (not _is_number(data["island_revision"]) or float(data["island_revision"]) not in [1.0, 2.0]):
 		return false
+	if data.has("lake_position"):
+		var lake = data["lake_position"]
+		if not lake is Array or lake.size() != 2 or not _is_number(lake[0]) or not _is_number(lake[1]):
+			return false
+		if float(lake[0]) < 0.0 or float(lake[0]) > 3200.0 or float(lake[1]) < 0.0 or float(lake[1]) > 2200.0:
+			return false
 	for key in ["quest_stage", "side_stage", "day", "minute", "last_raid_day"]:
 		if data.has(key) and not _is_number(data[key]):
 			return false
@@ -123,13 +129,14 @@ static func _valid_data(data: Dictionary) -> bool:
 		for built in towers:
 			if not _is_boolean(built):
 				return false
-	if data.has("dead_ids"):
-		var dead_ids = data["dead_ids"]
-		if not dead_ids is Array:
-			return false
-		for identity in dead_ids:
-			if not identity is String:
+	for list_name in ["dead_ids", "depleted_resources"]:
+		if data.has(list_name):
+			var ids = data[list_name]
+			if not ids is Array or ids.size() > 20000:
 				return false
+			for identity in ids:
+				if not identity is String or identity.length() > 128:
+					return false
 	var player = data.get("player", {})
 	if not player is Dictionary:
 		return false

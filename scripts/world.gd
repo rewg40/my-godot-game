@@ -30,6 +30,7 @@ var inventory: Dictionary = {"wood": 0, "stone": 0, "iron": 0, "cloth": 1, "food
 var flags: Dictionary = {}
 var equipped_weapon: String = ""
 var dead_ids: Array = []
+var depleted_resources: Array[String] = []
 var quest_stage: int = 0
 var day: int = 1
 var minute: float = 480.0
@@ -44,20 +45,23 @@ func _ready() -> void:
 	if not load_data.is_empty():
 		load_data = IslandMigration.migrate(load_data)
 	environment_3d = Environment3D.new()
+	environment_3d.saved_layout = load_data
 	add_child(environment_3d)
 	if not load_data.is_empty():
 		_apply_save(load_data)
-	_build_world()
-	var roadside = Roadside3D.new()
-	roadside.name = "RoadsideDetails"
-	add_child(roadside)
-	roadside.build(self)
+	# Restore the player's base before scattering resources so an existing
+	# house never has a newly generated tree or boulder placed inside it.
 	building = BuildingSystem.new()
 	building.world = self
 	add_child(building)
 	var saved_buildings = load_data.get("buildings", [])
 	if saved_buildings is Array:
 		building.restore(saved_buildings)
+	_build_world()
+	var roadside = Roadside3D.new()
+	roadside.name = "RoadsideDetails"
+	add_child(roadside)
+	roadside.build(self)
 	player = PlayerScript.new()
 	player.world = self
 	player.position = _safe_player_spawn(_saved_position()) + Vector3.UP * 0.12
@@ -239,19 +243,77 @@ func _build_world() -> void:
 	var bushes = [Vector2(530,1830),Vector2(650,1550),Vector2(1190,1580),Vector2(1230,760),Vector2(1540,820),Vector2(1040,660),Vector2(400,820),Vector2(510,540),Vector2(1720,1300),Vector2(1950,1750)]
 	for i in range(bushes.size()):
 		_make("bush_%d" % i, "bush", "Ягоды и травы", bushes[i])
-	# Extra scenery is non-interactive, leaving clear routes to objectives.
-	for p in [Vector2(220,840),Vector2(280,750),Vector2(190,1000),Vector2(1710,290),Vector2(1850,500),Vector2(1900,650),Vector2(2000,800),Vector2(2050,1000),Vector2(3020,1020),Vector2(2920,1150),Vector2(1700,1920),Vector2(1450,1850),Vector2(730,1960)]:
-		_deco(p, "res://assets/models/kenney/nature/tree_pineTallA.glb", 4.0, 12)
-	# Groves add silhouettes without obstructing the marked routes.
-	for p in [Vector2(240,390), Vector2(900,180), Vector2(1150,250), Vector2(1750,190), Vector2(1950,350), Vector2(1850,850), Vector2(1850,1850), Vector2(1550,2050), Vector2(1100,2000), Vector2(2880,1300), Vector2(3000,520), Vector2(280,2010)]:
-		_deco(p, "res://assets/models/kenney/nature/tree_oak.glb", 5.0, 16)
+	_scatter_resource_nodes()
+
+func _resource_near_base(pos: Vector3) -> bool:
+	if not is_instance_valid(building):
+		return false
+	var x := roundi(pos.x / 3.0)
+	var z := roundi(pos.z / 3.0)
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			var floor = building.foundation_at(x + dx, z + dz)
+			if is_instance_valid(floor) and Vector2(pos.x - floor.position.x, pos.z - floor.position.z).length() < 3.0:
+				return true
+	return false
+
+func _scatter_resource_nodes() -> void:
+	# Deterministic, separate physical objects (not decorative multimeshes).
+	# A depleted id remains reserved, so reloading does not regrow the same
+	# tree at a different index or move another tree into a player's base.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 91732
+	var placed: Array[Vector2] = []
+	var landmarks := [STARTING_SHORE, SITES.hotel, SITES.safe, SITES.keycard, SITES.chip, SITES.coil, SITES.cell, SITES.lighthouse, SITES.boat]
+	var accepted := 0
+	for i in range(1100):
+		if accepted >= 245:
+			break
+		var point := Vector2(rng.randf_range(180, 3020), rng.randf_range(160, 2040))
+		var tree := rng.randf() < 0.70
+		var broadleaf := rng.randf() < 0.32
+		var size := rng.randf_range(1.0, 1.35) if broadleaf else rng.randf_range(0.48, 0.66)
+		var rock_size := rng.randf_range(3.2, 5.0)
+		var yaw := rng.randf_range(0.0, TAU)
+		var world_point := point * MAP_SCALE
+		if not environment_3d.is_walkable(world_point.x, world_point.y, 1.5) or environment_3d._near_road(point) or environment_3d.is_lake(world_point.x, world_point.y, 5.0):
+			continue
+		var clear := true
+		for landmark in landmarks:
+			if point.distance_to(landmark) * MAP_SCALE < 11.0:
+				clear = false
+				break
+		if not clear:
+			continue
+		for other in placed:
+			if world_point.distance_squared_to(other) < 4.8 * 4.8:
+				clear = false
+				break
+		if not clear:
+			continue
+		var pos := Vector3(world_point.x, environment_3d.height_at(world_point.x, world_point.y), world_point.y)
+		if _resource_near_base(pos):
+			continue
+		placed.append(world_point)
+		accepted += 1
+		var id := ("grove_tree_%04d" if tree else "grove_rock_%04d") % i
+		var model := "res://assets/models/nature_real/broadleaf.glb" if broadleaf else "res://assets/models/nature_real/pine.glb"
+		if tree:
+			_make(id, "tree", "Дерево", point, {"collision": 14, "model": model, "model_scale": size, "yaw": yaw})
+		else:
+			_make(id, "rock", "Камень", point, {"collision": 15, "model_scale": rock_size, "yaw": yaw})
 
 func _make(identity: String, kind: String, title: String, pos: Vector2, detail: Dictionary = {}):
+	if kind in ["tree", "rock"] and identity in depleted_resources:
+		return null
 	var prop = PropScript.new()
 	prop.configure(self, identity, kind, title, detail)
 	# Keep large decorative buildings clear of the imported cliffs and walls.
 	var clearance = 2.5 if kind == "deco" and "building-" in String(detail.get("model", "")) else 1.0
 	prop.position = map_to_world(pos, clearance)
+	if kind in ["tree", "rock"] and _resource_near_base(prop.position):
+		prop.free()
+		return null
 	add_child(prop)
 	if kind in ["keycard", "chip", "coil", "cell"] and flags.get(kind, false):
 		prop.visible = false
@@ -414,7 +476,7 @@ func nearest_prop():
 	if not is_instance_valid(player):
 		return null
 	var nearest = null
-	var distance = 95.0
+	var distance = 3.8 / MAP_SCALE
 	for prop in props:
 		if not is_instance_valid(prop) or prop.kind == "deco" or not prop.usable:
 			continue
@@ -427,13 +489,18 @@ func nearest_prop():
 	return nearest
 
 func prompt_for(prop) -> String:
+	if prop.kind in ["tree", "rock"]:
+		return "%s  ·  ударьте ЛКМ/F или E" % prop.title
 	if prop.kind == "boat" and quest_stage == 9:
 		return "Починить лодку  ·  15 дерева + 5 металла + 5 ткани"
 	return prop.title
 
 func interact(prop) -> void:
+	if not is_instance_valid(prop) or not prop.usable:
+		return
 	match prop.kind:
-		"tree", "rock", "scrap", "crate", "bush", "water": _harvest(prop)
+		"tree", "rock": _damage_resource(prop)
+		"scrap", "crate", "bush", "water": _harvest(prop)
 		"hotel": _enter_hotel()
 		"safe": _open_safe()
 		"keycard", "chip", "coil", "cell": _collect_quest_item(prop)
@@ -441,15 +508,8 @@ func interact(prop) -> void:
 		"boat": _repair_boat()
 
 func _harvest(prop) -> void:
-	var amount = 0
 	var message = ""
 	match prop.kind:
-		"tree":
-			amount = 8 if flags.get("axe", false) else 6
-			give("wood", amount); message = "+%d древесины" % amount
-		"rock":
-			amount = 6 if flags.get("axe", false) else 4
-			give("stone", amount); message = "+%d камня" % amount
 		"scrap": give("iron", 3); message = "+3 металлолома"
 		"crate": give("cloth", 2); message = "+2 ткани"
 		"bush": give("food", 2); give("herbs", 1); message = "+2 еды и +1 трава"
@@ -457,6 +517,31 @@ func _harvest(prop) -> void:
 	prop.deplete(35.0 if prop.kind != "water" else 15.0)
 	play_sound("pickup")
 	hud.toast(message)
+
+func _damage_resource(prop) -> void:
+	if not is_instance_valid(prop) or not prop.usable or prop.kind not in ["tree", "rock"]:
+		return
+	prop.resource_health -= 2 if flags.get("axe", false) else 1
+	if prop.resource_health > 0:
+		play_sound("hit")
+		hud.toast("%s  ·  прочность %d / %d" % [prop.title, prop.resource_health, prop.resource_max_health], 1.2)
+		return
+	prop.usable = false
+	var item := "wood" if prop.kind == "tree" else "stone"
+	var amount := (8 if flags.get("axe", false) else 6) if item == "wood" else (6 if flags.get("axe", false) else 4)
+	give(item, amount)
+	if prop.prop_id not in depleted_resources:
+		depleted_resources.append(prop.prop_id)
+	# Remove collision immediately as well as the visible instance. The state
+	# is saved so a cleared spot stays usable for the player's own base.
+	for body in prop.find_children("*", "StaticBody3D", true, false):
+		body.collision_layer = 0
+	prop.visible = false
+	prop.queue_free()
+	play_sound("pickup")
+	hud.toast("+%d %s" % [amount, "древесины" if item == "wood" else "камня"])
+	if not save_progress(false):
+		hud.toast("Ресурсы добыты, но сохранить игру не удалось.")
 
 func player_attack(direction: Vector3) -> void:
 	var weapon = weapon_id()
@@ -474,7 +559,26 @@ func player_attack(direction: Vector3) -> void:
 			if get_world_3d().direct_space_state.intersect_ray(query).is_empty():
 				enemy.take_damage(damage, player.global_position)
 				hit = true
-	if hit:
+	var closest = null
+	var closest_distance := 3.0
+	for prop in props:
+		if not is_instance_valid(prop) or not prop.usable or prop.kind not in ["tree", "rock"]:
+			continue
+		var offset: Vector3 = prop.global_position - player.global_position
+		offset.y = 0.0
+		var distance := offset.length()
+		if distance >= closest_distance or (distance > 0.48 and offset.normalized().dot(direction) < 0.35):
+			continue
+		var from: Vector3 = player.global_position + Vector3.UP * 0.85
+		var to: Vector3 = prop.global_position + Vector3.UP * 0.85
+		var query = PhysicsRayQueryParameters3D.create(from, to, 1 | (1 << 3))
+		var obstacle = get_world_3d().direct_space_state.intersect_ray(query)
+		if obstacle.is_empty() or prop.is_ancestor_of(obstacle.get("collider")):
+			closest = prop
+			closest_distance = distance
+	if closest != null:
+		_damage_resource(closest)
+	elif hit:
 		play_sound("hit")
 
 func enemy_defeated(enemy) -> void:
@@ -765,6 +869,12 @@ func _apply_save(data: Dictionary) -> void:
 	var saved_dead = data.get("dead_ids", [])
 	if saved_dead is Array:
 		dead_ids = saved_dead.duplicate()
+	depleted_resources.clear()
+	var saved_resources = data.get("depleted_resources", [])
+	if saved_resources is Array:
+		for identity in saved_resources:
+			if identity is String:
+				depleted_resources.append(identity)
 	quest_stage = clampi(int(data.get("quest_stage", 0)), 0, 10)
 	# The old stage 8 asked the removed NPC for boat instructions.
 	if quest_stage == 8: quest_stage = 9
@@ -777,8 +887,9 @@ func save_progress(show_message: bool = false) -> bool:
 	var data = {
 		"quest_stage": quest_stage, "inventory": inventory.duplicate(), "flags": flags.duplicate(),
 		"island_revision": IslandMigration.CURRENT_REVISION,
+		"lake_position": [environment_3d.lake_map_position.x, environment_3d.lake_map_position.y],
 		"equipped_weapon": weapon_id(), "buildings": building.serialize(),
-		"dead_ids": dead_ids.duplicate(), "day": day, "minute": minute,
+		"dead_ids": dead_ids.duplicate(), "depleted_resources": depleted_resources.duplicate(), "day": day, "minute": minute,
 		"player": {"position": [world_to_map(player.global_position).x, world_to_map(player.global_position).y], "health":player.health, "stamina":player.stamina, "hunger":player.hunger, "thirst":player.thirst},
 	}
 	var ok = SaveGame.save_data(data)

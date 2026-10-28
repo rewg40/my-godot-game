@@ -32,7 +32,7 @@ func check(condition: bool, message: String) -> void:
 
 func prop(world, identity: String):
 	for p in world.props:
-		if p.prop_id == identity:
+		if is_instance_valid(p) and p.prop_id == identity:
 			return p
 	return null
 
@@ -129,9 +129,18 @@ func _run() -> void:
 	check(grass is MultiMeshInstance3D and grass.multimesh.instance_count > 500, "3D grass is batched across the island")
 	var weeds = world.environment_3d.get_node_or_null("GroundWeeds")
 	check(weeds is MultiMeshInstance3D and weeds.multimesh.instance_count > 300, "broad-leaved ground vegetation is batched")
-	var forest = world.environment_3d.get_node_or_null("ForestColliders")
-	check(forest is StaticBody3D and forest.get_child_count() > 0, "3D forest trunks have physical collision")
-	check(world.environment_3d.get_node_or_null("ForestBroadleaf") is Node3D, "forest includes photoreal broadleaf trees")
+	var forest_count := 0
+	var rock_count := 0
+	var broadleaf_count := 0
+	for object in world.props:
+		if object.kind == "tree":
+			forest_count += 1
+			if "broadleaf" in String(object.detail.get("model", "")): broadleaf_count += 1
+		if object.kind == "rock": rock_count += 1
+	check(forest_count > 60 and rock_count > 20 and broadleaf_count > 0, "the enlarged island has physical harvestable forest and boulders")
+	var lake_center: Vector2 = world.environment_3d.lake_map_position * world.MAP_SCALE
+	var near_lake: Vector2 = world.environment_3d.nearest_walkable(lake_center.x, lake_center.y)
+	check(world.environment_3d.get_node_or_null("ForestLake") is MeshInstance3D and not world.environment_3d.is_walkable(lake_center.x, lake_center.y) and world.environment_3d.is_walkable(near_lake.x, near_lake.y), "lake has visible water, blocks building and relocates unsafe spawns to its shore")
 	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("Walk"), "rigged 3D hero has a walking animation")
 	check(world.player.visual.animation.get_animation("Walk").get_track_count() > 10, "walking animation contains skeletal tracks")
 	var hero_skeletons = world.player.visual.model.find_children("*", "Skeleton3D", true, false)
@@ -294,7 +303,10 @@ func _run() -> void:
 	var wood_before = world.count("wood")
 	var first_tree = prop(world, "tree_0")
 	world.interact(first_tree)
-	check(world.count("wood") > wood_before and not prop(world, "tree_0").usable, "resource harvesting and cooldown")
+	check(first_tree.resource_health == 2 and world.count("wood") == wood_before, "first hit damages a tree without giving free resources")
+	world.interact(first_tree)
+	world.interact(first_tree)
+	check(world.count("wood") > wood_before and not first_tree.usable and "tree_0" in world.depleted_resources, "destroying a tree grants wood and records its removal")
 	var stone_before = world.count("stone")
 	world.craft("axe")
 	check(not world.flags.get("axe", false) and world.count("stone") == stone_before, "craft failure does not spend resources")

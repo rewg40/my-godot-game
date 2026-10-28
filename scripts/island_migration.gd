@@ -36,8 +36,9 @@ static func migrate(source: Dictionary) -> Dictionary:
 	# Preserve a player standing on one of the old floors relative to their
 	# base; everyone else keeps their old normalized island/map position.
 	var player = result.get("player", {})
-	if player is Dictionary and player.get("position", []) is Array and player["position"].size() == 2:
-		var old_position := Vector2(float(player["position"][0]), float(player["position"][1])) * OLD_MAP_SCALE
+	var player_position = player.get("position", []) if player is Dictionary else []
+	if player is Dictionary and player_position is Array and player_position.size() == 2:
+		var old_position := Vector2(float(player_position[0]), float(player_position[1])) * OLD_MAP_SCALE
 		var old_cell := Vector2i(roundi(old_position.x / CELL), roundi(old_position.y / CELL))
 		if offsets.has(old_cell) and absf(old_position.x - float(old_cell.x) * CELL) <= CELL * 0.5 and absf(old_position.y - float(old_cell.y) * CELL) <= CELL * 0.5:
 			var offset: Vector2i = offsets[old_cell]

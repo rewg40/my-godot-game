@@ -1,6 +1,7 @@
 extends Node3D
 
 const SURFACE_SHADER = preload("res://shaders/island_surface.gdshader")
+const WATER_SHADER = preload("res://shaders/water_surface.gdshader")
 const ISLAND_MODEL = preload("res://assets/models/environment/user_island.glb")
 const SURFACE_MASK = preload("res://assets/environment/user_island_layout.png")
 const TERRAIN_DATA = preload("res://assets/environment/user_island_data.png")
@@ -19,7 +20,14 @@ const HEIGHT_SCALE := 150.0
 const MAX_CLEARANCE := 16.0
 const NAV_COLS := 256
 const NAV_ROWS := 176
+const LAKE_RADII := Vector2(8.0, 6.0)
+# Chosen on broad, very flat patches of the supplied terrain; map coordinates
+# are independent of the island's physical scale.
+const LAKE_SITES := [Vector2(1843, 1824), Vector2(1472, 1654), Vector2(361, 1323), Vector2(1232, 1233), Vector2(811, 1443)]
 
+var saved_layout: Dictionary = {}
+var lake_map_position := Vector2.ZERO
+var lake_surface_y := 0.0
 var sun: DirectionalLight3D
 var sky_material: ProceduralSkyMaterial
 var environment: Environment
@@ -36,11 +44,41 @@ func _ready() -> void:
 	height_data = TERRAIN_DATA.get_image()
 	nearest_data = NEAREST_DATA.get_image()
 	surface_data = SURFACE_MASK.get_image()
+	_select_lake_site()
 	_build_lighting()
 	_build_terrain()
 	_build_sea()
+	_build_lake()
 	_build_navigation()
 	_scatter_scenery()
+
+func _select_lake_site() -> void:
+	var saved = saved_layout.get("lake_position", [])
+	if saved is Array and saved.size() == 2:
+		lake_map_position = Vector2(float(saved[0]), float(saved[1]))
+		return
+	var buildings = saved_layout.get("buildings", [])
+	for candidate in LAKE_SITES:
+		var center: Vector2 = candidate * SCALE
+		var occupied := false
+		for record in buildings:
+			if record is Dictionary and record.get("type", "") == "foundation":
+				var floor_point := Vector2(float(record["x"]) * 3.0, float(record["z"]) * 3.0)
+				if absf(floor_point.x - center.x) < LAKE_RADII.x + 3.0 and absf(floor_point.y - center.y) < LAKE_RADII.y + 3.0:
+					occupied = true
+					break
+		if not occupied:
+			lake_map_position = candidate
+			return
+	# Unusual saves occupying every known site keep the lake at the last site.
+	lake_map_position = LAKE_SITES[-1]
+
+func is_lake(x: float, z: float, extra: float = 0.0) -> bool:
+	if lake_map_position == Vector2.ZERO:
+		return false
+	var delta := Vector2(x, z) - lake_map_position * SCALE
+	var radii := LAKE_RADII + Vector2.ONE * extra
+	return pow(delta.x / radii.x, 2.0) + pow(delta.y / radii.y, 2.0) < 1.0
 
 func _data_coordinate(x: float, z: float) -> Vector2:
 	return Vector2(clampf(x / WIDTH, 0.0, 1.0) * float(height_data.get_width() - 1), clampf(z / DEPTH, 0.0, 1.0) * float(height_data.get_height() - 1))
@@ -62,7 +100,7 @@ func height_at(x: float, z: float) -> float:
 	return (lerpf(a, b, point.y - z0) - RAW_GROUND) * HEIGHT_SCALE
 
 func is_walkable(x: float, z: float, clearance: float = 1.0) -> bool:
-	if x < 0.0 or x > WIDTH or z < 0.0 or z > DEPTH:
+	if x < 0.0 or x > WIDTH or z < 0.0 or z > DEPTH or is_lake(x, z, clearance * 0.5):
 		return false
 	var point = _data_coordinate(x, z)
 	var pixel = height_data.get_pixel(roundi(point.x), roundi(point.y))
@@ -74,6 +112,16 @@ func nearest_walkable(x: float, z: float, clearance: float = 1.0) -> Vector2:
 	# ground instead of spawning a character or item inside the supplied mesh.
 	if is_walkable(x, z, clearance):
 		return Vector2(x, z)
+	# The lake was added after the original nearest-land atlas was baked.
+	# Search its perimeter explicitly rather than returning a point in water.
+	if is_lake(x, z, clearance):
+		for ring in range(1, 81):
+			var radius := float(ring) * 0.25
+			for i in range(32):
+				var angle := TAU * float(i) / 32.0
+				var candidate := Vector2(x, z) + Vector2(cos(angle), sin(angle)) * radius
+				if is_walkable(candidate.x, candidate.y, clearance):
+					return candidate
 	if clearance > 1.0:
 		# Large decorative buildings need more room than a character capsule.
 		# Search by increasing radius; most are resolved in the first few rings.
@@ -90,7 +138,10 @@ func nearest_walkable(x: float, z: float, clearance: float = 1.0) -> Vector2:
 	var index = (roundi(packed.r * 255.0) << 16) | (roundi(packed.g * 255.0) << 8) | roundi(packed.b * 255.0)
 	var px = index % height_data.get_width()
 	var pz = floori(float(index) / float(height_data.get_width()))
-	return Vector2(float(px) / float(height_data.get_width() - 1) * WIDTH, float(pz) / float(height_data.get_height() - 1) * DEPTH)
+	var destination := Vector2(float(px) / float(height_data.get_width() - 1) * WIDTH, float(pz) / float(height_data.get_height() - 1) * DEPTH)
+	if is_lake(destination.x, destination.y, clearance):
+		return nearest_walkable(destination.x, destination.y, clearance)
+	return destination
 
 func _build_navigation() -> void:
 	# The imported diorama contains tall obstacles. A coarse grid keeps enemy
@@ -264,10 +315,11 @@ func _build_terrain() -> void:
 func _build_sea() -> void:
 	var mesh = PlaneMesh.new()
 	mesh.size = Vector2(500, 500)
-	var water = StandardMaterial3D.new()
-	water.albedo_color = Color("294f55")
-	water.roughness = 0.36
-	water.metallic = 0.08
+	var water := ShaderMaterial.new()
+	water.shader = WATER_SHADER
+	water.set_shader_parameter("deep_color", Color("294b50"))
+	water.set_shader_parameter("light_color", Color("476a68"))
+	water.set_shader_parameter("wave_scale", 9.0)
 	mesh.material = water
 	var instance = MeshInstance3D.new()
 	instance.name = "Sea"
@@ -276,48 +328,54 @@ func _build_sea() -> void:
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(instance)
 
+func _build_lake() -> void:
+	var center := lake_map_position * SCALE
+	lake_surface_y = -INF
+	for ring in [0.0, 0.5, 1.0]:
+		for i in range(64):
+			var angle := TAU * float(i) / 64.0
+			var sample := center + Vector2(cos(angle) * LAKE_RADII.x, sin(angle) * LAKE_RADII.y) * ring
+			lake_surface_y = maxf(lake_surface_y, height_at(sample.x, sample.y))
+	lake_surface_y += 0.04
+	var vertices := PackedVector3Array([Vector3(center.x, lake_surface_y, center.y)])
+	var normals := PackedVector3Array([Vector3.UP])
+	var uvs := PackedVector2Array([Vector2(0.5, 0.5)])
+	var indices := PackedInt32Array()
+	for i in range(65):
+		var angle := TAU * float(i) / 64.0
+		var wobble := 1.0 + 0.035 * sin(angle * 5.0) + 0.02 * cos(angle * 7.0)
+		var dx := cos(angle) * LAKE_RADII.x * wobble
+		var dz := sin(angle) * LAKE_RADII.y * wobble
+		vertices.append(Vector3(center.x + dx, lake_surface_y, center.y + dz))
+		normals.append(Vector3.UP)
+		uvs.append(Vector2(0.5 + dx / (LAKE_RADII.x * 2.0), 0.5 + dz / (LAKE_RADII.y * 2.0)))
+		if i > 0:
+			indices.append_array(PackedInt32Array([0, i + 1, i]))
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	var water := ShaderMaterial.new()
+	water.shader = WATER_SHADER
+	water.set_shader_parameter("deep_color", Color("284b4b"))
+	water.set_shader_parameter("light_color", Color("6c8c7b"))
+	water.set_shader_parameter("wave_scale", 1.2)
+	mesh.surface_set_material(0, water)
+	var lake := MeshInstance3D.new()
+	lake.name = "ForestLake"
+	lake.mesh = mesh
+	lake.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(lake)
+
 func _scatter_scenery() -> void:
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 2291
-	var pine_scene = load(PINE_PATH) as PackedScene
-	var broadleaf_scene = load("res://assets/models/nature_real/broadleaf.glb") as PackedScene
 	var fern_scene = load(FERN_PATH) as PackedScene
 	var stump_scene = load("res://assets/models/nature_real/tree_stump_01.glb") as PackedScene
-	var forest_colliders = StaticBody3D.new()
-	forest_colliders.name = "ForestColliders"
-	forest_colliders.collision_layer = 1
-	forest_colliders.collision_mask = 0
-	add_child(forest_colliders)
-	var trunk_shape = CylinderShape3D.new()
-	trunk_shape.radius = 0.27
-	trunk_shape.height = 2.0
-	# Trees cluster away from the village, roads and quest landmarks, keeping
-	# the chapter's routes, encounters and old saves unobstructed.
-	var exclusion = [Vector2(850, 1280), Vector2(2150, 1440), Vector2(2850, 500), Vector2(2850, 700), Vector2(1360, 450), Vector2(1390, 565), Vector2(2750, 1800), Vector2(590, 430), Vector2(360, 1830)]
-	for i in range(115):
-		var p = Vector2(rng.randf_range(260, 2940), rng.randf_range(240, 1960))
-		var clear = true
-		for landmark in exclusion:
-			if p.distance_to(landmark) < 230:
-				clear = false
-				break
-		if not clear or _near_road(p) or not is_walkable(p.x * SCALE, p.y * SCALE, 2.0):
-			continue
-		var broadleaf = rng.randf() < 0.32
-		var instance = (broadleaf_scene if broadleaf else pine_scene).instantiate() as Node3D
-		instance.name = "ForestBroadleaf" if broadleaf else "ForestPine"
-		var size = rng.randf_range(1.1, 1.4) if broadleaf else rng.randf_range(0.48, 0.63)
-		instance.scale = Vector3.ONE * size
-		instance.rotation.y = rng.randf_range(0, TAU)
-		instance.position = Vector3(p.x * SCALE, height_at(p.x * SCALE, p.y * SCALE), p.y * SCALE)
-		instance.set_meta("tree_height", (4.6 if broadleaf else 14.5) * size)
-		instance.set_meta("tree_radius", (2.3 if broadleaf else 3.6) * size)
-		instance.add_to_group("tall_tree_visual")
-		add_child(instance)
-		var trunk = CollisionShape3D.new()
-		trunk.shape = trunk_shape
-		trunk.position = instance.position + Vector3.UP
-		forest_colliders.add_child(trunk)
 	# Photographic fern clusters; no invisible blockers are added to routes.
 	for i in range(55):
 		var p = Vector2(rng.randf_range(250, 2950), rng.randf_range(220, 1980))
@@ -354,7 +412,7 @@ func _build_grass(rng: RandomNumberGenerator) -> void:
 	var grass_mesh = (candidates[0] as MeshInstance3D).mesh
 	var mask = surface_data
 	var positions: Array[Transform3D] = []
-	for i in range(10500):
+	for i in range(26000):
 		var p = Vector2(rng.randf_range(150, 3050), rng.randf_range(130, 2070))
 		var uv = Vector2i(clampi(int(p.x / 3200.0 * mask.get_width()), 0, mask.get_width() - 1), clampi(int(p.y / 2200.0 * mask.get_height()), 0, mask.get_height() - 1))
 		var pixel = mask.get_pixelv(uv)

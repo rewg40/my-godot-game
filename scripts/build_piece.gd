@@ -8,9 +8,9 @@ const DOOR_WIDTH := 1.32
 const DOOR_HEIGHT := 2.12
 # The source models are from the repository's 05_buildings_structures set.
 # We adapt their timber geometry to the existing 3 m snapping grid.
-const PLANK_PLATFORM = preload("res://assets/models/construction/pir_platform.glb")
-const PLANK_ROOF = preload("res://assets/models/construction/pir_platform-planks.glb")
-const TIMBER_FRAME = preload("res://assets/models/construction/td_wood-structure-high-part.glb")
+const PLANK_PLATFORM = preload("res://assets/models/construction/pir/pir_platform.glb")
+const PLANK_ROOF = preload("res://assets/models/construction/pir/pir_platform-planks.glb")
+const TIMBER_FRAME = preload("res://assets/models/construction/tower/td_wood-structure-high-part.glb")
 # The camera ignores this layer; characters and construction still collide.
 const ROOF_COLLISION_LAYER := 1 << 3
 
