@@ -348,9 +348,11 @@ func _run() -> void:
 	check(world.count("stone") > stone_before_rock and not first_rock.usable and "rock_0" in world.depleted_resources, "stone is granted when the boulder is destroyed")
 	var resources_save: Dictionary = SaveGame.load_data()
 	check("tree_0" in resources_save.get("depleted_resources", []) and "rock_0" in resources_save.get("depleted_resources", []), "destroyed resource ids are saved")
-	var stone_before = world.count("stone")
+	var stone_collected: int = world.count("stone")
+	world.inventory["stone"] = 0
 	world.craft("axe")
-	check(not world.flags.get("axe", false) and world.count("stone") == stone_before, "craft failure does not spend resources")
+	check(not world.flags.get("axe", false) and world.count("stone") == 0, "craft failure does not spend resources")
+	world.inventory["stone"] = stone_collected
 	world.inventory["wood"] = 50
 	world.inventory["stone"] = 25
 	world.inventory["cloth"] = 10

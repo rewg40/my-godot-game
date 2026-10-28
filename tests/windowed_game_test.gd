@@ -78,6 +78,13 @@ func visible_frame_has_content() -> bool:
 			high = maxf(high, value)
 	return high - low > 0.08 and high > 0.1
 
+func capture_for_review(label: String) -> void:
+	await RenderingServer.frame_post_draw
+	var image = root.get_texture().get_image()
+	image.resize(480, 270, Image.INTERPOLATE_LANCZOS)
+	image.convert(Image.FORMAT_RGB8)
+	print("::notice title=CAPTURE_%s::%s" % [label, Marshalls.raw_to_base64(image.save_jpg_to_buffer(0.48))])
+
 func _run() -> void:
 	check(DisplayServer.get_name() != "headless", "game uses a real display and renderer")
 	var scene := load("res://scenes/main.tscn") as PackedScene
@@ -119,16 +126,19 @@ func _run() -> void:
 			moved = true
 			break
 	check(moved, "player movement works while the 3D world is rendered")
+	await capture_for_review("WORLD")
 	check(is_instance_valid(world.hud.minimap) and world.hud.minimap.visible, "a player-centred minimap is visible in the rendered HUD")
 	await press_key(KEY_TAB)
 	check(world.hud.modal_kind == "inventory" and world.hud.inventory_grid.get_child_count() == 24, "Tab opens the rendered icon inventory")
 	check(await visible_frame_has_content(), "icon inventory renders in the game window")
+	await capture_for_review("INVENTORY")
 	await press_key(KEY_TAB)
 	check(not world.hud.is_modal_open(), "Tab closes the inventory")
 	await press_key(KEY_M)
 	var rendered_map = world.hud.modal.find_child("IslandMap", true, false) if world.hud.is_modal_open() else null
 	check(world.hud.modal_kind == "map" and is_instance_valid(rendered_map), "M opens the rendered interactive island map")
 	check(await visible_frame_has_content(), "island map renders in the game window")
+	await capture_for_review("MAP")
 	await press_key(KEY_M)
 	check(not world.hud.is_modal_open(), "M closes the map")
 
