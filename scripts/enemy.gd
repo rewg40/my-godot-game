@@ -46,7 +46,7 @@ func configure(owner_world, identity: String, enemy_kind: String, enemy_group: S
 
 func _ready() -> void:
 	collision_layer = 4
-	collision_mask = 1
+	collision_mask = 1 | (1 << 3) # world and player-built roofs
 	floor_snap_length = 0.35
 	var collision = CollisionShape3D.new()
 	var capsule = CapsuleShape3D.new()
@@ -110,7 +110,7 @@ func _physics_process(delta: float) -> void:
 		# apply a melee hit through solid geometry merely because targets are near.
 		var from = global_position + Vector3.UP * 0.85
 		var to = world.player.global_position + Vector3.UP * 0.85
-		var query = PhysicsRayQueryParameters3D.create(from, to, 1)
+		var query = PhysicsRayQueryParameters3D.create(from, to, 1 | (1 << 3))
 		if get_world_3d().direct_space_state.intersect_ray(query).is_empty():
 			attack_timer = 1.15
 			world.player.take_damage(damage)
@@ -147,7 +147,7 @@ func _route_direction(target: Vector3, direct: Vector3, delta: float) -> Vector3
 # tangent until the route ahead is clear. Rays only query world geometry.
 func _steer_around_obstacles(wanted: Vector3, delta: float) -> Vector3:
 	var origin = global_position + Vector3.UP * 0.8
-	var query = PhysicsRayQueryParameters3D.create(origin, origin + wanted * 2.1, 1)
+	var query = PhysicsRayQueryParameters3D.create(origin, origin + wanted * 2.1, 1 | (1 << 3))
 	var hit = get_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():
 		avoidance_grace = maxf(0.0, avoidance_grace - delta)

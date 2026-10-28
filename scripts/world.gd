@@ -467,7 +467,7 @@ func player_attack(direction: Vector3) -> void:
 		if offset.length() <= 3.4 and (offset.length() < 0.48 or offset.normalized().dot(direction) > -0.05):
 			var from: Vector3 = player.global_position + Vector3.UP * 0.85
 			var to: Vector3 = enemy.global_position + Vector3.UP * 0.85
-			var query = PhysicsRayQueryParameters3D.create(from, to, 1)
+			var query = PhysicsRayQueryParameters3D.create(from, to, 1 | (1 << 3))
 			if get_world_3d().direct_space_state.intersect_ray(query).is_empty():
 				enemy.take_damage(damage, player.global_position)
 				hit = true

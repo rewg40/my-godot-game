@@ -30,7 +30,7 @@ var current_weapon := ""
 
 func _ready() -> void:
 	collision_layer = 2
-	collision_mask = 1
+	collision_mask = 1 | (1 << 3) # world and player-built roofs
 	floor_snap_length = 0.35
 	var collision = CollisionShape3D.new()
 	var capsule = CapsuleShape3D.new()

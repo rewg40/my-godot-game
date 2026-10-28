@@ -6,12 +6,15 @@ const CELL := 3.0
 const WALL_HEIGHT := 2.6
 const DOOR_WIDTH := 1.32
 const DOOR_HEIGHT := 2.12
+# The camera ignores this layer; characters and construction still collide.
+const ROOF_COLLISION_LAYER := 1 << 3
 
 var data: Dictionary = {}
 var preview := false
 var materials: Dictionary = {}
 var hinge: Node3D
 var door_tween: Tween
+var roof_hidden := false
 
 func configure(piece_data: Dictionary, palette: Dictionary, is_preview: bool = false) -> void:
 	data = piece_data.duplicate(true)
@@ -79,7 +82,7 @@ func _part(size: Vector3, at: Vector3, material_key: String, collidable: bool = 
 	target.add_child(visual)
 	if collidable and not preview:
 		var body = StaticBody3D.new()
-		body.collision_layer = 1
+		body.collision_layer = ROOF_COLLISION_LAYER if data.get("type", "") == "roof" else 1
 		body.collision_mask = 0
 		body.set_meta("player_built", true)
 		var collision = CollisionShape3D.new()
@@ -89,6 +92,15 @@ func _part(size: Vector3, at: Vector3, material_key: String, collidable: bool = 
 		collision.position = at
 		body.add_child(collision)
 		target.add_child(body)
+
+func set_roof_hidden(hidden: bool) -> void:
+	if data.get("type", "") != "roof" or preview or roof_hidden == hidden:
+		return
+	roof_hidden = hidden
+	# Only the visual disappears: the slab remains solid to actors and rays.
+	for child in get_children():
+		if child is MeshInstance3D:
+			child.visible = not hidden
 
 func set_preview_valid(valid: bool) -> void:
 	if not preview:

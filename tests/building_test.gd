@@ -81,7 +81,7 @@ func edge_record(building, kind: String, x: int, z: int, side: int, level: float
 	return record
 
 func ray_blocked(world, from: Vector3, to: Vector3) -> bool:
-	var query = PhysicsRayQueryParameters3D.create(from, to, 1)
+	var query = PhysicsRayQueryParameters3D.create(from, to, 1 | (1 << 3))
 	return not world.get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 func _run() -> void:
@@ -242,6 +242,15 @@ func _run() -> void:
 	var roof_piece = building.pieces.get(building.piece_key(roof))
 	var wall_piece = building.pieces.get(building.piece_key(wall))
 	var frame_piece = building.pieces.get(building.piece_key(frame))
+	var roof_meshes: Array = roof_piece.find_children("*", "MeshInstance3D", true, false) if is_instance_valid(roof_piece) else []
+	await move_player(world, center + Vector3(0, 0.12, 0))
+	await process_frame
+	check(not roof_meshes.is_empty() and not roof_meshes[0].visible, "roof hides visually when the player is inside")
+	check(ray_blocked(world, center + Vector3(0, 2.3, 0), center + Vector3(0, 3.2, 0)) and (world.player.collision_mask & (1 << 3)) != 0, "hidden roof remains physically solid to the player")
+	check((world.player.camera_arm.collision_mask & (1 << 3)) == 0, "the overhead roof does not trap the follow camera")
+	await move_player(world, center + Vector3(0, 3.0, 0))
+	await process_frame
+	check(not roof_meshes.is_empty() and roof_meshes[0].visible, "roof becomes visible again above the house")
 	check(not building.remove_piece(floor_piece), "supporting foundation cannot be removed while parts depend on it")
 	check(not building.remove_piece(frame_piece), "doorframe cannot be removed while its door is installed")
 

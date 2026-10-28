@@ -6,6 +6,7 @@ const WOOD_TEXTURE = preload("res://assets/environment/textures/planks_diff_1k.j
 const CELL := 3.0
 const WALL_HEIGHT := 2.6
 const BUILD_RANGE := 8.0
+const ROOF_COLLISION_LAYER := 1 << 3
 const TYPES := ["foundation", "wall", "roof", "doorway", "door"]
 const NAMES := {"foundation": "Фундамент", "wall": "Стена", "roof": "Крыша", "doorway": "Дверной проём", "door": "Дверь"}
 const COSTS := {
@@ -82,6 +83,7 @@ func rotate_selection() -> void:
 	ghost_signature = ""
 
 func _process(_delta: float) -> void:
+	_update_roof_visibility()
 	if not active or not is_instance_valid(world.player) or world.is_paused():
 		if is_instance_valid(ghost):
 			ghost.visible = false
@@ -108,6 +110,20 @@ func _process(_delta: float) -> void:
 		reason = "Можно построить"
 	_update_ghost(candidate, valid)
 
+func _update_roof_visibility() -> void:
+	if not is_instance_valid(world.player):
+		return
+	var position: Vector3 = world.player.global_position
+	var x := roundi(position.x / CELL)
+	var z := roundi(position.z / CELL)
+	var overhead = pieces.get("r:%d:%d" % [x, z])
+	var indoors: bool = is_instance_valid(overhead) and position.y < overhead.global_position.y - 0.15
+	for piece in pieces.values():
+		if not is_instance_valid(piece) or piece.data.get("type", "") != "roof":
+			continue
+		var distance = Vector2(piece.global_position.x - position.x, piece.global_position.z - position.z).length()
+		piece.set_roof_hidden(indoors and distance <= 8.0)
+
 func cursor_hit() -> Dictionary:
 	var camera: Camera3D = world.player.camera
 	if not is_instance_valid(camera):
@@ -115,7 +131,7 @@ func cursor_hit() -> Dictionary:
 	var mouse = get_viewport().get_mouse_position()
 	var from = camera.project_ray_origin(mouse)
 	var to = from + camera.project_ray_normal(mouse) * 300.0
-	var query = PhysicsRayQueryParameters3D.create(from, to, 1)
+	var query = PhysicsRayQueryParameters3D.create(from, to, 1 | ROOF_COLLISION_LAYER)
 	query.collide_with_areas = false
 	return get_world_3d().direct_space_state.intersect_ray(query)
 
@@ -333,7 +349,7 @@ func _volume_clear(record: Dictionary) -> bool:
 	var query = PhysicsShapeQueryParameters3D.new()
 	query.shape = shape
 	query.transform = Transform3D(Basis(Vector3.UP, angle), center)
-	query.collision_mask = 1 | 2 | 4
+	query.collision_mask = 1 | 2 | 4 | ROOF_COLLISION_LAYER
 	query.collide_with_areas = false
 	var terrain = world.environment_3d.get_node_or_null("IslandCollision") as StaticBody3D
 	if is_instance_valid(terrain):
