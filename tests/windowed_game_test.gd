@@ -78,17 +78,6 @@ func visible_frame_has_content() -> bool:
 			high = maxf(high, value)
 	return high - low > 0.08 and high > 0.1
 
-func capture_for_review(label: String) -> void:
-	if not OS.get_environment("GODOT_CONSOLE").contains("4.6.3"):
-		return
-	await RenderingServer.frame_post_draw
-	var image = root.get_texture().get_image()
-	image.resize(480, 270, Image.INTERPOLATE_LANCZOS)
-	image.convert(Image.FORMAT_RGB8)
-	var encoded := Marshalls.raw_to_base64(image.save_jpg_to_buffer(0.28))
-	for part in range(ceili(float(encoded.length()) / 3500.0)):
-		print("::notice title=CAPTURE_%s_%02d::%s" % [label, part, encoded.substr(part * 3500, 3500)])
-
 func _run() -> void:
 	check(DisplayServer.get_name() != "headless", "game uses a real display and renderer")
 	var scene := load("res://scenes/main.tscn") as PackedScene
@@ -130,23 +119,20 @@ func _run() -> void:
 			moved = true
 			break
 	check(moved, "player movement works while the 3D world is rendered")
-	await capture_for_review("WORLD")
-	if OS.get_environment("GODOT_CONSOLE").contains("4.6.3"):
-		var original_position: Vector3 = world.player.global_position
-		var lake: Vector2 = world.environment_3d.lake_map_position * world.MAP_SCALE
-		var shore := lake + Vector2(-6.0, 8.0)
-		world.player.set_physics_process(false)
-		world.player.global_position = Vector3(shore.x, world.environment_3d.height_at(shore.x, shore.y) + 0.15, shore.y)
-		await process_frame
-		await process_frame
-		await capture_for_review("LAKE")
-		world.player.global_position = original_position
-		world.player.set_physics_process(true)
+	var original_position: Vector3 = world.player.global_position
+	var lake: Vector2 = world.environment_3d.lake_map_position * world.MAP_SCALE
+	var shore := lake + Vector2(-6.0, 8.0)
+	world.player.set_physics_process(false)
+	world.player.global_position = Vector3(shore.x, world.environment_3d.height_at(shore.x, shore.y) + 0.15, shore.y)
+	await process_frame
+	await process_frame
+	check(await visible_frame_has_content(), "the lake and shoreline render in the 3D world")
+	world.player.global_position = original_position
+	world.player.set_physics_process(true)
 	check(is_instance_valid(world.hud.minimap) and world.hud.minimap.visible, "a player-centred minimap is visible in the rendered HUD")
 	await press_key(KEY_TAB)
 	check(world.hud.modal_kind == "inventory" and world.hud.inventory_grid.get_child_count() == 24, "Tab opens the rendered icon inventory")
 	check(await visible_frame_has_content(), "icon inventory renders in the game window")
-	await capture_for_review("INVENTORY")
 	var food_slot: Control = null
 	for slot in world.hud.inventory_grid.get_children():
 		if slot.get_meta("item_id", "") == "food":
@@ -156,11 +142,18 @@ func _run() -> void:
 	if is_instance_valid(food_slot):
 		var food_before: int = world.count("food")
 		world.player.hunger = 20.0
-		var food_click: Vector2 = food_slot.get_global_transform_with_canvas() * (food_slot.size * 0.5)
+		# Input.parse_input_event uses the logical root viewport coordinates,
+		# not the window-scaled CanvasItem transform.
+		var food_click: Vector2 = food_slot.get_global_rect().get_center()
+		print("Inventory click: rect=", food_slot.get_global_rect(), " input=", food_click, " viewport=", root.get_visible_rect())
+		root.warp_mouse(food_click)
+		await process_frame
 		await click_at(food_click)
 		check(world.hud.selected_inventory_item == "food", "clicking the icon selects food in the actual window")
 		var use_button: Control = world.hud.inventory_action
-		var use_click: Vector2 = use_button.get_global_transform_with_canvas() * (use_button.size * 0.5)
+		var use_click: Vector2 = use_button.get_global_rect().get_center()
+		root.warp_mouse(use_click)
+		await process_frame
 		await click_at(use_click)
 		check(world.count("food") == food_before - 1 and world.player.hunger > 20.0, "clicking Use consumes the selected food in the actual window")
 	await press_key(KEY_TAB)
@@ -169,10 +162,11 @@ func _run() -> void:
 	var rendered_map = world.hud.modal.find_child("IslandMap", true, false) if world.hud.is_modal_open() else null
 	check(world.hud.modal_kind == "map" and is_instance_valid(rendered_map), "M opens the rendered interactive island map")
 	check(await visible_frame_has_content(), "island map renders in the game window")
-	await capture_for_review("MAP")
 	if is_instance_valid(rendered_map):
 		var waypoint := Vector2(1600, 1100)
-		var map_click: Vector2 = rendered_map.get_global_transform_with_canvas() * rendered_map.map_to_screen(waypoint)
+		var map_click: Vector2 = rendered_map.get_global_rect().position + rendered_map.map_to_screen(waypoint)
+		root.warp_mouse(map_click)
+		await process_frame
 		await click_at(map_click)
 		check(world.waypoint_map.distance_to(waypoint) < 15.0, "clicking the displayed chart sets a map waypoint")
 	await press_key(KEY_M)
