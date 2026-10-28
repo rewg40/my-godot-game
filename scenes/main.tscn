@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/island.glb" id="1_island"]
+[ext_resource type="Script" path="res://scripts/city_placer.gd" id="2_placer"]
+
+[sub_resource type="Environment" id="Environment_env"]
+background_mode = 1
+background_color = Color(0.72, 0.74, 0.76, 1)
+ambient_light_energy = 1.0
+tonemap_mode = 2
+
+[node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-50, -35, 0)
+shadow_enabled = true
+light_energy = 0.9
+
+[node name="Camera3D" type="Camera3D" parent="."]
+
+[node name="Island" parent="." instance=ExtResource("1_island")]
+transform = Transform3D(100, 0, 0, 0, 100, 0, 0, 0, 100, 0, 0, 0)
+
+[node name="City" type="Node3D" parent="."]
+script = ExtResource("2_placer")

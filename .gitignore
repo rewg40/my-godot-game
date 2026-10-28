@@ -30,6 +30,12 @@ desktop.ini
 .idea/
 *.swp
 
+# Распакованные 3D-модели — воспроизводятся scripts/extract_models.py из 7z-архивов
+/assets/models/*.glb
+
+# Локальные архивы для передачи
+/dist/
+
 # Экспортированные сборки — не храните в git
 /build/
 /exports/
