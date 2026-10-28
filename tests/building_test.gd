@@ -251,6 +251,10 @@ func _run() -> void:
 	await move_player(world, center + Vector3(0, 3.0, 0))
 	await process_frame
 	check(not roof_meshes.is_empty() and roof_meshes[0].visible, "roof becomes visible again above the house")
+	world.player.set_physics_process(true)
+	await create_timer(0.7).timeout
+	world.player.set_physics_process(false)
+	check(world.player.is_on_floor() and absf(world.player.global_position.y - (initial_level + 2.78)) < 0.15, "the player can physically land on the roof")
 	check(not building.remove_piece(floor_piece), "supporting foundation cannot be removed while parts depend on it")
 	check(not building.remove_piece(frame_piece), "doorframe cannot be removed while its door is installed")
 
