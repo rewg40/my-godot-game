@@ -53,6 +53,16 @@ func find_patch(world) -> Vector2i:
 					return Vector2i(x, z)
 	return Vector2i(-1, -1)
 
+func find_other_site(world, first: Vector2i) -> Vector2i:
+	for x in range(4, 39):
+		for z in range(4, 27):
+			if Vector2(x - first.x, z - first.y).length() < 10.0:
+				continue
+			var level: float = world.building.foundation_level(x, z)
+			if is_finite(level) and world.building._volume_clear({"type": "foundation", "x": x, "z": z, "y": level}):
+				return Vector2i(x, z)
+	return Vector2i(-1, -1)
+
 func move_player(world, position: Vector3) -> void:
 	world.player.global_position = position
 	world.player.velocity = Vector3.ZERO
@@ -156,6 +166,13 @@ func _run() -> void:
 	var before_wall: int = world.count("wood")
 	check(building.try_place(wall) and world.count("wood") == before_wall - 3, "wall is built on its foundation for three wood")
 	await physics_frame
+	var corner := edge_record(building, "wall", site.x, site.y, 3, initial_level)
+	await move_near(world, building._record_position(corner), Vector3(-4, 0, 0))
+	var corner_built: bool = building.try_place(corner)
+	check(corner_built, "perpendicular walls can meet at a foundation corner")
+	if corner_built:
+		check(building.remove_piece(building.pieces.get(building.piece_key(corner))), "a corner wall can be removed independently")
+	await physics_frame
 
 	# Melee attacks in either direction must respect the solid wall.
 	var wall_pos: Vector3 = building._record_position(wall)
@@ -228,10 +245,19 @@ func _run() -> void:
 	check(not building.remove_piece(floor_piece), "supporting foundation cannot be removed while parts depend on it")
 	check(not building.remove_piece(frame_piece), "doorframe cannot be removed while its door is installed")
 
+	var other := find_other_site(world, site)
+	var second_base_built := false
+	if other.x >= 0:
+		var other_level: float = building.foundation_level(other.x, other.y)
+		var other_point := Vector3(float(other.x) * CELL, other_level, float(other.y) * CELL)
+		await move_near(world, other_point)
+		second_base_built = building.try_place(building.candidate_for_point("foundation", other_point))
+	check(second_base_built, "a second independent base can be started elsewhere on the island")
+
 	await move_player(world, center + Vector3(0, 0.12, 0))
 	check(world.save_progress(false), "base and current player position can be saved")
 	var saved: Dictionary = SaveGame.load_data()
-	check(saved.get("buildings", []).size() == 10, "all five piece types and six foundations are serialized")
+	check(saved.get("buildings", []).size() == 11, "all five piece types and both bases are serialized")
 	var saved_buildings: Array = saved.get("buildings", []).duplicate(true)
 	main.show_menu()
 	await process_frame
@@ -248,8 +274,11 @@ func _run() -> void:
 	door = building.pieces.get(building.piece_key(right_door))
 	check(is_instance_valid(door) and bool(door.data.open) and int(door.data.hinge) == 1, "save restores the open state and hinge side")
 	var loaded_position: Vector3 = world.player.global_position
-	print("Resume position diagnostic: expected floor ", center, "; got ", loaded_position, "; restored floor ", building.floor_height_at(Vector2(center.x, center.z)), "; saved position ", saved.get("player", {}).get("position", []), "; walkable=", world.environment_3d.is_walkable(center.x, center.z))
-	check(Vector2(loaded_position.x, loaded_position.z).distance_to(Vector2(center.x, center.z)) < 0.2 and loaded_position.y >= initial_level, "Continue returns the player inside the base above the floor")
+	# The capsule bottom is 0.005 m above the CharacterBody origin, so a
+	# grounded character's origin can sit just below the floor surface.
+	if Vector2(loaded_position.x, loaded_position.z).distance_to(Vector2(center.x, center.z)) >= 0.2 or loaded_position.y < initial_level - 0.03:
+		print("Resume position diagnostic: expected floor ", center, "; got ", loaded_position)
+	check(Vector2(loaded_position.x, loaded_position.z).distance_to(Vector2(center.x, center.z)) < 0.2 and loaded_position.y >= initial_level - 0.03, "Continue returns the player inside the base on its floor")
 	var safe_near_wall: Vector3 = world._safe_player_spawn(world.world_to_map(wall_pos))
 	check(world._built_spawn_clear(Vector2(safe_near_wall.x, safe_near_wall.z), safe_near_wall.y), "resume position is adjusted away from built walls")
 	world.player_defeated()
