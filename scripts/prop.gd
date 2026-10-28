@@ -34,7 +34,8 @@ func _ready() -> void:
 	visual.name = "Visual"
 	add_child(visual)
 	_build_visual()
-	var radius = float(detail.get("collision", 0.0)) * world.MAP_SCALE
+	# Prop sizes are already in metres; map scaling must not double their collision.
+	var radius = float(detail.get("collision", 0.0)) * 0.04
 	if radius > 0.0:
 		var height = 1.5
 		if kind in ["npc", "well"]:

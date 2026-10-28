@@ -96,7 +96,7 @@ func _run() -> void:
 	check(terrain.get_meta("source_model", "") == "res://assets/models/environment/user_island.glb", "terrain comes from the newly supplied island GLB")
 	var island_bounds: AABB = terrain.mesh.get_aabb()
 	var island_arrays = terrain.mesh.surface_get_arrays(0)
-	check(absf(island_bounds.size.x - 128.0) < 0.05 and absf(island_bounds.size.z - 88.0) < 0.05, "supplied island matches the old 128 by 88 metre world")
+	check(absf(island_bounds.size.x - 256.0) < 0.05 and absf(island_bounds.size.z - 176.0) < 0.05, "supplied island is enlarged to 256 by 176 metres")
 	check(island_bounds.size.y > 4.9 and island_bounds.size.y < 5.2 and island_arrays[Mesh.ARRAY_INDEX].size() == 360000, "new island retains its terrain and trees in 120000 optimized triangles")
 	check(island_arrays[Mesh.ARRAY_TEX_UV].size() == island_arrays[Mesh.ARRAY_VERTEX].size() and island_arrays[Mesh.ARRAY_TEX_UV2].size() == island_arrays[Mesh.ARRAY_VERTEX].size(), "source UVs and separate road-mask UVs are both retained")
 	var imported_island = load("res://assets/models/environment/user_island.glb").instantiate()
@@ -227,7 +227,7 @@ func _run() -> void:
 	world.hud.show_map()
 	check(world.hud.is_modal_open(), "island map opens")
 	world.hud.close_modal()
-	var target = world.spawn_enemy("test_target", "walker", world.world_to_map(world.player.global_position) + Vector2(45, 0), "test")
+	var target = world.spawn_enemy("test_target", "walker", world.world_to_map(world.player.global_position) + Vector2(20, 0), "test")
 	var user_zombie = "res://assets/models/zombie/user_zombie.glb"
 	check(target.visual.model != null and target.visual.model.scene_file_path == user_zombie, "walker uses the supplied zombie rather than the survivor model")
 	var zombie_skeletons = target.visual.model.find_children("*", "Skeleton3D", true, false)
@@ -315,7 +315,7 @@ func _run() -> void:
 		check(absf(finger_pose.dot(finger_rest)) < 0.98, "the survivor's animation closes the hand around the bat")
 	world.player.facing = Vector3.RIGHT
 	world.player.visual.rotation.y = PI / 2.0
-	var bat_target = world.spawn_enemy("bat_target", "walker", world.world_to_map(world.player.global_position) + Vector2(45, 0), "test")
+	var bat_target = world.spawn_enemy("bat_target", "walker", world.world_to_map(world.player.global_position) + Vector2(20, 0), "test")
 	bat_target.set_physics_process(false)
 	var bat_hp: float = bat_target.health
 	Input.action_press("attack")
@@ -368,7 +368,7 @@ func _run() -> void:
 	choice_restore._apply_save(selected_save)
 	check(choice_restore.weapon_id() == "spear", "old saves without weapon selection keep the previous spear priority")
 	choice_restore.free()
-	var choice_target = world.spawn_enemy("weapon_choice_target", "walker", world.world_to_map(world.player.global_position) + Vector2(45, 0), "test")
+	var choice_target = world.spawn_enemy("weapon_choice_target", "walker", world.world_to_map(world.player.global_position) + Vector2(20, 0), "test")
 	choice_target.set_physics_process(false)
 	world.player_attack(Vector3.RIGHT)
 	check(is_equal_approx(choice_target.health, choice_target.max_health - 20.0), "selected bat deals bat damage even when a spear is owned")

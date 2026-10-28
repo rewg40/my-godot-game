@@ -41,16 +41,16 @@ static func _valid_buildings(value: Variant) -> bool:
 		var x := int(piece["x"])
 		var z := int(piece["z"])
 		var y := float(piece["y"])
-		if float(piece["x"]) != x or float(piece["z"]) != z or y < -5.0 or y > 12.0:
+		if float(piece["x"]) != x or float(piece["z"]) != z or y < -10.0 or y > 24.0:
 			return false
 		var identity := ""
 		if kind in ["foundation", "roof"]:
-			if x < 0 or x > 43 or z < 0 or z > 30:
+			if x < 0 or x > 86 or z < 0 or z > 59:
 				return false
 			identity = ("f:%d:%d" if kind == "foundation" else "r:%d:%d") % [x, z]
 			if kind == "foundation": foundations["%d:%d" % [x, z]] = y
 		else:
-			if x < 0 or x > 86 or z < 0 or z > 60 or not piece.has("axis") or not _is_number(piece["axis"]):
+			if x < 0 or x > 172 or z < 0 or z > 118 or not piece.has("axis") or not _is_number(piece["axis"]):
 				return false
 			var axis := int(piece["axis"])
 			if float(piece["axis"]) != axis or axis not in [0, 1]:
@@ -96,6 +96,8 @@ static func _valid_data(data: Dictionary) -> bool:
 	if data.has("buildings") and not _valid_buildings(data["buildings"]):
 		return false
 	if not data.has("version") or not _is_number(data["version"]) or float(data["version"]) != VERSION:
+		return false
+	if data.has("island_revision") and (not _is_number(data["island_revision"]) or float(data["island_revision"]) not in [1.0, 2.0]):
 		return false
 	for key in ["quest_stage", "side_stage", "day", "minute", "last_raid_day"]:
 		if data.has(key) and not _is_number(data[key]):

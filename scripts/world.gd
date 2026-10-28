@@ -9,7 +9,8 @@ const Environment3D = preload("res://scripts/environment_3d.gd")
 const Roadside3D = preload("res://scripts/roadside_3d.gd")
 const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
 const BuildingSystem = preload("res://scripts/build_system.gd")
-const MAP_SCALE := 0.04
+const IslandMigration = preload("res://scripts/island_migration.gd")
+const MAP_SCALE := 0.08
 const STARTING_SHORE = Vector2(360, 1830)
 const SITES = {
 	"hotel": Vector2(2150, 1440), "safe": Vector2(2250, 1510),
@@ -40,6 +41,8 @@ var sound: AudioStreamPlayer
 
 func _ready() -> void:
 	name = "ShelterWorld3D"
+	if not load_data.is_empty():
+		load_data = IslandMigration.migrate(load_data)
 	environment_3d = Environment3D.new()
 	add_child(environment_3d)
 	if not load_data.is_empty():
@@ -773,6 +776,7 @@ func save_progress(show_message: bool = false) -> bool:
 		return false
 	var data = {
 		"quest_stage": quest_stage, "inventory": inventory.duplicate(), "flags": flags.duplicate(),
+		"island_revision": IslandMigration.CURRENT_REVISION,
 		"equipped_weapon": weapon_id(), "buildings": building.serialize(),
 		"dead_ids": dead_ids.duplicate(), "day": day, "minute": minute,
 		"player": {"position": [world_to_map(player.global_position).x, world_to_map(player.global_position).y], "health":player.health, "stamina":player.stamina, "hunger":player.hunger, "thirst":player.thirst},

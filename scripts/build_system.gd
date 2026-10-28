@@ -44,7 +44,12 @@ func _surface(color: Color, texture: Texture2D = null) -> StandardMaterial3D:
 	var material = StandardMaterial3D.new()
 	material.albedo_color = color
 	material.albedo_texture = texture
-	material.roughness = 1.0
+	if texture != null:
+		# Source models use a palette atlas; triplanar photo textures provide
+		# consistent wood grain even when a board is rotated or resized.
+		material.uv1_triplanar = true
+		material.uv1_scale = Vector3(1.6, 1.6, 1.6)
+	material.roughness = 0.92
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	return material
 

@@ -9,16 +9,16 @@ const PINE_PATH = "res://assets/models/nature_real/pine.glb"
 const GRASS_PATH = "res://assets/models/nature_real/grass.glb"
 const FERN_PATH = "res://assets/models/nature_real/fern_02.glb"
 const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
-const SCALE := 0.04
+const SCALE := 0.08
 const WIDTH := 3200.0 * SCALE
 const DEPTH := 2200.0 * SCALE
 const RAW_GROUND := 0.011
 const RAW_HEIGHT_MIN := 0.0
 const RAW_HEIGHT_MAX := 0.067732
-const HEIGHT_SCALE := 75.0
-const MAX_CLEARANCE := 8.0
-const NAV_COLS := 160
-const NAV_ROWS := 110
+const HEIGHT_SCALE := 150.0
+const MAX_CLEARANCE := 16.0
+const NAV_COLS := 256
+const NAV_ROWS := 176
 
 var sun: DirectionalLight3D
 var sky_material: ProceduralSkyMaterial
@@ -189,7 +189,7 @@ func set_night(amount: float) -> void:
 
 func _build_terrain() -> void:
 	# Bake the GLB node's +90 degree X rotation and an additional 180 degree
-	# Y rotation into its mesh. Fit X/Z to the old 128 x 88 metre world while
+	# Y rotation into its mesh. The supplied island is now 256 x 176 m while
 	# keeping the model's painted UVs and PBR textures.
 	var source = ISLAND_MODEL.instantiate()
 	var candidates = source.find_children("*", "MeshInstance3D", true, false)
@@ -272,7 +272,7 @@ func _build_sea() -> void:
 	var instance = MeshInstance3D.new()
 	instance.name = "Sea"
 	instance.mesh = mesh
-	instance.position = Vector3(WIDTH / 2.0, -0.8, DEPTH / 2.0)
+	instance.position = Vector3(WIDTH / 2.0, -1.6, DEPTH / 2.0)
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(instance)
 

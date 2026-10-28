@@ -2,6 +2,7 @@ extends SceneTree
 
 # The normal save is never read or modified, even if this test is run manually.
 const SaveGame = preload("res://scripts/save_game.gd")
+const IslandMigration = preload("res://scripts/island_migration.gd")
 var failures: Array[String] = []
 
 func _initialize() -> void:
@@ -70,6 +71,22 @@ func _run() -> void:
 		write_primary(sample[1])
 		check(SaveGame.load_data().is_empty(), "damaged " + sample[0] + " is rejected without backup")
 		check(FileAccess.get_file_as_string(SaveGame.TEST_PATH) == sample[1], "rejecting " + sample[0] + " preserves the file")
+
+	# Buildings from the smaller island retain their 3 m module spacing, the
+	# complete structure and the player's position relative to the same floor.
+	var old_base = {"version": 1, "buildings": [
+		{"type":"foundation", "x":10, "z":10, "y":1.2},
+		{"type":"foundation", "x":11, "z":10, "y":1.2},
+		{"type":"foundation", "x":20, "z":12, "y":1.5},
+		{"type":"roof", "x":10, "z":10, "y":1.2},
+		{"type":"doorway", "x":20, "z":19, "y":1.2, "axis":0},
+		{"type":"door", "x":20, "z":19, "y":1.2, "axis":0, "hinge":1, "open":true},
+	], "player":{"position":[780, 750]}, "inventory":{"wood":7}}
+	var enlarged: Dictionary = IslandMigration.migrate(old_base)
+	var pieces: Array = enlarged["buildings"]
+	check(SaveGame._valid_data(enlarged) and pieces[0].x == 20 and pieces[1].x == 21 and pieces[2].x == 40, "old connected and separate bases migrate without stretching their modules")
+	check(pieces[3].x == 20 and pieces[4].x == 40 and pieces[5].x == 40 and bool(pieces[5].open) and is_equal_approx(pieces[0].y, 2.4), "roof, door and floor migrate together with height and state")
+	check(is_equal_approx(float(enlarged.player.position[0]), 765.0) and IslandMigration.migrate(enlarged) == enlarged, "player stays relative to the base and migration runs only once")
 
 	# The removed towers are refunded once, and the obsolete Tim objective is
 	# advanced without resetting any other legacy progress.
