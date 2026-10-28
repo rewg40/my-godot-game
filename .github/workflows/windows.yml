@@ -1,0 +1,35 @@
+name: Godot on Windows
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-startup:
+    name: Windows / Godot ${{ matrix.version }}
+    runs-on: windows-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['4.6', '4.6.3', '4.7.2']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Install official Godot
+        shell: pwsh
+        run: |
+          $version = '${{ matrix.version }}'
+          $base = "Godot_v$version-stable_win64"
+          $zip = Join-Path $env:RUNNER_TEMP 'godot.zip'
+          $dir = Join-Path $env:RUNNER_TEMP 'godot'
+          curl.exe --fail --location --retry 3 "https://github.com/godotengine/godot-builds/releases/download/$version-stable/$base.exe.zip" --output $zip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Expand-Archive -LiteralPath $zip -DestinationPath $dir
+          "GODOT_CONSOLE=$dir\${base}_console.exe" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Import, start main scene, and exercise the game
+        shell: pwsh
+        run: python tests/check_windows.py
