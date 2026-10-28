@@ -12,7 +12,12 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import traceback
 
+# Windows console encodings vary. Preserve diagnostic output from Unicode
+# project paths rather than failing to print it on non-UTF-8 code pages.
+sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
+sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
 
 ERROR_LINE = re.compile(r"^(?:SCRIPT ERROR|Parse Error|ERROR:|SMOKE TESTS FAILED|.*ObjectDB instances leaked)", re.MULTILINE)
 
@@ -70,4 +75,12 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        code = main()
+    except Exception:
+        details = traceback.format_exc()
+        print(details, flush=True)
+        details = details.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        print(f"::error::Windows startup check failed unexpectedly: {details}", flush=True)
+        code = 1
+    sys.exit(code)
