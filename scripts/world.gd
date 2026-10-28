@@ -96,9 +96,25 @@ func world_to_map(point: Vector3) -> Vector2:
 	return Vector2(point.x, point.z) / MAP_SCALE
 
 func _safe_player_spawn(point: Vector2) -> Vector3:
-	# Legacy positions may be in water or inside scenery. Player-built floors
-	# are traversable supports rather than spawn obstacles; a saved player can
-	# resume inside their own base and stands above the saved foundation.
+	# A constructed floor is already checked for solid scenery at placement.
+	# Preserve an exact saved position on it even when the terrain's conservative
+	# walkability map would move a player to a distant clearing. Avoid placing
+	# the character inside one of their own walls or closed doors.
+	var requested := point * MAP_SCALE
+	if is_instance_valid(building):
+		var floor_y: float = building.floor_height_at(requested)
+		if is_finite(floor_y):
+			if _built_spawn_clear(requested, floor_y):
+				return Vector3(requested.x, _spawn_height(requested.x, requested.y), requested.y)
+			for ring in range(1, 9):
+				var radius := float(ring) * 0.2
+				for i in range(16):
+					var angle := TAU * float(i) / 16.0
+					var candidate := requested + Vector2(cos(angle), sin(angle)) * radius
+					var candidate_floor: float = building.floor_height_at(candidate)
+					if is_finite(candidate_floor) and _built_spawn_clear(candidate, candidate_floor):
+						return Vector3(candidate.x, _spawn_height(candidate.x, candidate.y), candidate.y)
+	# Legacy positions may be in water or inside scenery.
 	var origin = map_to_world(point)
 	origin.y = _spawn_height(origin.x, origin.z)
 	var circles: Array[Vector3] = [] # x / z / conservative horizontal radius
@@ -136,6 +152,20 @@ func _safe_player_spawn(point: Vector2) -> Vector3:
 			if environment_3d.is_walkable(candidate.x, candidate.y) and _spawn_clear(candidate, circles):
 				return Vector3(candidate.x, _spawn_height(candidate.x, candidate.y), candidate.y)
 	return origin
+
+func _built_spawn_clear(point: Vector2, floor_y: float) -> bool:
+	var middle := Vector3(point.x, floor_y + 0.88, point.y)
+	for piece in building.pieces.values():
+		if not is_instance_valid(piece) or piece.data.get("type", "") not in ["wall", "doorway", "door"]:
+			continue
+		for collision in piece.find_children("*", "CollisionShape3D", true, false):
+			if collision.disabled or not collision.shape is BoxShape3D:
+				continue
+			var local: Vector3 = collision.to_local(middle)
+			var half: Vector3 = (collision.shape as BoxShape3D).size * 0.5
+			if absf(local.x) < half.x + 0.40 and absf(local.z) < half.z + 0.40 and absf(local.y) < half.y + 0.87:
+				return false
+	return true
 
 func _spawn_height(x: float, z: float) -> float:
 	var height: float = environment_3d.height_at(x, z)

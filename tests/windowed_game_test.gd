@@ -24,6 +24,44 @@ func button(parent: Node, text: String) -> Button:
 			return node
 	return null
 
+func press_key(key: Key) -> void:
+	var event := InputEventKey.new()
+	event.keycode = key
+	event.physical_keycode = key
+	event.pressed = true
+	Input.parse_input_event(event)
+	await process_frame
+	event = InputEventKey.new()
+	event.keycode = key
+	event.physical_keycode = key
+	event.pressed = false
+	Input.parse_input_event(event)
+	await process_frame
+
+func click_at(position: Vector2) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.position = position
+	event.global_position = position
+	event.pressed = true
+	Input.parse_input_event(event)
+	await process_frame
+	event = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.position = position
+	event.global_position = position
+	event.pressed = false
+	Input.parse_input_event(event)
+	await process_frame
+
+func clear_build_site(world) -> Vector2i:
+	for x in range(4, 39):
+		for z in range(4, 27):
+			var level: float = world.building.foundation_level(x, z)
+			if is_finite(level) and world.building._volume_clear({"type": "foundation", "x": x, "z": z, "y": level}):
+				return Vector2i(x, z)
+	return Vector2i(-1, -1)
+
 func visible_frame_has_content() -> bool:
 	await RenderingServer.frame_post_draw
 	var image = root.get_texture().get_image()
@@ -81,6 +119,56 @@ func _run() -> void:
 			moved = true
 			break
 	check(moved, "player movement works while the 3D world is rendered")
+
+	# Use the real keyboard, cursor ray and left click through the window, not
+	# just direct calls to the building API.
+	world.player.set_physics_process(false)
+	for enemy in world.enemies:
+		enemy.set_physics_process(false)
+	world.inventory["wood"] = 100
+	world.inventory["stone"] = 100
+	var site := clear_build_site(world)
+	check(site.x >= 0, "rendered island has a clear foundation site")
+	await press_key(KEY_B)
+	check(world.building.active and world.hud.build_panel.visible, "B opens the visible building panel")
+	await press_key(KEY_2)
+	check(world.building.selected == "wall", "number key selects a wall in the building panel")
+	await press_key(KEY_1)
+	check(world.building.selected == "foundation", "number key selects a foundation")
+	var aimed := false
+	if site.x >= 0:
+		var level: float = world.building.foundation_level(site.x, site.y)
+		var point := Vector3(float(site.x) * 3.0, level, float(site.y) * 3.0)
+		for offset in [Vector3(0, 0, -4), Vector3(4, 0, 0), Vector3(0, 0, 4), Vector3(-4, 0, 0)]:
+			var player_pos: Vector3 = point + offset
+			player_pos.y = world.environment_3d.height_at(player_pos.x, player_pos.z) + 0.15
+			world.player.global_position = player_pos
+			await physics_frame
+			await process_frame
+			var cursor: Vector2 = world.player.camera.unproject_position(point)
+			var viewport_size: Vector2 = root.get_visible_rect().size
+			if cursor.x < 10 or cursor.x > viewport_size.x - 10 or cursor.y < 10 or cursor.y > viewport_size.y * 0.63:
+				continue
+			root.warp_mouse(cursor)
+			await process_frame
+			await process_frame
+			var candidate: Dictionary = world.building.candidate
+			if world.building.valid and candidate.get("x", -1) == site.x and candidate.get("z", -1) == site.y:
+				aimed = true
+				break
+	check(aimed and is_instance_valid(world.building.ghost) and world.building.ghost.visible, "mouse shows a valid 3D foundation preview in the real window")
+	if aimed:
+		check(await visible_frame_has_content(), "building preview and panel render")
+		var cursor: Vector2 = root.get_mouse_position()
+		await click_at(cursor)
+		check(world.building.pieces.size() == 1 and world.count("wood") == 96 and world.count("stone") == 98, "left click places a foundation and spends its resources")
+		await physics_frame
+		await process_frame
+		await press_key(KEY_X)
+		check(world.building.pieces.is_empty() and world.count("wood") == 100 and world.count("stone") == 100, "X dismantles the targeted foundation and refunds materials")
+	await press_key(KEY_ESCAPE)
+	check(not world.building.active and not world.hud.build_panel.visible, "Escape closes building mode without opening pause")
+	world.player.set_physics_process(true)
 
 	world.inventory["wood"] = 13
 	world.quest_stage = 1
