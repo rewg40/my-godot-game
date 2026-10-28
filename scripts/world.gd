@@ -29,6 +29,7 @@ var enemies: Array = []
 var inventory: Dictionary = {"wood": 0, "stone": 0, "iron": 0, "cloth": 1, "food": 2, "water": 2, "herbs": 0, "bandage": 1}
 var flags: Dictionary = {}
 var equipped_weapon: String = ""
+var waypoint_map := Vector2(-1.0, -1.0)
 var dead_ids: Array = []
 var depleted_resources: Array[String] = []
 var quest_stage: int = 0
@@ -101,6 +102,19 @@ func map_to_world(point: Vector2, clearance: float = 1.0) -> Vector3:
 
 func world_to_map(point: Vector3) -> Vector2:
 	return Vector2(point.x, point.z) / MAP_SCALE
+
+func player_map_position() -> Vector2:
+	return world_to_map(player.global_position)
+
+func quest_map_position() -> Vector2:
+	return world_to_map(map_to_world(objective_position()))
+
+func set_waypoint(point: Vector2) -> void:
+	waypoint_map = point
+	if is_instance_valid(hud):
+		hud.toast("Метка на карте установлена" if point.x >= 0.0 else "Метка удалена", 1.4)
+	if is_instance_valid(player):
+		save_progress(false)
 
 func _safe_player_spawn(point: Vector2) -> Vector3:
 	# A constructed floor is already checked for solid scenery at placement.
@@ -399,6 +413,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if hud.is_modal_open():
+		if (key == KEY_TAB and hud.modal_kind == "inventory") or (key == KEY_M and hud.modal_kind == "map"):
+			hud.close_modal()
+			get_viewport().set_input_as_handled()
 		return
 	if key == KEY_B:
 		building.toggle()
@@ -471,6 +488,12 @@ func spend(cost: Dictionary) -> bool:
 	for item in cost:
 		inventory[item] = count(item) - int(cost[item])
 	return true
+
+func find_prop(identity: String):
+	for prop in props:
+		if is_instance_valid(prop) and prop.prop_id == identity:
+			return prop
+	return null
 
 func nearest_prop():
 	if not is_instance_valid(player):
@@ -875,6 +898,9 @@ func _apply_save(data: Dictionary) -> void:
 		for identity in saved_resources:
 			if identity is String:
 				depleted_resources.append(identity)
+	var waypoint = data.get("waypoint", [])
+	if waypoint is Array and waypoint.size() == 2:
+		waypoint_map = Vector2(float(waypoint[0]), float(waypoint[1]))
 	quest_stage = clampi(int(data.get("quest_stage", 0)), 0, 10)
 	# The old stage 8 asked the removed NPC for boat instructions.
 	if quest_stage == 8: quest_stage = 9
@@ -888,6 +914,7 @@ func save_progress(show_message: bool = false) -> bool:
 		"quest_stage": quest_stage, "inventory": inventory.duplicate(), "flags": flags.duplicate(),
 		"island_revision": IslandMigration.CURRENT_REVISION,
 		"lake_position": [environment_3d.lake_map_position.x, environment_3d.lake_map_position.y],
+		"waypoint": [waypoint_map.x, waypoint_map.y],
 		"equipped_weapon": weapon_id(), "buildings": building.serialize(),
 		"dead_ids": dead_ids.duplicate(), "depleted_resources": depleted_resources.duplicate(), "day": day, "minute": minute,
 		"player": {"position": [world_to_map(player.global_position).x, world_to_map(player.global_position).y], "health":player.health, "stamina":player.stamina, "hunger":player.hunger, "thirst":player.thirst},

@@ -99,12 +99,14 @@ static func _valid_data(data: Dictionary) -> bool:
 		return false
 	if data.has("island_revision") and (not _is_number(data["island_revision"]) or float(data["island_revision"]) not in [1.0, 2.0]):
 		return false
-	if data.has("lake_position"):
-		var lake = data["lake_position"]
-		if not lake is Array or lake.size() != 2 or not _is_number(lake[0]) or not _is_number(lake[1]):
-			return false
-		if float(lake[0]) < 0.0 or float(lake[0]) > 3200.0 or float(lake[1]) < 0.0 or float(lake[1]) > 2200.0:
-			return false
+	for position_name in ["lake_position", "waypoint"]:
+		if data.has(position_name):
+			var point = data[position_name]
+			if not point is Array or point.size() != 2 or not _is_number(point[0]) or not _is_number(point[1]):
+				return false
+			var minimum := -1.0 if position_name == "waypoint" else 0.0
+			if float(point[0]) < minimum or float(point[0]) > 3200.0 or float(point[1]) < minimum or float(point[1]) > 2200.0:
+				return false
 	for key in ["quest_stage", "side_stage", "day", "minute", "last_raid_day"]:
 		if data.has(key) and not _is_number(data[key]):
 			return false

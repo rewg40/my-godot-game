@@ -3,9 +3,34 @@ extends CanvasLayer
 const UI = preload("res://scripts/ui_style.gd")
 const MapView = preload("res://scripts/map_view.gd")
 const BuildingSystem = preload("res://scripts/build_system.gd")
+const ITEM_ORDER := ["wood", "stone", "iron", "cloth", "food", "water", "herbs", "bandage", "club", "spear", "axe", "keycard", "chip", "coil", "cell", "fragment"]
+const ITEM_INFO := {
+	"wood": ["Древесина", "Доски и поленья для строительства и крафта."],
+	"stone": ["Камень", "Камень для фундаментов и инструментов."],
+	"iron": ["Металлолом", "Пригодится для дверей и снаряжения."],
+	"cloth": ["Ткань", "Материал для повязок и снаряжения."],
+	"food": ["Еда", "Восстанавливает сытость."],
+	"water": ["Вода", "Утоляет жажду."],
+	"herbs": ["Травы", "Лекарственные растения для крафта."],
+	"bandage": ["Повязка", "Восстанавливает здоровье."],
+	"club": ["Бита", "Оружие ближнего боя. Можно взять в руку."],
+	"spear": ["Копьё", "Оружие ближнего боя. Можно взять в руку."],
+	"axe": ["Каменный топор", "Помогает быстрее разрушать деревья и камни."],
+	"keycard": ["Ключ-карта", "Открывает сейф отеля."],
+	"chip": ["Микросхема", "Деталь для ремонта маяка."],
+	"coil": ["Катушка", "Деталь для ремонта маяка."],
+	"cell": ["Энергоячейка", "Деталь для ремонта маяка."],
+	"fragment": ["Фрагмент", "Найденный на острове предмет."],
+}
 var world
 var root: Control
 var modal: Control
+var modal_kind := ""
+var minimap: Control
+var inventory_grid: GridContainer
+var inventory_detail: Label
+var inventory_action: Button
+var selected_inventory_item := ""
 var hp_bar: ProgressBar
 var stamina_bar: ProgressBar
 var stats_text: Label
@@ -64,8 +89,8 @@ func _build_hud() -> void:
 	clock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	clock_panel.add_child(clock_label)
 	var quest = UI.panel()
-	quest.position = Vector2(930, 20)
-	quest.size = Vector2(328, 155)
+	quest.position = Vector2(785, 20)
+	quest.size = Vector2(270, 155)
 	root.add_child(quest)
 	var qbox = VBoxContainer.new()
 	qbox.add_theme_constant_override("separation", 7)
@@ -74,11 +99,21 @@ func _build_hud() -> void:
 	quest_name = UI.label("", 17, UI.TEXT, true)
 	qbox.add_child(quest_name)
 	quest_text = UI.label("", 13, UI.MUTED)
-	quest_text.custom_minimum_size = Vector2(285, 42)
+	quest_text.custom_minimum_size = Vector2(230, 42)
 	quest_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	qbox.add_child(quest_text)
 	objective_direction = UI.label("", 12, Color("d8c594"))
 	qbox.add_child(objective_direction)
+	var map_frame = UI.panel()
+	map_frame.position = Vector2(1072, 20)
+	map_frame.size = Vector2(186, 186)
+	map_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(map_frame)
+	minimap = MapView.new()
+	minimap.world = world
+	minimap.minimap = true
+	minimap.custom_minimum_size = Vector2(160, 160)
+	map_frame.add_child(minimap)
 	interact_panel = UI.panel()
 	interact_panel.position = Vector2(350, 580)
 	interact_panel.size = Vector2(580, 46)
@@ -197,7 +232,8 @@ func is_modal_open() -> bool:
 func close_modal() -> void:
 	if is_instance_valid(modal):
 		modal.queue_free()
-	modal = null
+		modal = null
+	modal_kind = ""
 
 func _new_modal() -> Control:
 	close_modal()
@@ -263,55 +299,109 @@ func _window(title: String, subtitle: String) -> VBoxContainer:
 		content.add_child(sub)
 	return content
 
-func show_inventory() -> void:
-	var content = _window("РЮКЗАК", "Ресурсы автоматически собираются в рюкзак. Используйте еду, воду и бинты кнопками ниже или клавишами 1–3.")
-	var items = world.inventory
-	var grid = GridContainer.new()
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 38)
-	grid.add_theme_constant_override("v_separation", 14)
-	content.add_child(grid)
-	for entry in [["wood", "Древесина"], ["stone", "Камень"], ["iron", "Металлолом"], ["cloth", "Ткань"], ["herbs", "Травы"], ["food", "Еда"], ["water", "Вода"], ["bandage", "Бинты"]]:
-		grid.add_child(UI.label("%s   × %d" % [entry[1], int(items.get(entry[0], 0))], 16, UI.TEXT, true))
-	content.add_child(UI.label("ОРУЖИЕ: %s    •    ИНСТРУМЕНТ: %s" % [world.weapon_name(), "каменный топор" if world.flags.get("axe", false) else "нет"], 14, UI.GOLD))
-	var q = UI.label("Ключ-карта: %s     Компоненты антенны: %d / 3     Фрагмент кода: %d / 7" % ["да" if world.flags.get("keycard", false) else "нет", world.component_count(), 1 if world.flags.get("fragment", false) else 0], 13, UI.MUTED)
-	content.add_child(q)
-	var row = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
-	content.add_child(row)
-	for pair in [["СЪЕСТЬ", "food"], ["ВЫПИТЬ", "water"], ["ЛЕЧИТЬСЯ", "bandage"]]:
-		var b = UI.button(pair[0], Vector2(150, 42))
-		row.add_child(b)
-		var item_key: String = pair[1]
-		b.pressed.connect(func(): world.use_item(item_key); show_inventory())
-	var close = UI.button("ЗАКРЫТЬ", Vector2(180, 42))
-	content.add_child(close)
-	close.pressed.connect(close_modal)
+func _item_count(item: String) -> int:
+	if item in ["wood", "stone", "iron", "cloth", "food", "water", "herbs", "bandage"]:
+		return world.count(item)
+	return 1 if world.flags.get(item, false) else 0
 
-func show_crafting() -> void:
-	var content = _window("КРАФТ", "Созданное оружие экипируется автоматически. Биту и копьё можно менять клавишей Q. Каменный топор увеличивает добычу древесины и камня.")
-	var resources = UI.label("Дерево %d    Камень %d    Ткань %d    Травы %d    Вода %d" % [world.count("wood"), world.count("stone"), world.count("cloth"), world.count("herbs"), world.count("water")], 14, UI.GOLD, true)
-	content.add_child(resources)
-	for recipe in world.recipe_list():
-		var row = HBoxContainer.new()
-		row.add_theme_constant_override("separation", 14)
-		content.add_child(row)
-		var label = UI.label(recipe["name"] + "  —  " + recipe["description"], 14, UI.TEXT)
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(label)
-		var button = UI.button("СОЗДАТЬ", Vector2(130, 38))
-		button.disabled = bool(recipe.get("done", false))
-		if button.disabled:
-			button.text = "ГОТОВО"
-		row.add_child(button)
-		var recipe_id: String = recipe["id"]
-		button.pressed.connect(func(): world.craft(recipe_id); show_crafting())
-	var close = UI.button("ЗАКРЫТЬ", Vector2(160, 42))
-	content.add_child(close)
-	close.pressed.connect(close_modal)
+func show_inventory() -> void:
+	var box = _window("РЮКЗАК  /  ПРЕДМЕТЫ", "")
+	modal_kind = "inventory"
+	box.add_child(UI.label("Выберите предмет в ячейке. Еда, вода и повязки используются здесь или клавишами 1–3.", 12, UI.MUTED))
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 18)
+	box.add_child(body)
+	inventory_grid = GridContainer.new()
+	inventory_grid.name = "InventoryGrid"
+	inventory_grid.columns = 6
+	inventory_grid.add_theme_constant_override("h_separation", 5)
+	inventory_grid.add_theme_constant_override("v_separation", 5)
+	body.add_child(inventory_grid)
+	var details := VBoxContainer.new()
+	details.custom_minimum_size = Vector2(160, 0)
+	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	details.add_theme_constant_override("separation", 14)
+	body.add_child(details)
+	details.add_child(UI.label("ВЫБРАННЫЙ ПРЕДМЕТ", 11, UI.GOLD, true))
+	inventory_detail = UI.label("", 14, UI.TEXT, true)
+	inventory_detail.name = "InventoryDetails"
+	inventory_detail.custom_minimum_size = Vector2(160, 100)
+	inventory_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	details.add_child(inventory_detail)
+	inventory_action = UI.button("Использовать", Vector2(150, 42))
+	inventory_action.name = "InventoryUse"
+	inventory_action.pressed.connect(_use_selected_item)
+	details.add_child(inventory_action)
+	details.add_child(UI.label("[ Q ] смена оружия", 11, UI.MUTED))
+	var items: Array[String] = []
+	for item in ITEM_ORDER:
+		if _item_count(item) > 0:
+			items.append(item)
+	if selected_inventory_item not in items:
+		selected_inventory_item = items[0] if not items.is_empty() else ""
+	var group := ButtonGroup.new()
+	for i in range(24):
+		var item: String = items[i] if i < items.size() else ""
+		var slot := UI.button("", Vector2(84, 78))
+		slot.name = "InventorySlot_%02d" % i
+		slot.focus_mode = Control.FOCUS_NONE
+		slot.disabled = item.is_empty()
+		slot.toggle_mode = not item.is_empty()
+		slot.button_group = group
+		inventory_grid.add_child(slot)
+		if item.is_empty():
+			slot.tooltip_text = "Пустая ячейка"
+			continue
+		slot.set_meta("item_id", item)
+		slot.tooltip_text = ITEM_INFO[item][0]
+		slot.button_pressed = item == selected_inventory_item
+		var icon := TextureRect.new()
+		icon.name = "ItemIcon"
+		icon.texture = load("res://assets/icons/%s.png" % item)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.position = Vector2(5, 2)
+		icon.size = Vector2(68, 68)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot.add_child(icon)
+		var amount := UI.label(str(_item_count(item)), 13, Color.WHITE, true)
+		amount.name = "ItemCount"
+		amount.position = Vector2(53, 53)
+		amount.size = Vector2(26, 20)
+		amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		amount.add_theme_color_override("font_shadow_color", Color.BLACK)
+		amount.add_theme_constant_override("shadow_offset_x", 1)
+		amount.add_theme_constant_override("shadow_offset_y", 1)
+		slot.add_child(amount)
+		slot.pressed.connect(_select_inventory_item.bind(item))
+	_select_inventory_item(selected_inventory_item)
+	box.add_child(_bottom_close())
+
+func _select_inventory_item(item: String) -> void:
+	selected_inventory_item = item
+	if item.is_empty():
+		inventory_detail.text = "Рюкзак пуст."
+		inventory_action.disabled = true
+		return
+	var data: Array = ITEM_INFO[item]
+	inventory_detail.text = "%s  × %d\n\n%s" % [data[0], _item_count(item), data[1]]
+	if item in ["club", "spear"] and world.weapon_id() == item:
+		inventory_detail.text += "\n\nВ руке"
+	inventory_action.text = "Взять в руку" if item in ["club", "spear"] else "Использовать"
+	inventory_action.disabled = item not in ["food", "water", "bandage", "club", "spear"]
+
+func _use_selected_item() -> void:
+	if selected_inventory_item in ["food", "water", "bandage"]:
+		world.use_item(selected_inventory_item)
+	elif selected_inventory_item in ["club", "spear"] and _item_count(selected_inventory_item) > 0:
+		world.equipped_weapon = selected_inventory_item
+		world.player._update_weapon()
+		world.save_progress(false)
+	show_inventory()
 
 func show_map() -> void:
 	var screen = _new_modal()
+	modal_kind = "map"
 	var panel = UI.panel()
 	panel.position = Vector2(170, 48)
 	panel.size = Vector2(940, 625)
@@ -320,7 +410,7 @@ func show_map() -> void:
 	box.add_theme_constant_override("separation", 8)
 	panel.add_child(box)
 	box.add_child(UI.label("ПРИЮТ  /  КАРТА ОСТРОВА", 22, UI.GOLD, true))
-	box.add_child(UI.label("Красная точка — вы    •    Золотое кольцо — текущая цель", 13, UI.MUTED))
+	box.add_child(UI.label("▲ Вы    •    ● Цель    •    ■ Фундамент    •    ◆ Метка    |    Колесо — масштаб  ·  ЛКМ — метка/перетащить  ·  ПКМ — убрать", 12, UI.MUTED))
 	var map = MapView.new()
 	map.world = world
 	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL

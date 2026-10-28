@@ -97,7 +97,7 @@ func _run() -> void:
 	var island_bounds: AABB = terrain.mesh.get_aabb()
 	var island_arrays = terrain.mesh.surface_get_arrays(0)
 	check(absf(island_bounds.size.x - 256.0) < 0.05 and absf(island_bounds.size.z - 176.0) < 0.05, "supplied island is enlarged to 256 by 176 metres")
-	check(island_bounds.size.y > 4.9 and island_bounds.size.y < 5.2 and island_arrays[Mesh.ARRAY_INDEX].size() == 360000, "new island retains its terrain and trees in 120000 optimized triangles")
+	check(island_bounds.size.y > 9.8 and island_bounds.size.y < 10.4 and island_arrays[Mesh.ARRAY_INDEX].size() == 360000, "new island retains its terrain and trees in 120000 optimized triangles")
 	check(island_arrays[Mesh.ARRAY_TEX_UV].size() == island_arrays[Mesh.ARRAY_VERTEX].size() and island_arrays[Mesh.ARRAY_TEX_UV2].size() == island_arrays[Mesh.ARRAY_VERTEX].size(), "source UVs and separate road-mask UVs are both retained")
 	var imported_island = load("res://assets/models/environment/user_island.glb").instantiate()
 	var original_meshes = imported_island.find_children("*", "MeshInstance3D", true, false)
@@ -229,12 +229,43 @@ func _run() -> void:
 	check(displacement.dot(camera_right) > 0.01, "player moves relative to the camera through the input map")
 	world.hud.show_inventory()
 	check(world.hud.is_modal_open() and world.is_paused(), "inventory opens and pauses the world")
+	var grid: GridContainer = world.hud.inventory_grid
+	var food_slot = null
+	for slot in grid.get_children():
+		if slot.get_meta("item_id", "") == "food":
+			food_slot = slot
+			break
+	check(grid.columns == 6 and grid.get_child_count() == 24 and food_slot != null and food_slot.get_node("ItemIcon").texture != null, "inventory has real item icons, counts and empty slots")
+	var food_before: int = world.count("food")
+	world.player.hunger = 25.0
+	food_slot.emit_signal("pressed")
+	world.hud.inventory_action.emit_signal("pressed")
+	check(world.count("food") == food_before - 1 and world.player.hunger > 25.0, "selected food is consumed directly from the inventory")
 	world.hud.close_modal()
 	world.hud.show_crafting()
 	check(world.hud.is_modal_open(), "crafting menu opens")
 	world.hud.close_modal()
 	world.hud.show_map()
-	check(world.hud.is_modal_open(), "island map opens")
+	await process_frame
+	var island_map = world.hud.modal.find_child("IslandMap", true, false)
+	var mini = world.hud.minimap
+	check(world.hud.is_modal_open() and island_map != null and mini.map_to_screen(world.player_map_position()).distance_to(mini.size * 0.5) < 0.1, "map opens and minimap follows the survivor")
+	var waypoint := Vector2(1600, 1100)
+	var click_position: Vector2 = island_map.map_to_screen(waypoint)
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.position = click_position
+	click.pressed = true
+	island_map._gui_input(click)
+	click.pressed = false
+	island_map._gui_input(click)
+	check(world.waypoint_map.distance_to(waypoint) < 0.1 and SaveGame.load_data().get("waypoint", []).size() == 2, "clicking the map sets and saves a waypoint")
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	wheel.position = click_position
+	wheel.pressed = true
+	island_map._gui_input(wheel)
+	check(island_map.zoom > 1.0 and island_map.screen_to_map(island_map.map_to_screen(waypoint)).distance_to(waypoint) < 0.1, "map zoom preserves accurate world coordinates")
 	world.hud.close_modal()
 	var target = world.spawn_enemy("test_target", "walker", world.world_to_map(world.player.global_position) + Vector2(20, 0), "test")
 	var user_zombie = "res://assets/models/zombie/user_zombie.glb"
@@ -302,11 +333,21 @@ func _run() -> void:
 	check(world.count("water") == water_before + 3, "water remains renewable without an NPC camp")
 	var wood_before = world.count("wood")
 	var first_tree = prop(world, "tree_0")
-	world.interact(first_tree)
-	check(first_tree.resource_health == 2 and world.count("wood") == wood_before, "first hit damages a tree without giving free resources")
-	world.interact(first_tree)
-	world.interact(first_tree)
+	var old_player_pos: Vector3 = world.player.global_position
+	world.player.global_position = first_tree.global_position + Vector3(1.4, 0.0, 0.0)
+	await physics_frame
+	world.player_attack(Vector3.LEFT)
+	check(first_tree.resource_health == 2 and world.count("wood") == wood_before, "a directed melee hit damages a tree without giving free resources")
+	world.player_attack(Vector3.LEFT)
+	world.player_attack(Vector3.LEFT)
 	check(world.count("wood") > wood_before and not first_tree.usable and "tree_0" in world.depleted_resources, "destroying a tree grants wood and records its removal")
+	world.player.global_position = old_player_pos
+	var first_rock = prop(world, "rock_0")
+	var stone_before: int = world.count("stone")
+	for i in range(4): world.interact(first_rock)
+	check(world.count("stone") > stone_before and not first_rock.usable and "rock_0" in world.depleted_resources, "stone is granted when the boulder is destroyed")
+	var resources_save: Dictionary = SaveGame.load_data()
+	check("tree_0" in resources_save.get("depleted_resources", []) and "rock_0" in resources_save.get("depleted_resources", []), "destroyed resource ids are saved")
 	var stone_before = world.count("stone")
 	world.craft("axe")
 	check(not world.flags.get("axe", false) and world.count("stone") == stone_before, "craft failure does not spend resources")
@@ -403,6 +444,7 @@ func _run() -> void:
 	root.add_child(restored)
 	await process_frame
 	check(restored.quest_stage == 4 and enemy(restored, "boss_hotel") != null, "unfinished boss survives save/load")
+	check(prop(restored, "tree_0") == null and prop(restored, "rock_0") == null and restored.environment_3d.lake_map_position == world.environment_3d.lake_map_position and restored.waypoint_map.distance_to(waypoint) < 0.1, "destroyed resources, lake site and waypoint persist after reload")
 	var restored_map_position: Vector2 = restored.world_to_map(restored.player.global_position)
 	var safe_legacy: Vector2 = restored.world_to_map(restored._safe_player_spawn(Vector2(1200, 800)))
 	if restored_map_position.distance_to(safe_legacy) >= 5.0:
