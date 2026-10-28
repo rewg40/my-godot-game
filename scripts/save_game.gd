@@ -95,6 +95,9 @@ static func save_data(data: Dictionary) -> bool:
 	# Keep a backup as well as a temporary file. Some platforms remove the
 	# destination during rename; a failed rename can then restore the backup.
 	data["version"] = VERSION
+	# Never replace an existing save with state that would fail to load.
+	if not _valid_data(data):
+		return false
 	var path = save_path()
 	var tmp = path + ".tmp"
 	var backup = path + ".bak"
@@ -111,12 +114,17 @@ static func save_data(data: Dictionary) -> bool:
 		return false
 	var backup_abs = ProjectSettings.globalize_path(backup)
 	var had_old = FileAccess.file_exists(path)
-	if had_old and DirAccess.copy_absolute(old_abs, backup_abs) != OK:
+	# If the primary is damaged but its backup is valid, the backup is the
+	# only recoverable copy. Do not overwrite it with the damaged primary
+	# before a replacement succeeds (especially when Windows has it locked).
+	var preserve_backup = had_old and not _read(backup).is_empty() and _read(path).is_empty()
+	if had_old and not preserve_backup and DirAccess.copy_absolute(old_abs, backup_abs) != OK:
 		DirAccess.remove_absolute(tmp_abs)
 		return false
 	if DirAccess.rename_absolute(tmp_abs, old_abs) != OK:
 		if had_old and not FileAccess.file_exists(path):
 			DirAccess.copy_absolute(backup_abs, old_abs)
+		DirAccess.remove_absolute(tmp_abs)
 		return false
 	if FileAccess.file_exists(backup):
 		DirAccess.remove_absolute(backup_abs)

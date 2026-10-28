@@ -4,8 +4,28 @@ extends EditorPlugin
 # Copied into a disposable project by tests/check_windows.py. It exercises the
 # same EditorRunBar action as the editor's F5 / Run Project button, without
 # installing or enabling a plugin in the actual project.
+class DebuggerProbe extends EditorDebuggerPlugin:
+	var reported := false
+	var result: Array = []
+
+	func _has_capture(capture: String) -> bool:
+		return capture == "shards_f5"
+
+	func _capture(message: String, data: Array, _session_id: int) -> bool:
+		if message == "shards_f5:game_ready":
+			reported = true
+			result = data
+			return true
+		return false
+
+var debugger := DebuggerProbe.new()
+
 func _enter_tree() -> void:
+	add_debugger_plugin(debugger)
 	_run_probe.call_deferred()
+
+func _exit_tree() -> void:
+	remove_debugger_plugin(debugger)
 
 func _fail(message: String) -> void:
 	push_error("EDITOR F5 STARTUP FAILED: " + message)
@@ -30,11 +50,25 @@ func _run_probe() -> void:
 		_fail("main scene is not configured")
 		return
 	EditorInterface.play_main_scene()
-	# A successful process launch alone is insufficient: wait long enough for
-	# early startup errors, missing resources and driver failures to surface.
-	await get_tree().create_timer(6.0).timeout
-	if not EditorInterface.is_playing_scene():
-		_fail("the F5 run exited or failed to start")
+	# A successful process creation is not enough: the debug game itself must
+	# report that the actual menu and a nonblank window were rendered.
+	for i in range(40):
+		if debugger.reported:
+			break
+		await get_tree().create_timer(0.5).timeout
+	if not debugger.reported:
+		_fail("the debug game never reported a rendered menu")
+		return
+	if debugger.result != [true, true, true]:
+		_fail("the debug game did not render the menu in a window: " + str(debugger.result))
+		return
+	await get_tree().create_timer(2.0).timeout
+	var active_session := false
+	for session in debugger.get_sessions():
+		if session.is_active() and not session.is_breaked():
+			active_session = true
+	if not EditorInterface.is_playing_scene() or not active_session:
+		_fail("the F5 game exited or broke during startup")
 		return
 	EditorInterface.stop_playing_scene()
 	await get_tree().create_timer(1.0).timeout

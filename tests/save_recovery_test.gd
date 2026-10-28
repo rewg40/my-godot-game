@@ -93,16 +93,23 @@ func _run() -> void:
 		check(typeof(quest) in [TYPE_INT, TYPE_FLOAT] and int(quest) == 4 and inventory is Dictionary and inventory.get("wood", -1) == 13, "valid backup is used for damaged " + sample[0])
 		check(FileAccess.get_file_as_string(SaveGame.TEST_PATH) == sample[1], "backup recovery leaves damaged " + sample[0] + " untouched")
 
+	write_primary(damaged)
+	check(not SaveGame.save_data({"quest_stage": []}), "invalid new state is not written over an existing save")
+	check(FileAccess.get_file_as_string(SaveGame.TEST_PATH) == damaged, "rejecting a bad write preserves the primary")
+	var safe_backup = SaveGame.load_data()
+	var safe_quest = safe_backup.get("quest_stage", -1)
+	check(typeof(safe_quest) in [TYPE_INT, TYPE_FLOAT] and int(safe_quest) == 4, "rejecting a bad write preserves the backup")
+
 	if OS.get_name() == "Windows":
 		# A Windows read handle prevents deleting/renaming the primary file.
 		# A failed write must not replace the only good backup with corruption.
-		write_primary(damaged)
 		var locked = FileAccess.open(SaveGame.TEST_PATH, FileAccess.READ)
 		check(locked != null, "primary save can be locked for a failed-write test")
 		if locked:
 			var saved = SaveGame.save_data({"quest_stage": 5})
 			locked.close()
 			check(not saved, "a locked primary refuses replacement")
+			check(not FileAccess.file_exists(SaveGame.TEST_PATH + ".tmp"), "failed replacement cleans up the temporary file")
 			var recovered = SaveGame.load_data()
 			var quest = recovered.get("quest_stage", -1)
 			check(typeof(quest) in [TYPE_INT, TYPE_FLOAT] and int(quest) == 4, "a failed save preserves the good recovery backup")
@@ -117,9 +124,16 @@ func _run() -> void:
 		await process_frame
 		var world = main.current_screen
 		check(world is Node3D and world.quest_stage == 4 and world.count("wood") == 13, "Continue starts the world with the recovered backup")
+		check(FileAccess.get_file_as_string(SaveGame.TEST_PATH) == damaged, "opening a backup does not overwrite the damaged primary")
+		if world is Node3D:
+			check(world.save_progress(false), "a recovered game can be saved successfully")
+			var saved_again = SaveGame.load_data()
+			var saved_quest = saved_again.get("quest_stage", -1)
+			var saved_inventory = saved_again.get("inventory", {})
+			check(typeof(saved_quest) in [TYPE_INT, TYPE_FLOAT] and int(saved_quest) == 4 and saved_inventory is Dictionary and saved_inventory.get("wood", -1) == 13, "saving after recovery keeps the recovered progress")
+			check(not FileAccess.file_exists(SaveGame.TEST_PATH + ".bak"), "backup is removed only after a successful replacement")
 	else:
 		check(false, "Continue is available for a valid backup")
-	check(FileAccess.get_file_as_string(SaveGame.TEST_PATH) == damaged, "opening a backup does not overwrite the damaged primary")
 	main.queue_free()
 	await create_timer(0.5).timeout
 

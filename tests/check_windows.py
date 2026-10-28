@@ -60,6 +60,7 @@ def run_editor_f5_probe(path: Path) -> bool:
         plugin = project / "addons" / "f5_probe"
         plugin.mkdir(parents=True)
         shutil.copyfile(project / "tests" / "editor_f5_probe.gd.txt", plugin / "plugin.gd")
+        shutil.copyfile(project / "tests" / "editor_game_probe.gd.txt", plugin / "game_probe.gd")
         (plugin / "plugin.cfg").write_text(
             '[plugin]\nname="Temporary F5 probe"\ndescription="CI-only startup test"\n'
             'author="CI"\nversion="1.0"\nscript="plugin.gd"\n',
@@ -71,6 +72,7 @@ def run_editor_f5_probe(path: Path) -> bool:
             config.write(
                 '\n[editor]\nrun/main_run_args="--audio-driver Dummy"\n'
                 '\n[editor_plugins]\nenabled=PackedStringArray("res://addons/f5_probe/plugin.cfg")\n'
+                '\n[autoload]\nF5GameProbe="*res://addons/f5_probe/game_probe.gd"\n'
             )
         return run(
             "Windowed editor F5 startup",

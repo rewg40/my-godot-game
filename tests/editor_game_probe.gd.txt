@@ -1,0 +1,37 @@
+extends Node
+
+# Installed as an autoload only in the disposable F5-test project. It sends
+# proof of the real debug game's menu and rendered window to the editor probe.
+func _ready() -> void:
+	_report.call_deferred()
+
+func _report() -> void:
+	await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	var scene = get_tree().current_scene
+	var menu_ok := false
+	if is_instance_valid(scene) and scene.get_script() != null and scene.get_script().resource_path == "res://scripts/main.gd":
+		var menu = scene.get("current_screen")
+		if is_instance_valid(menu) and menu is Control:
+			for button in menu.find_children("*", "Button", true, false):
+				if button.text == "НОВАЯ ИГРА":
+					menu_ok = true
+					break
+	var rendered := false
+	var image = get_viewport().get_texture().get_image()
+	if image != null and not image.is_empty():
+		image.resize(32, 18, Image.INTERPOLATE_BILINEAR)
+		var low := 1.0
+		var high := 0.0
+		for y in range(image.get_height()):
+			for x in range(image.get_width()):
+				var pixel = image.get_pixel(x, y)
+				var value = (pixel.r + pixel.g + pixel.b) / 3.0
+				low = minf(low, value)
+				high = maxf(high, value)
+		rendered = high - low > 0.08 and high > 0.1
+	for i in range(40):
+		if EngineDebugger.is_active():
+			EngineDebugger.send_message("shards_f5:game_ready", [menu_ok, rendered, DisplayServer.get_name() != "headless"])
+			return
+		await get_tree().create_timer(0.25).timeout
