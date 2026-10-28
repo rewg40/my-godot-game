@@ -123,6 +123,8 @@ func _draw() -> void:
 
 func _draw_lake() -> void:
 	var center: Vector2 = world.environment_3d.lake_map_position
+	if center == Vector2.ZERO:
+		return
 	var points := PackedVector2Array()
 	for i in range(48):
 		var angle := TAU * float(i) / 48.0

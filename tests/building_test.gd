@@ -309,6 +309,43 @@ func _run() -> void:
 	check(building.remove_piece(frame_piece), "empty doorway can then be dismantled")
 	check(building.remove_piece(floor_piece), "unsupported foundation can then be dismantled")
 
+	# Simulate a save written before the island doubled in size. Loading it
+	# must move connected pieces together without changing the 3 m grid, retain
+	# a separate second base, and keep a player who was inside the first one.
+	var old_save := saved.duplicate(true)
+	old_save.erase("island_revision")
+	old_save.erase("lake_position")
+	old_save.erase("waypoint")
+	var old_records: Array = old_save["buildings"]
+	for record in old_records:
+		var part := Vector2(float(record.x), float(record.z))
+		if record.type in ["wall", "doorway", "door"]: part *= 0.5
+		var anchor := site if part.distance_to(Vector2(site)) < part.distance_to(Vector2(other)) else other
+		var terrain: float = world.environment_3d.height_at(float(anchor.x) * CELL * 2.0, float(anchor.y) * CELL * 2.0)
+		record["y"] = (terrain + 0.16) * 0.5
+	old_save["player"]["position"] = [center.x / 0.04, center.z / 0.04]
+	check(SaveGame.save_data(old_save), "pre-expansion save fixture is valid")
+	main.show_menu()
+	await process_frame
+	main.start_game(true)
+	await process_frame
+	world = main.current_screen
+	world.hud.close_modal()
+	world.player.set_physics_process(false)
+	building = world.building
+	await physics_frame
+	var migrated_floor = building.foundation_at(site.x * 2, site.y * 2)
+	var migrated_neighbor = building.foundation_at(site.x * 2 + 1, site.y * 2)
+	var migrated_other = building.foundation_at(other.x * 2, other.y * 2)
+	var expected_position := Vector2(center.x * 2.0, center.z * 2.0)
+	var player_position := Vector2(world.player.global_position.x, world.player.global_position.z)
+	check(is_instance_valid(migrated_floor) and is_instance_valid(migrated_neighbor) and is_instance_valid(migrated_other) and player_position.distance_to(expected_position) < 0.3, "old bases and the player migrate together in the running world")
+	var migrated_door: Dictionary = right_door.duplicate(true)
+	migrated_door["x"] = int(migrated_door.x) + site.x * 2
+	migrated_door["z"] = int(migrated_door.z) + site.y * 2
+	var door_after_migration = building.pieces.get(building.piece_key(migrated_door))
+	check(is_instance_valid(door_after_migration) and bool(door_after_migration.data.open) and world.save_progress(false) and int(SaveGame.load_data().get("island_revision", 0)) == 2, "migrated door remains open and the new revision saves safely")
+
 	main.queue_free()
 	await create_timer(0.5).timeout
 	_clear_save()

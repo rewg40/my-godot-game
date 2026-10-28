@@ -141,6 +141,18 @@ func _run() -> void:
 	var lake_center: Vector2 = world.environment_3d.lake_map_position * world.MAP_SCALE
 	var near_lake: Vector2 = world.environment_3d.nearest_walkable(lake_center.x, lake_center.y)
 	check(world.environment_3d.get_node_or_null("ForestLake") is MeshInstance3D and not world.environment_3d.is_walkable(lake_center.x, lake_center.y) and world.environment_3d.is_walkable(near_lake.x, near_lake.y), "lake has visible water, blocks building and relocates unsafe spawns to its shore")
+	var env = world.environment_3d
+	var initial_lake: Vector2 = env.lake_map_position
+	var initial_layout: Dictionary = env.saved_layout
+	var occupied_sites := []
+	for site in env.LAKE_SITES:
+		occupied_sites.append({"type":"foundation", "x":roundi(site.x * env.SCALE / 3.0), "z":roundi(site.y * env.SCALE / 3.0), "y":1.0})
+	env.saved_layout = {"buildings":occupied_sites}
+	env.lake_map_position = Vector2.ZERO
+	env._select_lake_site()
+	check(env.lake_map_position == Vector2.ZERO or env._lake_clear_of_bases(env.lake_map_position), "lake relocation never covers an existing base, even when all preferred sites are occupied")
+	env.lake_map_position = initial_lake
+	env.saved_layout = initial_layout
 	check(world.player.visual.animation != null and world.player.visual.animation.has_animation("Walk"), "rigged 3D hero has a walking animation")
 	check(world.player.visual.animation.get_animation("Walk").get_track_count() > 10, "walking animation contains skeletal tracks")
 	var hero_skeletons = world.player.visual.model.find_children("*", "Skeleton3D", true, false)
@@ -340,7 +352,8 @@ func _run() -> void:
 	check(first_tree.resource_health == 2 and world.count("wood") == wood_before, "a directed melee hit damages a tree without giving free resources")
 	world.player_attack(Vector3.LEFT)
 	world.player_attack(Vector3.LEFT)
-	check(world.count("wood") > wood_before and not first_tree.usable and "tree_0" in world.depleted_resources, "destroying a tree grants wood and records its removal")
+	var tree_bodies = first_tree.find_children("*", "StaticBody3D", true, false)
+	check(world.count("wood") > wood_before and not first_tree.usable and "tree_0" in world.depleted_resources and not tree_bodies.is_empty() and tree_bodies[0].collision_layer == 0, "destroying a tree grants wood and immediately removes its collision")
 	world.player.global_position = old_player_pos
 	var first_rock = prop(world, "rock_0")
 	var stone_before_rock: int = world.count("stone")

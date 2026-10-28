@@ -57,21 +57,47 @@ func _select_lake_site() -> void:
 	if saved is Array and saved.size() == 2:
 		lake_map_position = Vector2(float(saved[0]), float(saved[1]))
 		return
-	var buildings = saved_layout.get("buildings", [])
 	for candidate in LAKE_SITES:
-		var center: Vector2 = candidate * SCALE
-		var occupied := false
-		for record in buildings:
-			if record is Dictionary and record.get("type", "") == "foundation":
-				var floor_point := Vector2(float(record["x"]) * 3.0, float(record["z"]) * 3.0)
-				if absf(floor_point.x - center.x) < LAKE_RADII.x + 3.0 and absf(floor_point.y - center.y) < LAKE_RADII.y + 3.0:
-					occupied = true
-					break
-		if not occupied:
+		if _lake_clear_of_bases(candidate):
 			lake_map_position = candidate
 			return
-	# Unusual saves occupying every known site keep the lake at the last site.
-	lake_map_position = LAKE_SITES[-1]
+	# Old bases can cover the preselected clearings. Search other flat, open
+	# ground instead of ever placing new water underneath a player's house.
+	for z in range(240, 1961, 80):
+		for x in range(240, 2961, 80):
+			var candidate := Vector2(float(x), float(z))
+			if _lake_clear_of_bases(candidate) and _flat_lake_site(candidate):
+				lake_map_position = candidate
+				return
+	# If a highly unusual save leaves no suitable clearing, omit the lake; the
+	# saved structures take priority over the decorative water surface.
+	lake_map_position = Vector2.ZERO
+
+func _lake_clear_of_bases(candidate: Vector2) -> bool:
+	var center := candidate * SCALE
+	for record in saved_layout.get("buildings", []):
+		if record is Dictionary and record.get("type", "") == "foundation":
+			var floor_point := Vector2(float(record["x"]) * 3.0, float(record["z"]) * 3.0)
+			if absf(floor_point.x - center.x) < LAKE_RADII.x + 3.0 and absf(floor_point.y - center.y) < LAKE_RADII.y + 3.0:
+				return false
+	return true
+
+func _flat_lake_site(candidate: Vector2) -> bool:
+	if _near_road(candidate):
+		return false
+	var center := candidate * SCALE
+	var low := INF
+	var high := -INF
+	for ring in [0.0, 0.5, 1.0]:
+		for i in range(16):
+			var angle := TAU * float(i) / 16.0
+			var point: Vector2 = center + Vector2(cos(angle) * LAKE_RADII.x, sin(angle) * LAKE_RADII.y) * float(ring)
+			if not is_walkable(point.x, point.y, 1.0):
+				return false
+			var h := height_at(point.x, point.y)
+			low = minf(low, h)
+			high = maxf(high, h)
+	return high - low < 0.25
 
 func is_lake(x: float, z: float, extra: float = 0.0) -> bool:
 	if lake_map_position == Vector2.ZERO:
@@ -329,6 +355,8 @@ func _build_sea() -> void:
 	add_child(instance)
 
 func _build_lake() -> void:
+	if lake_map_position == Vector2.ZERO:
+		return
 	var center := lake_map_position * SCALE
 	lake_surface_y = -INF
 	for ring in [0.0, 0.5, 1.0]:
