@@ -10,6 +10,7 @@ const PINE_PATH = "res://assets/models/nature_real/pine.glb"
 const GRASS_PATH = "res://assets/models/nature_real/grass.glb"
 const FERN_PATH = "res://assets/models/nature_real/fern_02.glb"
 const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
+const CityZone = preload("res://scripts/ruined_city.gd")
 const SCALE := 0.08
 const WIDTH := 3200.0 * SCALE
 const DEPTH := 2200.0 * SCALE
@@ -51,6 +52,15 @@ func _ready() -> void:
 	_build_lake()
 	_build_navigation()
 	_scatter_scenery()
+	_build_city_zone()
+
+func _build_city_zone() -> void:
+	# Разрушенный городской район: площадка под рельеф, улица и здания.
+	# Добавляется последним: четыре плотные GLB-руины разбираются несколько секунд.
+	var city := CityZone.new()
+	city.name = "RuinedCity"
+	city.setup(self)
+	add_child(city)
 
 func _select_lake_site() -> void:
 	var saved = saved_layout.get("lake_position", [])
