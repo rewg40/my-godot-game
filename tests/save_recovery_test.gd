@@ -51,11 +51,36 @@ func _run() -> void:
 		["player health", '{"version":1,"player":{"health":[]}}'],
 		["position length", '{"version":1,"player":{"position":[1]}}'],
 		["position coordinate", '{"version":1,"player":{"position":["1",2]}}'],
+		["building collection", '{"version":1,"buildings":{}}'],
+		["building record", '{"version":1,"buildings":[42]}'],
+		["building kind", '{"version":1,"buildings":[{"type":"tower","x":10,"z":10,"y":1}]}'],
+		["building coordinate type", '{"version":1,"buildings":[{"type":"foundation","x":{},"z":10,"y":1}]}'],
+		["building coordinate bounds", '{"version":1,"buildings":[{"type":"foundation","x":999,"z":10,"y":1}]}'],
+		["building coordinate fraction", '{"version":1,"buildings":[{"type":"foundation","x":10.5,"z":10,"y":1}]}'],
+		["duplicate foundation", '{"version":1,"buildings":[{"type":"foundation","x":10,"z":10,"y":1},{"type":"foundation","x":10,"z":10,"y":1}]}'],
+		["unsupported roof", '{"version":1,"buildings":[{"type":"roof","x":10,"z":10,"y":1}]}'],
+		["unsupported wall", '{"version":1,"buildings":[{"type":"wall","x":20,"z":19,"y":1,"axis":0}]}'],
+		["bad edge grid", '{"version":1,"buildings":[{"type":"foundation","x":10,"z":10,"y":1},{"type":"wall","x":20,"z":20,"y":1,"axis":0}]}'],
+		["wall height mismatch", '{"version":1,"buildings":[{"type":"foundation","x":10,"z":10,"y":1},{"type":"wall","x":20,"z":19,"y":3,"axis":0}]}'],
+		["door without doorway", '{"version":1,"buildings":[{"type":"foundation","x":10,"z":10,"y":1},{"type":"door","x":20,"z":19,"y":1,"axis":0,"hinge":1,"open":false}]}'],
+		["invalid door hinge", '{"version":1,"buildings":[{"type":"door","x":20,"z":19,"y":1,"axis":0,"hinge":0,"open":false}]}'],
+		["invalid door state", '{"version":1,"buildings":[{"type":"door","x":20,"z":19,"y":1,"axis":0,"hinge":1,"open":"open"}]}'],
 	]
 	for sample in damaged_cases:
 		write_primary(sample[1])
 		check(SaveGame.load_data().is_empty(), "damaged " + sample[0] + " is rejected without backup")
 		check(FileAccess.get_file_as_string(SaveGame.TEST_PATH) == sample[1], "rejecting " + sample[0] + " preserves the file")
+
+	# The removed towers are refunded once, and the obsolete Tim objective is
+	# advanced without resetting any other legacy progress.
+	var legacy = load("res://scripts/world.gd").new()
+	legacy._apply_save({"quest_stage": 8, "inventory": {"wood": 7, "stone": 4}, "towers": [true, false, true]})
+	check(legacy.quest_stage == 9 and legacy.count("wood") == 27 and legacy.count("stone") == 14, "old towers refund their materials and the removed NPC quest advances")
+	var migrated = load("res://scripts/world.gd").new()
+	migrated._apply_save({"quest_stage": legacy.quest_stage, "inventory": legacy.inventory.duplicate(), "towers": [true, false, true], "buildings": []})
+	check(migrated.quest_stage == 9 and migrated.count("wood") == 27 and migrated.count("stone") == 14, "a save in the new format cannot refund legacy towers twice")
+	legacy.free()
+	migrated.free()
 
 	# Exercise the user's Continue button, not just the save parser.
 	var damaged: String = damaged_cases[2][1]

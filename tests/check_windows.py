@@ -95,6 +95,8 @@ def main() -> int:
         return 1
     if not run("Playable chapter", ["--headless", "--path", path, "--script", "res://tests/smoke_test.gd"], require="ALL SMOKE TESTS PASSED"):
         return 1
+    if not run("Modular base construction", ["--headless", "--path", path, "--script", "res://tests/building_test.gd"], require="BUILDING TESTS PASSED"):
+        return 1
     if not run("Damaged save recovery", ["--headless", "--path", path, "--script", "res://tests/save_recovery_test.gd"], require="SAVE RECOVERY TESTS PASSED"):
         return 1
     # Hosted Windows VMs use software graphics and have no sound device, so

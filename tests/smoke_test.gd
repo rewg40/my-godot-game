@@ -274,8 +274,17 @@ func _run() -> void:
 			variant.visual.play("Run")
 			check(variant.visual.animation.current_animation == "Run", "runner plays the supplied-model run clip")
 		variant.queue_free()
-	world.player_attack(Vector3.RIGHT)
-	check(target.health < target.max_health, "directional player attack damages a nearby enemy")
+	target.set_physics_process(false)
+	var unobstructed := false
+	for direction in [Vector3.RIGHT, Vector3.LEFT, Vector3.FORWARD, Vector3.BACK]:
+		var from: Vector3 = world.player.global_position + Vector3.UP * 0.85
+		var ray = PhysicsRayQueryParameters3D.create(from, from + direction * 1.2, 1)
+		if world.get_world_3d().direct_space_state.intersect_ray(ray).is_empty():
+			target.global_position = world.player.global_position + direction * 1.2
+			world.player_attack(direction)
+			unobstructed = true
+			break
+	check(unobstructed and target.health < target.max_health, "directional player attack damages a nearby unobstructed enemy")
 	target.queue_free()
 	check(prop(world, "marta") == null and prop(world, "grom") == null and prop(world, "plot_0") == null, "NPC camp and fixed defence plots are removed")
 	world.player.global_position = world._safe_player_spawn(Vector2(850, 1280)) + Vector3.UP * 0.12

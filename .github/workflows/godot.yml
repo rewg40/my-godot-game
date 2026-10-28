@@ -50,6 +50,19 @@ jobs:
             echo "::error::Godot smoke test exited with code $result%0A$log"
             exit 1
           fi
+      - name: Test modular base construction
+        shell: bash
+        run: |
+          set +e
+          godot --headless --path . --script res://tests/building_test.gd 2>&1 | tee "$RUNNER_TEMP/building.log"
+          result=${PIPESTATUS[0]}
+          set -e
+          if [ "$result" -ne 0 ] || ! grep -q 'BUILDING TESTS PASSED' "$RUNNER_TEMP/building.log" || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:|ObjectDB instances leaked' "$RUNNER_TEMP/building.log"; then
+            log="$(tail -n 100 "$RUNNER_TEMP/building.log")"
+            log="${log//'%'/'%25'}"; log="${log//$'\r'/'%0D'}"; log="${log//$'\n'/'%0A'}"
+            echo "::error::Building test exited with code $result%0A$log"
+            exit 1
+          fi
       - name: Test damaged save recovery
         shell: bash
         run: |
