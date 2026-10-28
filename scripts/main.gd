@@ -166,7 +166,7 @@ func start_game(continue_game: bool) -> void:
 	if continue_game:
 		data = SaveGame.load_data()
 		if data.is_empty():
-			show_menu("Не удалось прочитать сохранение. Начните новую игру.")
+			show_menu("Не удалось прочитать сохранение. Файл не изменён.")
 			return
 	# Load the heavy 3D world only after the player chooses to start. This
 	# keeps opening the game/menu responsive on less powerful Windows PCs.
