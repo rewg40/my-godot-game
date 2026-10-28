@@ -339,7 +339,7 @@ func clock_string() -> String:
 	return "%02d:%02d" % [int(minute / 60.0), int(minute) % 60]
 
 func play_sound(which: String) -> void:
-	if not is_instance_valid(sound):
+	if DisplayServer.get_name() == "headless" or not is_instance_valid(sound):
 		return
 	var sounds = {"pickup": "res://assets/audio/pickup.ogg", "hit": "res://assets/audio/hit.ogg", "complete": "res://assets/audio/complete.ogg"}
 	if sounds.has(which):

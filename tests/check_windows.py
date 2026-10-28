@@ -22,7 +22,7 @@ sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
 ERROR_LINE = re.compile(r"^(?:SCRIPT ERROR|Parse Error|ERROR:|SMOKE TESTS FAILED|.*ObjectDB instances leaked)", re.MULTILINE)
 
 
-def run(label: str, args: list[str], *, require: str = "", optional: bool = False) -> bool:
+def run(label: str, args: list[str], *, require: str = "", forbid: str = "") -> bool:
     print(f"\n--- {label} ---", flush=True)
     try:
         result = subprocess.run(
@@ -37,20 +37,17 @@ def run(label: str, args: list[str], *, require: str = "", optional: bool = Fals
         )
     except subprocess.TimeoutExpired as exc:
         print(f"{label} timed out after {exc.timeout} seconds", flush=True)
-        if optional:
-            print(f"::warning::{label} could not finish on the CI virtual display", flush=True)
-            return False
         raise
     print(result.stdout, flush=True)
     errors = ERROR_LINE.findall(result.stdout)
     missing_result = bool(require and require not in result.stdout)
-    if result.returncode == 0 and not errors and not missing_result:
+    eager_load = bool(forbid and forbid in result.stdout)
+    if result.returncode == 0 and not errors and not missing_result and not eager_load:
         return True
     lines = result.stdout.splitlines()
     details = "\n".join(lines[-60:])[-8000:]
     details = details.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-    level = "warning" if optional else "error"
-    print(f"::{level}::{label} exited {result.returncode}. {details}", flush=True)
+    print(f"::error::{label} exited {result.returncode} (missing expected result: {missing_result}; unexpected eager load: {eager_load}). {details}", flush=True)
     return False
 
 
@@ -64,13 +61,14 @@ def main() -> int:
     os.environ["SHARDS_TEST_SAVE"] = "1"
     if not run("Clean project import", ["--headless", "--editor", "--path", path, "--quit"]):
         return 1
-    if not run("Main scene startup", ["--verbose", "--headless", "--path", path, "--max-fps", "60", "--quit-after", "120"]):
+    if not run("Main scene startup", ["--verbose", "--headless", "--path", path, "--max-fps", "60", "--quit-after", "120"], forbid="Loading resource: res://assets/models/environment/user_island.glb"):
         return 1
     if not run("Playable chapter", ["--headless", "--path", path, "--script", "res://tests/smoke_test.gd"], require="ALL SMOKE TESTS PASSED"):
         return 1
-    # GitHub-hosted Windows VMs do not guarantee a usable graphics device.
-    # This is an additional diagnostic, not a substitute for headless tests.
-    run("Windowed game startup", ["--path", path, "--quit-after", "120"], optional=True)
+    # Hosted Windows VMs use software graphics and have no sound device, so
+    # choose Dummy audio while checking that an actual window and menu render.
+    if not run("Windowed menu startup", ["--audio-driver", "Dummy", "--path", path, "--script", "res://tests/startup_test.gd"], require="MAIN MENU STARTUP PASSED"):
+        return 1
     return 0
 
 

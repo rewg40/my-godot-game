@@ -2,7 +2,7 @@ extends Node
 
 const UI = preload("res://scripts/ui_style.gd")
 const SaveGame = preload("res://scripts/save_game.gd")
-const WorldScript = preload("res://scripts/world.gd")
+const WORLD_SCRIPT = "res://scripts/world.gd"
 
 var current_screen: Node
 var music: AudioStreamPlayer
@@ -15,7 +15,10 @@ func _ready() -> void:
 		music.stream.loop = true
 	music.volume_db = -22.0
 	add_child(music)
-	music.play()
+	# Headless runs have no audio output, and short-lived dummy audio playbacks
+	# can still be held by the mixing thread when Godot shuts down.
+	if DisplayServer.get_name() != "headless":
+		music.play()
 	show_menu()
 
 func _exit_tree() -> void:
@@ -165,9 +168,15 @@ func start_game(continue_game: bool) -> void:
 		if data.is_empty():
 			show_menu("Не удалось прочитать сохранение. Начните новую игру.")
 			return
+	# Load the heavy 3D world only after the player chooses to start. This
+	# keeps opening the game/menu responsive on less powerful Windows PCs.
+	var world_script = load(WORLD_SCRIPT)
+	if world_script == null:
+		show_menu("Не удалось загрузить игровой мир. Проверьте импорт ресурсов в Godot.")
+		return
 	if is_instance_valid(current_screen):
 		current_screen.queue_free()
-	var world = WorldScript.new()
+	var world = world_script.new()
 	world.main = self
 	world.load_data = data
 	add_child(world)
