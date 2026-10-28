@@ -248,8 +248,7 @@ func _run() -> void:
 	door = building.pieces.get(building.piece_key(right_door))
 	check(is_instance_valid(door) and bool(door.data.open) and int(door.data.hinge) == 1, "save restores the open state and hinge side")
 	var loaded_position: Vector3 = world.player.global_position
-	if Vector2(loaded_position.x, loaded_position.z).distance_to(Vector2(center.x, center.z)) >= 0.2:
-		print("Resume position diagnostic: expected ", center, "; got ", loaded_position, "; walkable=", world.environment_3d.is_walkable(center.x, center.z))
+	print("Resume position diagnostic: expected floor ", center, "; got ", loaded_position, "; restored floor ", building.floor_height_at(Vector2(center.x, center.z)), "; saved position ", saved.get("player", {}).get("position", []), "; walkable=", world.environment_3d.is_walkable(center.x, center.z))
 	check(Vector2(loaded_position.x, loaded_position.z).distance_to(Vector2(center.x, center.z)) < 0.2 and loaded_position.y >= initial_level, "Continue returns the player inside the base above the floor")
 	var safe_near_wall: Vector3 = world._safe_player_spawn(world.world_to_map(wall_pos))
 	check(world._built_spawn_clear(Vector2(safe_near_wall.x, safe_near_wall.z), safe_near_wall.y), "resume position is adjusted away from built walls")
