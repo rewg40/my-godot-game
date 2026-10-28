@@ -334,7 +334,7 @@ func _build_lake() -> void:
 	for ring in [0.0, 0.5, 1.0]:
 		for i in range(64):
 			var angle := TAU * float(i) / 64.0
-			var sample := center + Vector2(cos(angle) * LAKE_RADII.x, sin(angle) * LAKE_RADII.y) * ring
+			var sample: Vector2 = center + Vector2(cos(angle) * LAKE_RADII.x, sin(angle) * LAKE_RADII.y) * float(ring)
 			lake_surface_y = maxf(lake_surface_y, height_at(sample.x, sample.y))
 	lake_surface_y += 0.04
 	var vertices := PackedVector3Array([Vector3(center.x, lake_surface_y, center.y)])
