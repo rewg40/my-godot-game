@@ -51,6 +51,34 @@ def run(label: str, args: list[str], *, require: str = "", forbid: str = "") -> 
     return False
 
 
+def run_editor_f5_probe(path: Path) -> bool:
+    # Install the test plugin only in a disposable copy. The actual project
+    # has no enabled editor plugins, and a player's setup must remain intact.
+    with tempfile.TemporaryDirectory(prefix="shards-editor-test-") as temp_dir:
+        project = Path(temp_dir) / "Проверка редактора F5"
+        shutil.copytree(path, project)
+        plugin = project / "addons" / "f5_probe"
+        plugin.mkdir(parents=True)
+        shutil.copyfile(project / "tests" / "editor_f5_probe.gd.txt", plugin / "plugin.gd")
+        (plugin / "plugin.cfg").write_text(
+            '[plugin]\nname="Temporary F5 probe"\ndescription="CI-only startup test"\n'
+            'author="CI"\nversion="1.0"\nscript="plugin.gd"\n',
+            encoding="utf-8",
+        )
+        # The editor's audio-driver argument is not forwarded to the game.
+        # The Windows runner has no sound device, so pass Dummy to both.
+        with (project / "project.godot").open("a", encoding="utf-8") as config:
+            config.write(
+                '\n[editor]\nrun/main_run_args="--audio-driver Dummy"\n'
+                '\n[editor_plugins]\nenabled=PackedStringArray("res://addons/f5_probe/plugin.cfg")\n'
+            )
+        return run(
+            "Windowed editor F5 startup",
+            ["--audio-driver", "Dummy", "--editor", "--max-fps", "60", "--path", str(project)],
+            require="EDITOR F5 STARTUP PASSED",
+        )
+
+
 def main() -> int:
     source = Path(os.environ["GITHUB_WORKSPACE"])
     # Match common Windows installations where the username or project folder
@@ -68,6 +96,10 @@ def main() -> int:
     # Hosted Windows VMs use software graphics and have no sound device, so
     # choose Dummy audio while checking that an actual window and menu render.
     if not run("Windowed menu startup", ["--audio-driver", "Dummy", "--path", path, "--script", "res://tests/startup_test.gd"], require="MAIN MENU STARTUP PASSED"):
+        return 1
+    if not run("Windowed new game and legacy save", ["--audio-driver", "Dummy", "--path", path, "--max-fps", "60", "--resolution", "960x540", "--script", "res://tests/windowed_game_test.gd"], require="WINDOWED GAME STARTUP PASSED"):
+        return 1
+    if not run_editor_f5_probe(destination):
         return 1
     return 0
 
