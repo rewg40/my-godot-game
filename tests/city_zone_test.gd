@@ -5,6 +5,7 @@ extends SceneTree
 ##   godot --headless --path . --script res://tests/city_zone_test.gd
 
 const EnvironmentScript = preload("res://scripts/environment_3d.gd")
+const MeshCleanup = preload("res://scripts/mesh_cleanup.gd")
 
 var failures: Array[String] = []
 var watchdog: Timer
@@ -68,6 +69,15 @@ func _run() -> void:
 			with_collision += 1
 	check(with_collision >= buildings.size() - 2,
 			"почти у всех зданий есть коллизия: %d из %d" % [with_collision, buildings.size()])
+	# godotengine/godot#86806: dummy-рендерер сыплет "Parameter m is null" при
+	# пакетном освобождении instanced MeshInstance3D. Освобождаем детей env
+	# по одному с отвязкой мешей — так лог остаётся чистым.
+	for child in env.get_children():
+		MeshCleanup.before_free(child)
+		env.remove_child(child)
+		child.free()
+		await process_frame
+	env.free()
 	if failures.is_empty():
 		print("City zone test: все проверки пройдены")
 		quit(0)

@@ -596,10 +596,13 @@ func _process(delta: float) -> void:
 		return
 	occlusion_timer = 0.12
 	var world = get_parent()
-	if not is_instance_valid(world.player) or not is_instance_valid(world.player.camera):
+	# В headless-тестах родитель — Window без свойства player; get() вернёт
+	# null без ошибки доступа. В игре поведение не меняется.
+	var player = world.get("player") if world != null else null
+	if player == null or not is_instance_valid(player) or not is_instance_valid(player.camera):
 		return
-	var target: Vector3 = world.player.global_position + Vector3.UP
-	var eye: Vector3 = world.player.camera.global_position
+	var target: Vector3 = player.global_position + Vector3.UP
+	var eye: Vector3 = player.camera.global_position
 	var segment = Vector2(eye.x - target.x, eye.z - target.z)
 	if segment.length_squared() < 0.01:
 		return
