@@ -74,6 +74,32 @@ func click_gui_at(position: Vector2) -> void:
 		root.push_input(event, true)
 		await process_frame
 
+# Also exercise the window input path with scaled client coordinates, like a
+# real mouse event. The viewport will transform them back to logical space.
+func window_mouse_button(position: Vector2, button_index: MouseButton, pressed: bool) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = button_index
+	event.position = root.get_final_transform() * position
+	event.global_position = event.position
+	event.pressed = pressed
+	Input.parse_input_event(event)
+	await process_frame
+
+func window_mouse_motion(position: Vector2, relative: Vector2, held: int = 0) -> void:
+	var motion := InputEventMouseMotion.new()
+	motion.position = root.get_final_transform() * position
+	motion.global_position = motion.position
+	motion.relative = root.get_final_transform().basis_xform(relative)
+	motion.button_mask = held
+	Input.parse_input_event(motion)
+	await process_frame
+
+func click_window_at(position: Vector2, button_index: MouseButton = MOUSE_BUTTON_LEFT) -> void:
+	root.warp_mouse(position)
+	await window_mouse_motion(position, Vector2.ZERO)
+	await window_mouse_button(position, button_index, true)
+	await window_mouse_button(position, button_index, false)
+
 func clear_build_site(world) -> Vector2i:
 	for x in range(4, 39):
 		for z in range(4, 27):
@@ -97,17 +123,6 @@ func visible_frame_has_content() -> bool:
 			low = minf(low, value)
 			high = maxf(high, value)
 	return high - low > 0.08 and high > 0.1
-
-# Temporary visual audit of the starting grove and lake on the Windows runner.
-func audit_frame(label: String) -> void:
-	if int(Engine.get_version_info().minor) < 7:
-		return
-	var image := root.get_texture().get_image()
-	image.resize(480, 270, Image.INTERPOLATE_BILINEAR)
-	var encoded := Marshalls.raw_to_base64(image.save_jpg_to_buffer(0.48))
-	var parts := ceili(float(encoded.length()) / 3400.0)
-	for i in range(parts):
-		print("::notice::AUDIT_%s_%d_%d:%s" % [label, i, parts, encoded.substr(i * 3400, 3400)])
 
 func _run() -> void:
 	check(DisplayServer.get_name() != "headless", "game uses a real display and renderer")
@@ -139,7 +154,6 @@ func _run() -> void:
 	await create_timer(0.8).timeout
 	check(world.player.is_on_floor(), "player lands on the 3D island")
 	check(await visible_frame_has_content(), "3D world renders a non-blank frame")
-	audit_frame("start")
 	var moved := false
 	for action in ["move_right", "move_up", "move_left", "move_down"]:
 		var before: Vector3 = world.player.global_position
@@ -159,7 +173,6 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	check(await visible_frame_has_content(), "the lake and shoreline render in the 3D world")
-	audit_frame("lake")
 	world.player.global_position = original_position
 	world.player.set_physics_process(true)
 	check(is_instance_valid(world.hud.minimap) and world.hud.minimap.visible, "a player-centred minimap is visible in the rendered HUD")
@@ -182,8 +195,8 @@ func _run() -> void:
 		check(world.hud.selected_inventory_item == "food", "clicking the icon selects food in the rendered viewport")
 		var use_button: Control = world.hud.inventory_action
 		var use_click: Vector2 = use_button.get_global_rect().get_center()
-		await click_gui_at(use_click)
-		check(world.count("food") == food_before - 1 and world.player.hunger > 20.0, "clicking Use consumes the selected food in the actual window")
+		await click_window_at(use_click)
+		check(world.count("food") == food_before - 1 and world.player.hunger > 20.0, "window-scaled click on Use consumes the selected food")
 	await press_key(KEY_TAB)
 	check(not world.hud.is_modal_open(), "Tab closes the inventory")
 	await press_key(KEY_M)
@@ -193,10 +206,21 @@ func _run() -> void:
 	if is_instance_valid(rendered_map):
 		var waypoint := Vector2(1600, 1100)
 		var map_click: Vector2 = rendered_map.get_global_rect().position + rendered_map.map_to_screen(waypoint)
-		await click_gui_at(map_click)
+		await click_window_at(map_click)
 		if world.waypoint_map.distance_to(waypoint) >= 15.0:
 			print("GUI map target=", rendered_map, " hovered=", root.gui_get_hovered_control(), " click=", map_click, " rect=", rendered_map.get_global_rect())
 		check(world.waypoint_map.distance_to(waypoint) < 15.0, "clicking the displayed chart sets a map waypoint")
+		await click_window_at(map_click, MOUSE_BUTTON_WHEEL_UP)
+		check(rendered_map.zoom > 1.0, "mouse wheel zooms the rendered map")
+		var pan_before: Vector2 = rendered_map.pan
+		var saved_waypoint: Vector2 = world.waypoint_map
+		await window_mouse_button(map_click, MOUSE_BUTTON_LEFT, true)
+		var drag_end := map_click + Vector2(35.0, 15.0)
+		await window_mouse_motion(drag_end, Vector2(35.0, 15.0), MOUSE_BUTTON_MASK_LEFT)
+		await window_mouse_button(drag_end, MOUSE_BUTTON_LEFT, false)
+		check(rendered_map.pan.distance_to(pan_before) > 1.0 and world.waypoint_map == saved_waypoint, "dragging a zoomed map pans without replacing the waypoint")
+		await click_window_at(map_click, MOUSE_BUTTON_RIGHT)
+		check(world.waypoint_map.x < 0.0, "right click clears the map waypoint")
 	await press_key(KEY_M)
 	check(not world.hud.is_modal_open(), "M closes the map")
 
