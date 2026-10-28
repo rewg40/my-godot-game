@@ -50,3 +50,16 @@ jobs:
             echo "::error::Godot smoke test exited with code $result%0A$log"
             exit 1
           fi
+      - name: Test damaged save recovery
+        shell: bash
+        run: |
+          set +e
+          godot --headless --path . --script res://tests/save_recovery_test.gd 2>&1 | tee "$RUNNER_TEMP/save-recovery.log"
+          result=${PIPESTATUS[0]}
+          set -e
+          if [ "$result" -ne 0 ] || ! grep -q 'SAVE RECOVERY TESTS PASSED' "$RUNNER_TEMP/save-recovery.log" || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:|ObjectDB instances leaked' "$RUNNER_TEMP/save-recovery.log"; then
+            log="$(tail -n 80 "$RUNNER_TEMP/save-recovery.log")"
+            log="${log//'%'/'%25'}"; log="${log//$'\r'/'%0D'}"; log="${log//$'\n'/'%0A'}"
+            echo "::error::Save recovery test exited with code $result%0A$log"
+            exit 1
+          fi

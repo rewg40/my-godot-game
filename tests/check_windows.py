@@ -93,6 +93,8 @@ def main() -> int:
         return 1
     if not run("Playable chapter", ["--headless", "--path", path, "--script", "res://tests/smoke_test.gd"], require="ALL SMOKE TESTS PASSED"):
         return 1
+    if not run("Damaged save recovery", ["--headless", "--path", path, "--script", "res://tests/save_recovery_test.gd"], require="SAVE RECOVERY TESTS PASSED"):
+        return 1
     # Hosted Windows VMs use software graphics and have no sound device, so
     # choose Dummy audio while checking that an actual window and menu render.
     if not run("Windowed menu startup", ["--audio-driver", "Dummy", "--path", path, "--script", "res://tests/startup_test.gd"], require="MAIN MENU STARTUP PASSED"):
