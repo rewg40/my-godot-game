@@ -64,7 +64,7 @@ def main() -> int:
     os.environ["SHARDS_TEST_SAVE"] = "1"
     if not run("Clean project import", ["--headless", "--editor", "--path", path, "--quit"]):
         return 1
-    if not run("Main scene startup", ["--verbose", "--headless", "--path", path, "--quit-after", "120"]):
+    if not run("Main scene startup", ["--verbose", "--headless", "--path", path, "--max-fps", "60", "--quit-after", "120"]):
         return 1
     if not run("Playable chapter", ["--headless", "--path", path, "--script", "res://tests/smoke_test.gd"], require="ALL SMOKE TESTS PASSED"):
         return 1

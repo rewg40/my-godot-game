@@ -84,6 +84,9 @@ func _ready() -> void:
 		hud.toast("С возвращением на остров Приют.")
 
 func _exit_tree() -> void:
+	if is_instance_valid(sound):
+		sound.stop()
+		sound.stream = null
 	MeshCleanup.before_free(self)
 
 # Map coordinates remain stable for the journal and old saves; world actors,

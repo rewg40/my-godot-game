@@ -18,6 +18,13 @@ func _ready() -> void:
 	music.play()
 	show_menu()
 
+func _exit_tree() -> void:
+	# Release looping audio before the scene tree and AudioServer shut down.
+	# Recent Godot versions otherwise keep playback resources alive at exit.
+	if is_instance_valid(music):
+		music.stop()
+		music.stream = null
+
 func _setup_input() -> void:
 	var actions = {
 		"move_up": [KEY_W, KEY_UP], "move_down": [KEY_S, KEY_DOWN],
