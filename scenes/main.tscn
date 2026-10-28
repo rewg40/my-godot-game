@@ -1,13 +1,19 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/models/island.glb" id="1_island"]
 [ext_resource type="Script" path="res://scripts/city_placer.gd" id="2_placer"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="3_player"]
 
 [sub_resource type="Environment" id="Environment_env"]
 background_mode = 1
 background_color = Color(0.72, 0.74, 0.76, 1)
 ambient_light_energy = 1.0
 tonemap_mode = 2
+background_energy = 0.9
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.4
+height = 1.8
 
 [node name="Main" type="Node3D"]
 
@@ -19,10 +25,12 @@ rotation_degrees = Vector3(-50, -35, 0)
 shadow_enabled = true
 light_energy = 0.9
 
-[node name="Camera3D" type="Camera3D" parent="."]
-
 [node name="Island" parent="." instance=ExtResource("1_island")]
 transform = Transform3D(100, 0, 0, 0, 100, 0, 0, 0, 100, 0, 0, 0)
 
 [node name="City" type="Node3D" parent="."]
 script = ExtResource("2_placer")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 5)
+script = ExtResource("3_player")
