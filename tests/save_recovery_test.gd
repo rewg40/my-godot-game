@@ -92,6 +92,31 @@ func _run() -> void:
 	check(pieces[3].x == 20 and pieces[4].x == 40 and pieces[5].x == 40 and bool(pieces[5].open) and is_equal_approx(pieces[0].y, 2.4), "roof, door and floor migrate together with height and state")
 	check(is_equal_approx(float(enlarged.player.position[0]), 765.0) and IslandMigration.migrate(enlarged) == enlarged, "player stays relative to the base and migration runs only once")
 
+	# A detached hut inside a larger compound used to land on top of the
+	# compound when each base was moved independently. Keep both intact and
+	# move a player standing inside the hut with it.
+	var ring: Array = []
+	for x in range(10, 15):
+		for z in range(10, 15):
+			if x in [10, 14] or z in [10, 14]:
+				ring.append({"type":"foundation", "x":x, "z":z, "y":1.0})
+	ring.append({"type":"foundation", "x":12, "z":12, "y":1.0})
+	ring.append({"type":"roof", "x":12, "z":12, "y":1.0})
+	ring.append({"type":"doorway", "x":24, "z":23, "y":1.0, "axis":0})
+	ring.append({"type":"door", "x":24, "z":23, "y":1.0, "axis":0, "hinge":1, "open":true})
+	var compound = {"version":1, "buildings":ring, "player":{"position":[900, 900]}}
+	var expanded_compound: Dictionary = IslandMigration.migrate(compound)
+	var expanded_pieces: Array = expanded_compound.buildings
+	var hut: Dictionary = expanded_pieces[16]
+	var unique_floors := {}
+	for piece in expanded_pieces:
+		if piece.type == "foundation":
+			unique_floors["%d:%d" % [int(piece.x), int(piece.z)]] = true
+	check(SaveGame._valid_data(compound) and SaveGame._valid_data(expanded_compound) and expanded_pieces.size() == ring.size() and unique_floors.size() == 17, "nested separate bases migrate without overlapping or losing pieces")
+	check(bool(expanded_pieces[19].open) and is_equal_approx(float(expanded_compound.player.position[0]), float(hut.x) * 3.0 / 0.08) and is_equal_approx(float(expanded_compound.player.position[1]), float(hut.z) * 3.0 / 0.08), "player, roof and open door stay with the relocated detached hut")
+	var unusual = {"version":1, "buildings":[{"type":"foundation", "x":10, "z":10, "y":1.2}, {"type":"roof", "x":10, "z":10, "y":1.25}]}
+	check(SaveGame._valid_data(unusual) and IslandMigration.migrate(unusual) == unusual, "unusual legacy heights are preserved if scaling cannot produce a valid save")
+
 	# The removed towers are refunded once, and the obsolete Tim objective is
 	# advanced without resetting any other legacy progress.
 	var legacy = load("res://scripts/world.gd").new()

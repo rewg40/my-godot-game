@@ -54,6 +54,26 @@ func click_at(position: Vector2) -> void:
 	Input.parse_input_event(event)
 	await process_frame
 
+# Feed events to the rendered root viewport in its own logical coordinates.
+# This exercises Godot's real GUI hit-testing and button/drag handling rather
+# than emitting signals directly. Input.parse_input_event expects window
+# coordinates and is transformed again when the 960x540 window is stretched.
+func click_gui_at(position: Vector2) -> void:
+	root.warp_mouse(position)
+	var motion := InputEventMouseMotion.new()
+	motion.position = position
+	motion.global_position = position
+	root.push_input(motion, true)
+	await process_frame
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.position = position
+		event.global_position = position
+		event.pressed = pressed
+		root.push_input(event, true)
+		await process_frame
+
 func clear_build_site(world) -> Vector2i:
 	for x in range(4, 39):
 		for z in range(4, 27):
@@ -142,19 +162,14 @@ func _run() -> void:
 	if is_instance_valid(food_slot):
 		var food_before: int = world.count("food")
 		world.player.hunger = 20.0
-		# Input.parse_input_event uses the logical root viewport coordinates,
-		# not the window-scaled CanvasItem transform.
 		var food_click: Vector2 = food_slot.get_global_rect().get_center()
-		print("Inventory click: rect=", food_slot.get_global_rect(), " input=", food_click, " viewport=", root.get_visible_rect())
-		root.warp_mouse(food_click)
-		await process_frame
-		await click_at(food_click)
-		check(world.hud.selected_inventory_item == "food", "clicking the icon selects food in the actual window")
+		await click_gui_at(food_click)
+		if world.hud.selected_inventory_item != "food":
+			print("GUI inventory target=", food_slot, " hovered=", root.gui_get_hovered_control(), " rect=", food_slot.get_global_rect(), " canvas=", food_slot.get_global_transform_with_canvas(), " final=", root.get_final_transform())
+		check(world.hud.selected_inventory_item == "food", "clicking the icon selects food in the rendered viewport")
 		var use_button: Control = world.hud.inventory_action
 		var use_click: Vector2 = use_button.get_global_rect().get_center()
-		root.warp_mouse(use_click)
-		await process_frame
-		await click_at(use_click)
+		await click_gui_at(use_click)
 		check(world.count("food") == food_before - 1 and world.player.hunger > 20.0, "clicking Use consumes the selected food in the actual window")
 	await press_key(KEY_TAB)
 	check(not world.hud.is_modal_open(), "Tab closes the inventory")
@@ -165,9 +180,9 @@ func _run() -> void:
 	if is_instance_valid(rendered_map):
 		var waypoint := Vector2(1600, 1100)
 		var map_click: Vector2 = rendered_map.get_global_rect().position + rendered_map.map_to_screen(waypoint)
-		root.warp_mouse(map_click)
-		await process_frame
-		await click_at(map_click)
+		await click_gui_at(map_click)
+		if world.waypoint_map.distance_to(waypoint) >= 15.0:
+			print("GUI map target=", rendered_map, " hovered=", root.gui_get_hovered_control(), " click=", map_click, " rect=", rendered_map.get_global_rect())
 		check(world.waypoint_map.distance_to(waypoint) < 15.0, "clicking the displayed chart sets a map waypoint")
 	await press_key(KEY_M)
 	check(not world.hud.is_modal_open(), "M closes the map")
