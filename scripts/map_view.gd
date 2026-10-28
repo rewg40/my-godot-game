@@ -133,8 +133,8 @@ func _draw_lake() -> void:
 func _draw_bases() -> void:
 	if not is_instance_valid(world.building):
 		return
-	for piece in world.building.pieces:
-		if not is_instance_valid(piece) or piece.kind != "foundation":
+	for piece in world.building.pieces.values():
+		if not is_instance_valid(piece) or piece.data.get("type", "") != "foundation":
 			continue
 		var point: Vector2 = world.world_to_map(piece.global_position)
 		var screen := map_to_screen(point)

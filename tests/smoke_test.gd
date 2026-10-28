@@ -343,9 +343,9 @@ func _run() -> void:
 	check(world.count("wood") > wood_before and not first_tree.usable and "tree_0" in world.depleted_resources, "destroying a tree grants wood and records its removal")
 	world.player.global_position = old_player_pos
 	var first_rock = prop(world, "rock_0")
-	var stone_before: int = world.count("stone")
+	var stone_before_rock: int = world.count("stone")
 	for i in range(4): world.interact(first_rock)
-	check(world.count("stone") > stone_before and not first_rock.usable and "rock_0" in world.depleted_resources, "stone is granted when the boulder is destroyed")
+	check(world.count("stone") > stone_before_rock and not first_rock.usable and "rock_0" in world.depleted_resources, "stone is granted when the boulder is destroyed")
 	var resources_save: Dictionary = SaveGame.load_data()
 	check("tree_0" in resources_save.get("depleted_resources", []) and "rock_0" in resources_save.get("depleted_resources", []), "destroyed resource ids are saved")
 	var stone_before = world.count("stone")

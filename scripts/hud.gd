@@ -375,7 +375,9 @@ func show_inventory() -> void:
 		slot.add_child(amount)
 		slot.pressed.connect(_select_inventory_item.bind(item))
 	_select_inventory_item(selected_inventory_item)
-	box.add_child(_bottom_close())
+	var close := UI.button("ЗАКРЫТЬ", Vector2(180, 42))
+	box.add_child(close)
+	close.pressed.connect(close_modal)
 
 func _select_inventory_item(item: String) -> void:
 	selected_inventory_item = item
@@ -398,6 +400,28 @@ func _use_selected_item() -> void:
 		world.player._update_weapon()
 		world.save_progress(false)
 	show_inventory()
+
+func show_crafting() -> void:
+	var content = _window("КРАФТ", "Созданное оружие экипируется автоматически. Биту и копьё можно менять клавишей Q. Каменный топор увеличивает добычу древесины и камня.")
+	var resources = UI.label("Дерево %d    Камень %d    Ткань %d    Травы %d    Вода %d" % [world.count("wood"), world.count("stone"), world.count("cloth"), world.count("herbs"), world.count("water")], 14, UI.GOLD, true)
+	content.add_child(resources)
+	for recipe in world.recipe_list():
+		var row = HBoxContainer.new()
+		row.add_theme_constant_override("separation", 14)
+		content.add_child(row)
+		var label = UI.label(recipe["name"] + "  —  " + recipe["description"], 14, UI.TEXT)
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(label)
+		var button = UI.button("СОЗДАТЬ", Vector2(130, 38))
+		button.disabled = bool(recipe.get("done", false))
+		if button.disabled:
+			button.text = "ГОТОВО"
+		row.add_child(button)
+		var recipe_id: String = recipe["id"]
+		button.pressed.connect(func(): world.craft(recipe_id); show_crafting())
+	var close = UI.button("ЗАКРЫТЬ", Vector2(160, 42))
+	content.add_child(close)
+	close.pressed.connect(close_modal)
 
 func show_map() -> void:
 	var screen = _new_modal()
