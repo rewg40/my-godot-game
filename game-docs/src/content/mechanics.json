@@ -10,11 +10,13 @@
     "quests",
     "locations",
     "destruction",
+    "physics",
     "zombies",
     "combat",
     "inventory",
     "assets",
     "production"
   ],
-  "note": "порядок подвкладок = порядок в tabs; подписи задаёт app.js (MECH)"
+  "note": "порядок подвкладок = порядок в tabs; подписи задаёт app.js (MECH)",
+  "updated": "2026-10-30T21:50:51Z"
 }

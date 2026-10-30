@@ -15,7 +15,7 @@
 | `game-docs/src/config.json` | доступы, пути, ветка-источник | да, при смене кодов/ветки |
 | `game-docs/src/content/scenario.json` | вкладка «Сценарий» | **да, это основная рабочая зона** |
 | `game-docs/src/content/mechanics.json` | индекс подвкладок «Механика» | только при добавлении/удалении подвкладки |
-| `game-docs/src/content/mech_*.json` | 10+ разделов механики | **да** |
+| `game-docs/src/content/mech_*.json` | 13 разделов механики (в т. ч. `mech_physics.json`) | **да** |
 | `game-docs/src/content/preview.json` | вкладка «Картинки / превью» | да |
 | `game-docs/src/content/images.json` | реестр картинок | да (при добавлении файлов) |
 | `game-docs/src/content/models.json` | реестр 3D-моделей | да (при добавлении файлов) |

@@ -29,6 +29,7 @@ const MECH = [
   { id: "quests",      label: "Квесты",              file: "mech_quests.json" },
   { id: "locations",   label: "Локации",             file: "mech_locations.json" },
   { id: "destruction", label: "Разрушаемые объекты", file: "mech_destruction.json" },
+  { id: "physics",     label: "Физика",              file: "mech_physics.json" },
   { id: "zombies",     label: "ИИ монстров",         file: "mech_zombies.json" },
   { id: "combat",      label: "Бой и оружие",        file: "mech_combat.json" },
   { id: "inventory",   label: "Инвентарь и лут",     file: "mech_inventory.json" },
@@ -511,7 +512,7 @@ function buildSubtabs() {
     b.onclick = () => { S.sub = m.id; buildSubtabs(); syncHash(); loadCurrent(); };
     host.appendChild(b);
   });
-  host.insertAdjacentHTML("beforeend", `<span class="subtab-note">10 разделов из твоего списка + 2 технических: «3D-модели и ассеты», «Аудио, UI и структура проекта» · итого ${MECH.length}</span>`);
+  host.insertAdjacentHTML("beforeend", `<span class="subtab-note">${MECH.length} разделов: 10 из твоего списка + «Физика» + 2 технических (3D-ассеты, аудио/UI/структура)</span>`);
 }
 const statusCache = {};
 function statusOf(m) {
