@@ -140,17 +140,17 @@ async function ghListDir(path) {
   } catch (e) { if (e.status === 404) return []; throw e; }
 }
 
-/* чтение контента: сначала рядом с сайтом (так работает и на Pages, и локально),
-   затем — из репозитория через GitHub API (нужно, если открыт file:// или сайт ещё не пересобрали) */
-async function loadText(relPath) {
+/* loadText(sitePath): sitePath — путь относительно корня сайта (= game-docs/src при деплое).
+   Сначала пробуем файл рядом с сайтом (Pages и локальный сервер), затем — репозиторий через API. */
+async function loadText(sitePath) {
   if (location.protocol === "http:" || location.protocol === "https:") {
     try {
-      const r = await fetch(encodeURI(relPath) + "?v=" + Date.now(), { cache: "no-store" });
+      const r = await fetch(encodeURI(sitePath) + "?v=" + Date.now(), { cache: "no-store" });
       if (r.ok) return await r.text();
     } catch (e) { /* идём в GitHub */ }
   }
   if (!S.origin.owner) throw new Error("Файл не найден рядом с сайтом и репозиторий не настроен");
-  return (await ghGetFile(`${S.config.contentPath || SRC_PREFIX + "/content"}/${relPath}`)).text;
+  return (await ghGetFile(`${SRC_PREFIX}/${sitePath}`)).text;
 }
 
 /* ----------------------------- блок: рендер -------------------------------- */
@@ -472,7 +472,7 @@ async function loadCurrent(showLoader = true) {
   try {
     let text = localStorage.getItem(draftKey(file));
     let fromDraft = !!text;
-    if (!text) text = await loadText(S.config.contentPath.replace(SRC_PREFIX + "/", "") + "/" + file);
+    if (!text) text = await loadText("content/" + file);
     const d = JSON.parse(text);
     if (S.mainTab === "mechanics" && d.kind !== "mechanics") d.kind = "mechanics";
     if (fromDraft) d._banner = "Ты видишь свою черновую правку из этого браузера (не сохранена в GitHub).";
@@ -660,8 +660,7 @@ function download(name, text, mime) {
 /* ----------------------------- доступ (замок) ------------------------------ */
 async function loadConfig() {
   let raw = null;
-  try { raw = await loadText("config.json"); }
-  catch (e) { try { raw = await ghGetFile(`${SRC_PREFIX}/config.json`); raw = raw.text; } catch (e2) { /* нет конфига — открыто */ } }
+  try { raw = await loadText("config.json"); } catch (e) { raw = null; }
   if (raw) { try { S.config = { ...S.config, ...JSON.parse(raw), gate: { ...S.config.gate, ...(JSON.parse(raw).gate || {}) } }; } catch (e) { /* ignore */ } }
   S.cfgLoaded = true;
   const host = location.hostname || "";
@@ -879,8 +878,8 @@ async function view3D(file, name) {
 async function loadManifests() {
   const fallback = (k, p) => { try { return JSON.parse(localStorage.getItem("zombi-docs:" + k)); } catch (e) { return null; } void p; };
   saveManifests = () => { localStorage.setItem("zombi-docs:images", JSON.stringify(S.images)); localStorage.setItem("zombi-docs:models", JSON.stringify(S.models)); };
-  try { S.images = JSON.parse(await loadText("images.json")); } catch (e) { S.images = fallback("images") || { items: [] }; }
-  try { S.models = JSON.parse(await loadText("models.json")); } catch (e) { S.models = fallback("models") || { items: [] }; }
+  try { S.images = JSON.parse(await loadText("content/images.json")); } catch (e) { S.images = fallback("images") || { items: [] }; }
+  try { S.models = JSON.parse(await loadText("content/models.json")); } catch (e) { S.models = fallback("models") || { items: [] }; }
   const lI = fallback("images"), lM = fallback("models");
   if (lI && lI.items) lI.items.forEach((i) => { if (!S.images.items.some((x) => x.file === i.file)) S.images.items.unshift(i); });
   if (lM && lM.items) lM.items.forEach((i) => { if (!S.models.items.some((x) => x.file === i.file)) S.models.items.unshift(i); });
