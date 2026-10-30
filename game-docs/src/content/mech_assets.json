@@ -1,0 +1,189 @@
+{
+  "id": "assets",
+  "kind": "mechanics",
+  "title": "3D-модели и ассеты",
+  "subtitle": "Бюджеты, naming, риг, экспорт, LFS и реестр файлов",
+  "status": "draft",
+  "updated": "2026-10-30T21:17:05Z",
+  "blocks": [
+    {
+      "type": "note",
+      "text": "Раздел «как делать ассеты, чтобы Godot не умер». Готовые превью моделей — на вкладке «Картинки / превью» (таб 3)."
+    },
+    {
+      "type": "h",
+      "text": "Бюджеты"
+    },
+    {
+      "type": "kv",
+      "head": [
+        "Категория",
+        "Треугольники",
+        "Текстуры",
+        "Материалы",
+        "Примечание"
+      ],
+      "rows": [
+        [
+          "персонаж (игрок)",
+          "28–35 k",
+          "2K×4 (ALBMR)",
+          "1 skin + 1 eye",
+          "3 LOD: 1.0 / 0.45 / 0.15"
+        ],
+        [
+          "зомби",
+          "18–24 k",
+          "1K×4",
+          "1 + decal",
+          "общий скелет, 6 «морф»-лиц"
+        ],
+        [
+          "проп (ящик, станок)",
+          "0,4–2,5 k",
+          "1K atlas",
+          "1–2",
+          "atlas на 6–10 пропов"
+        ],
+        [
+          "окружение (стена, дом)",
+          "3–8 k",
+          "1K tileable + 1 decal",
+          "1–2",
+          "модули 1/2/4 м, тайлинг"
+        ],
+        [
+          "оружие",
+          "5–9 k",
+          "1K×4 (1 на 3 ствола)",
+          "1–2",
+          "1 модель = 3 уровня износа"
+        ],
+        [
+          "транспорт (катер)",
+          "25–40 k",
+          "2K",
+          "3",
+          "отдельно: «на плаву/разбит»"
+        ],
+        [
+          "природа (дерево)",
+          "3–6 k",
+          "1K + 2 LOD-билборда",
+          "1",
+          "wind-шейдер через vertex shader"
+        ]
+      ]
+    },
+    {
+      "type": "h",
+      "text": "Naming (обязательно)"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "code": "chr_mark_01.glb            # персонаж\nchr_zom_walker_01.glb\nprop_crate_wood_a.glb      # пропсы\nenv_house_baltic_a.glb     # окружение/модули\nwpn_sawnoff_01.glb         # оружие\nveh_boat_tulen_01.glb      # транспорт\ntex_env_wall_baltic_2k_alb.png    # текстуры: _alb/_nrm/_mra/_emi\nsnd_amb_port_rain_loop.ogg\n# суффиксы: _lod1/_lod2, _col (colisión proxy), _var_a/_var_b"
+    },
+    {
+      "type": "h",
+      "text": "Правила экспорта"
+    },
+    {
+      "type": "list",
+      "ordered": false,
+      "items": [
+        "Источник — Blender (файл .blend в `art/src`), экспорт в GLB (glTF binary) с -Y up -> +Y (Godot сам перевернёт).",
+        "Масштаб 1 ед = 1 м; origin на земле, в «центре основания»; forward = -Z (Godot) или +Z (Blender), решить раз и не менять.",
+        "Скелет — единый Humanoid (Godot 4: «Skeleton Profile» 15 костей), все скины на нём; зомби — тот же + 4 кости «челюсть/плечи».",
+        "Материалы: Metallic-Roughness, без «Specular workflow», alpha — только `scissor` или `hash`, не blend (перерисовка!).",
+        "LOD — через Import: LODGroup, коллизия — упрощённая (convex decomposition <= 12 hulls), не в лоте на 60 Гц.",
+        "Оптимизация: GPU instancing для пропов, lightmap (Bake) для статичного окружения, GI = VoxelGI/SSGI + «запечёный» дальний план."
+      ]
+    },
+    {
+      "type": "h",
+      "text": "Импорт в Godot (ключевые настройки)"
+    },
+    {
+      "type": "code",
+      "lang": "ini",
+      "code": "# .godot/imported не коммитим; рядом кладём .import с настройками\n[params] \n# — для gltf:\nnodes/apply_scales=true\nmeshes/use_compress=true\nanimation/intersection_mode=1   # физика/коллизии не импортируем из DCC\ntextures/detect_3d_compression=true\n# — для текстур: compress/mode = «High Quality (VRAM)», mipmaps on"
+    },
+    {
+      "type": "list",
+      "ordered": false,
+      "items": [
+        "Все текстуры 2K в Basis/ETC2 — -70 % памяти, -2 c загрузки уровня.",
+        "Компрессию normal-мап держать в «Normal Map» флаге, иначе «мыло»."
+      ]
+    },
+    {
+      "type": "h",
+      "text": "Регистр файлов проекта (важно: репозиторий)"
+    },
+    {
+      "type": "kv",
+      "head": [
+        "Куда кладём",
+        "Что",
+        "Лимит файла",
+        "LFS?"
+      ],
+      "rows": [
+        [
+          "game-docs/src/content/models/",
+          "превью-модели GLB/GLTF для сайта",
+          "<= 8 МБ",
+          "пока нет"
+        ],
+        [
+          "game-docs/src/content/images/",
+          "концепты/скриншоты для сайта",
+          "<= 1,5 МБ (сжатые)",
+          "нет"
+        ],
+        [
+          "art/src/*.blend",
+          "исходники",
+          "—",
+          "да (когда перерастёт)"
+        ],
+        [
+          "Ostrov/godot/",
+          "сам Godot-проект",
+          "—",
+          "да"
+        ],
+        [
+          "корень (*.7z.001)",
+          "старые архивы",
+          "20 МБ",
+          "нет (так и оставить, не трогать)"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": [
+        "Каталог `game-docs/` живёт отдельно от архивов и от Godot-проекта — это «папка проекта-документации», чтобы ничего не мешалось. Большие бинарники в git без LFS не тащим: 1 коммит с 300 МБ = вечный клон."
+      ]
+    },
+    {
+      "type": "h",
+      "text": "Открытые вопросы"
+    },
+    {
+      "type": "todo",
+      "items": [
+        {
+          "text": "Перевод репозитория на Git LFS (когда будет > 1 ГБ) — кто и когда.",
+          "done": false
+        },
+        {
+          "text": "Делать ли 2-й «морф» лица для каждого зомби (экономия vs однообразие).",
+          "done": false
+        }
+      ]
+    }
+  ]
+}

@@ -36,3 +36,7 @@ desktop.ini
 *.exe
 *.pck
 *.zip
+
+# ---- сайт-библия: собранный статичный билд (публикуется в gh-pages)
+_site/
+/game-docs/src/_site/
