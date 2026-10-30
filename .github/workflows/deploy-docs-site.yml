@@ -20,7 +20,8 @@ on:
 
 permissions:
   contents: write
-  pages: write
+  pages: write      # чтобы при необходимости включить GitHub Pages из same workflow
+  metadata: read
 
 concurrency:
   group: deploy-docs-site
@@ -70,6 +71,29 @@ jobs:
           clean-exclude: |
             .nojekyll
           commit-message: "chore(site): deploy ZOMBI bible (${{ github.ref_name }})"
+
+      - name: Ensure GitHub Pages is enabled (source: gh-pages /)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -uo pipefail
+          R="${{ github.repository }}"
+          code=$(curl -s -o /tmp/pages.json -w '%{http_code}' -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$R/pages")
+          echo "GET /pages -> $code"
+          if [ "$code" != "200" ]; then
+            echo "Pages ещё не включён — пробуем включить из workflow…"
+            curl -s -X POST -H "Authorization: Bearer $GH_TOKEN" -H 'Content-Type: application/json' \
+              -d '{"build_type":"branch","source":{"branch":"gh-pages","path":"/"}}' \
+              "https://api.github.com/repos/$R/pages" -o /tmp/pages_post.json -w 'POST -> %{http_code}\n' || true
+            curl -s -X PATCH -H "Authorization: Bearer $GH_TOKEN" -H 'Content-Type: application/json' \
+              -d '{"build_type":"branch","source":{"branch":"gh-pages","path":"/"}}' \
+              "https://api.github.com/repos/$R/pages" -o /tmp/pages_patch.json -w 'PATCH -> %{http_code}\n' || true
+          fi
+          for i in $(seq 1 12); do
+            url=$(curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$R/pages" | python3 -c 'import sys,json;print(json.load(sys.stdin).get("html_url",""))' 2>/dev/null || true)
+            if [ -n "${url:-}" ]; then echo "Pages URL: $url"; break; fi
+            echo "жду включения Pages… ($i)"; sleep 5
+          done
 
       - name: Summary
         run: |
