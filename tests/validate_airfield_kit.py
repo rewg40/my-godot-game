@@ -75,7 +75,8 @@ def main():
     assert any(m.get("alphaMode") == "BLEND" for m in docs["fence_section"]["materials"]), "fence wire alpha was lost"
     for marker in ("marker_infected", "marker_loot", "marker_story"):
         assert any(n.get("extras", {}).get("purpose") for n in docs[marker]["nodes"]), f"{marker}: missing marker metadata"
-    assert (KIT / "airport_kit.blend").stat().st_size > 100_000
+    assert (KIT / "blender/airport_kit.blend").stat().st_size > 100_000
+    assert (KIT / "blender/.gdignore").is_file(), "Blender source must be ignored by Godot's importer"
     scenes = {"hangar_large", "hangar_small", "control_tower", "service_building", "fuel_station", "fence_section", "fence_gate", "runway_10x10"}
     scene_dir = KIT / "godot_scenes"
     assert {p.stem for p in scene_dir.glob("*.tscn")} == scenes

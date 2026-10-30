@@ -47,7 +47,7 @@ def import_asset(name):
 
 
 def main():
-    result = bpy.ops.wm.open_mainfile(filepath=str(KIT / "airport_kit.blend"))
+    result = bpy.ops.wm.open_mainfile(filepath=str(KIT / "blender/airport_kit.blend"))
     check("FINISHED" in result, "editable Blender source opens")
     for name in ("hangar_large", "hangar_small", "service_building", "control_tower", "fence_gate", "pine_tree"):
         check(bpy.data.collections.get(name) is not None, name + " has a separate Blender collection")

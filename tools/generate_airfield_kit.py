@@ -1122,7 +1122,12 @@ def main():
     # Pack textures from both the created and reused models into the native file.
     bpy.ops.file.pack_all()
     bpy.context.preferences.filepaths.save_version=0
-    blend_path=str(OUT/"airport_kit.blend")
+    # Keep the editable source in a Godot-ignored subfolder. Otherwise an
+    # unconfigured Godot editor tries to auto-import it and can block startup.
+    blend_dir=OUT/"blender"
+    blend_dir.mkdir(parents=True,exist_ok=True)
+    (blend_dir/".gdignore").touch()
+    blend_path=str(blend_dir/"airport_kit.blend")
     bpy.ops.wm.save_as_mainfile(filepath=blend_path)
     print("Saved",blend_path,flush=True)
     if "--skip-render" not in sys.argv:
