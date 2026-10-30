@@ -75,6 +75,12 @@ python3 tools/rig_user_zombie.py /tmp/zombie-optimized.glb assets/models/zombie/
 
 `assets/models/construction/` содержит модели `pir_platform`, `pir_platform-planks` из Kenney Pirate Kit и `td_wood-structure-high-part` из Kenney Tower Defense Kit, взятые из папки `модели/05_buildings_structures` ветки библиотеки этого репозитория. **Автор Kenney, лицензия CC0 1.0**. В игре геометрия масштабируется и переориентируется под модульные элементы; вместо цветов палитры используется фототекстура дерева Poly Haven. Коллизии, дверной проём и подвижная петля остаются игровыми.
 
+## Набор аэродрома
+
+`assets/models/airport_kit/` — процедурно созданные для проекта приближённые модели аэродрома, редактируемая Blender-сцена и отдельные GLB. Для них изменены перечисленные выше CC0-фототекстуры Poly Haven (Concrete Wall 008, Weathered Planks, Rusty Metal 02, Asphalt 02) и повторно использованы указанные выше модели Pine Tree 01, Grass Medium 01, Shrub Sorrel 01 и Rock 07. У дерева добавлены процедурные карточки хвои; кусты, трава и камни размножены и масштабированы.
+
+Бонусная модель `assets/models/airport_kit/glb/abandoned_sedan.glb` и её копия в Blender-сцене — **Abandoned Generic Sedan 2 - Game Ready**, **Rashad Ibrahimli**, **CC BY 4.0**: https://creativecommons.org/licenses/by/4.0/. Источник: https://sketchfab.com/3d-models/abandoned-generic-sedan-2-game-ready-db2df46c49f9441286c84c66208ef7ac. Седан масштабирован, повёрнут и повторно экспортирован из `assets/models/props/abandoned_sedan.glb`. Указание автора, лицензии, источника и изменений включено также в README набора.
+
 ## Kenney — 3D-объекты и звуки
 
 **Лицензия: CC0 1.0.** Автор: Kenney / Kenney.nl. В `assets/models/kenney/` находятся выбранные модели природы, выживания, жилых и промышленных зданий из наборов Nature Kit, Survival Kit, City Kit (Suburban) и City Kit (Industrial), а также их текстуры. `assets/audio/` содержит эффекты из Digital Sounds и Jingle Sounds.

@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/runway_10x10.glb" id="model_1"]
+
+[sub_resource type="BoxShape3D" id="shape_1"]
+size = Vector3(10, 0.2, 10)
+
+[node name="runway_10x10" type="Node3D"]
+
+[node name="Visual_runway_10x10" parent="." instance=ExtResource("model_1")]
+
+[node name="Static_collision" type="StaticBody3D" parent="."]
+
+[node name="Runway_floor" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(0, -0.1, 0)
+shape = SubResource("shape_1")

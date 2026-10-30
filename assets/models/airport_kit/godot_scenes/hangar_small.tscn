@@ -1,0 +1,81 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/hangar_small.glb" id="model_1"]
+
+[sub_resource type="BoxShape3D" id="shape_1"]
+size = Vector3(18, 0.2, 18)
+
+[sub_resource type="BoxShape3D" id="shape_2"]
+size = Vector3(0.24, 5.2, 18)
+
+[sub_resource type="BoxShape3D" id="shape_3"]
+size = Vector3(3, 5.2, 0.24)
+
+[sub_resource type="BoxShape3D" id="shape_4"]
+size = Vector3(6, 5, 0.2)
+
+[sub_resource type="BoxShape3D" id="shape_5"]
+size = Vector3(0.24, 5.2, 18)
+
+[sub_resource type="BoxShape3D" id="shape_6"]
+size = Vector3(3, 5.2, 0.24)
+
+[sub_resource type="BoxShape3D" id="shape_7"]
+size = Vector3(6, 5, 0.2)
+
+[sub_resource type="BoxShape3D" id="shape_8"]
+size = Vector3(18, 5.2, 0.24)
+
+[sub_resource type="BoxShape3D" id="shape_9"]
+size = Vector3(9.566833, 0.25, 18.4)
+
+[sub_resource type="BoxShape3D" id="shape_10"]
+size = Vector3(9.566833, 0.25, 18.4)
+
+[node name="hangar_small" type="Node3D"]
+
+[node name="Visual_hangar_small" parent="." instance=ExtResource("model_1")]
+
+[node name="Static_collision" type="StaticBody3D" parent="."]
+
+[node name="Floor" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(0, -0.1, 0)
+shape = SubResource("shape_1")
+
+[node name="Side_wall_-1" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-8.88, 2.6, 0)
+shape = SubResource("shape_2")
+
+[node name="Front_pier_-1" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-7.5, 2.6, 8.88)
+shape = SubResource("shape_3")
+
+[node name="Parked_door_-1" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-9, 2.5, 9.18)
+shape = SubResource("shape_4")
+
+[node name="Side_wall_1" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(8.88, 2.6, 0)
+shape = SubResource("shape_5")
+
+[node name="Front_pier_1" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(7.5, 2.6, 8.88)
+shape = SubResource("shape_6")
+
+[node name="Parked_door_1" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(9, 2.5, 9.18)
+shape = SubResource("shape_7")
+
+[node name="Rear_wall" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(0, 2.6, -8.88)
+shape = SubResource("shape_8")
+
+[node name="Roof_left" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-4.5, 6.7, 0)
+rotation = Vector3(0, 0, 0.321751)
+shape = SubResource("shape_9")
+
+[node name="Roof_right" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(4.5, 6.7, 0)
+rotation = Vector3(0, 0, -0.321751)
+shape = SubResource("shape_10")

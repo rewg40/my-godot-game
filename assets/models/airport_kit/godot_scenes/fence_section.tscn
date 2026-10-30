@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/fence_section.glb" id="model_1"]
+
+[sub_resource type="BoxShape3D" id="shape_1"]
+size = Vector3(4, 2.4, 0.12)
+
+[node name="fence_section" type="Node3D"]
+
+[node name="Visual_fence_section" parent="." instance=ExtResource("model_1")]
+
+[node name="Static_collision" type="StaticBody3D" parent="."]
+
+[node name="Fence" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(0, 1.2, 0)
+shape = SubResource("shape_1")

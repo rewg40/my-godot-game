@@ -1,0 +1,66 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/fuel_canopy.glb" id="model_1"]
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/fuel_tank.glb" id="model_2"]
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/fuel_pump.glb" id="model_3"]
+
+[sub_resource type="BoxShape3D" id="shape_1"]
+size = Vector3(0.22, 4.6, 0.22)
+
+[sub_resource type="BoxShape3D" id="shape_2"]
+size = Vector3(0.22, 4.6, 0.22)
+
+[sub_resource type="BoxShape3D" id="shape_3"]
+size = Vector3(0.22, 4.6, 0.22)
+
+[sub_resource type="BoxShape3D" id="shape_4"]
+size = Vector3(0.22, 4.6, 0.22)
+
+[sub_resource type="BoxShape3D" id="shape_5"]
+size = Vector3(11.6, 0.28, 7.6)
+
+[sub_resource type="BoxShape3D" id="shape_6"]
+size = Vector3(2.3, 2.3, 4.8)
+
+[sub_resource type="BoxShape3D" id="shape_7"]
+size = Vector3(0.95, 2, 0.65)
+
+[node name="fuel_station" type="Node3D"]
+
+[node name="Visual_fuel_canopy" parent="." instance=ExtResource("model_1")]
+
+[node name="Visual_fuel_tank" parent="." instance=ExtResource("model_2")]
+position = Vector3(-1, 0, 0)
+
+[node name="Visual_fuel_pump" parent="." instance=ExtResource("model_3")]
+position = Vector3(4.5, 0, 0)
+
+[node name="Static_collision" type="StaticBody3D" parent="."]
+
+[node name="Canopy_post_-5.3_-3.3" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-5.3, 2.3, 3.3)
+shape = SubResource("shape_1")
+
+[node name="Canopy_post_-5.3_3.3" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-5.3, 2.3, -3.3)
+shape = SubResource("shape_2")
+
+[node name="Canopy_post_5.3_-3.3" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(5.3, 2.3, 3.3)
+shape = SubResource("shape_3")
+
+[node name="Canopy_post_5.3_3.3" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(5.3, 2.3, -3.3)
+shape = SubResource("shape_4")
+
+[node name="Canopy_roof" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(0, 4.74, 0)
+shape = SubResource("shape_5")
+
+[node name="Tank_approximate" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-1, 1.65, 0)
+shape = SubResource("shape_6")
+
+[node name="Pump" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(4.5, 1, 0)
+shape = SubResource("shape_7")

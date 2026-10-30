@@ -1,0 +1,135 @@
+[gd_scene load_steps=20 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/service_building.glb" id="model_1"]
+
+[sub_resource type="BoxShape3D" id="shape_1"]
+size = Vector3(16, 0.2, 10)
+
+[sub_resource type="BoxShape3D" id="shape_2"]
+size = Vector3(3.2, 3.8, 0.24)
+
+[sub_resource type="BoxShape3D" id="shape_3"]
+size = Vector3(4.2, 3.8, 0.24)
+
+[sub_resource type="BoxShape3D" id="shape_4"]
+size = Vector3(2.7, 3.8, 0.24)
+
+[sub_resource type="BoxShape3D" id="shape_5"]
+size = Vector3(1.6, 1.35, 0.24)
+
+[sub_resource type="BoxShape3D" id="shape_6"]
+size = Vector3(4.3, 1, 0.24)
+
+[sub_resource type="BoxShape3D" id="shape_7"]
+size = Vector3(4.3, 1.15, 0.24)
+
+[sub_resource type="BoxShape3D" id="shape_8"]
+size = Vector3(4.3, 1.65, 0.05)
+
+[sub_resource type="BoxShape3D" id="shape_9"]
+size = Vector3(0.12, 2.45, 1.6)
+
+[sub_resource type="BoxShape3D" id="shape_10"]
+size = Vector3(16, 3.8, 0.24)
+
+[sub_resource type="BoxShape3D" id="shape_11"]
+size = Vector3(0.24, 3.8, 10)
+
+[sub_resource type="BoxShape3D" id="shape_12"]
+size = Vector3(0.24, 3.8, 10)
+
+[sub_resource type="BoxShape3D" id="shape_13"]
+size = Vector3(0.16, 3.8, 3.5)
+
+[sub_resource type="BoxShape3D" id="shape_14"]
+size = Vector3(0.16, 3.8, 3.5)
+
+[sub_resource type="BoxShape3D" id="shape_15"]
+size = Vector3(0.16, 1.35, 3)
+
+[sub_resource type="BoxShape3D" id="shape_16"]
+size = Vector3(16.5, 0.24, 10.5)
+
+[sub_resource type="BoxShape3D" id="shape_17"]
+size = Vector3(0.13, 2.96, 0.13)
+
+[sub_resource type="BoxShape3D" id="shape_18"]
+size = Vector3(0.13, 2.96, 0.13)
+
+[node name="service_building" type="Node3D"]
+
+[node name="Visual_service_building" parent="." instance=ExtResource("model_1")]
+
+[node name="Static_collision" type="StaticBody3D" parent="."]
+
+[node name="Floor" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(0, -0.1, 0)
+shape = SubResource("shape_1")
+
+[node name="Front_wall_0" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-6.4, 1.9, 4.88)
+shape = SubResource("shape_2")
+
+[node name="Front_wall_1" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-1.1, 1.9, 4.88)
+shape = SubResource("shape_3")
+
+[node name="Front_wall_2" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(6.65, 1.9, 4.88)
+shape = SubResource("shape_4")
+
+[node name="Door_header" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-4, 3.125, 4.88)
+shape = SubResource("shape_5")
+
+[node name="Window_sill" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(3.15, 0.5, 4.88)
+shape = SubResource("shape_6")
+
+[node name="Window_header" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(3.15, 3.225, 4.88)
+shape = SubResource("shape_7")
+
+[node name="Window_glass" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(3.15, 1.825, 4.88)
+shape = SubResource("shape_8")
+
+[node name="Open_personnel_door" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-4.87, 1.225, 5.8)
+shape = SubResource("shape_9")
+
+[node name="Back_wall" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(0, 1.9, -4.88)
+shape = SubResource("shape_10")
+
+[node name="Side_wall_with_glass_-1" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(-7.88, 1.9, 0)
+shape = SubResource("shape_11")
+
+[node name="Side_wall_with_glass_1" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(7.88, 1.9, 0)
+shape = SubResource("shape_12")
+
+[node name="Room_partition_front" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(0, 1.9, 3.25)
+shape = SubResource("shape_13")
+
+[node name="Room_partition_back" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(0, 1.9, -3.25)
+shape = SubResource("shape_14")
+
+[node name="Room_partition_header" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(0, 3.125, 0)
+shape = SubResource("shape_15")
+
+[node name="Roof" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(0, 3.92, 0)
+shape = SubResource("shape_16")
+
+[node name="Awning_post_-4.25" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(11.1, 1.48, 4.25)
+shape = SubResource("shape_17")
+
+[node name="Awning_post_4.25" type="CollisionShape3D" parent="Static_collision"]
+position = Vector3(11.1, 1.48, -4.25)
+shape = SubResource("shape_18")
