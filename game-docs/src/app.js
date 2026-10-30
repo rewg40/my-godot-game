@@ -11,7 +11,8 @@
 const API = "https://api.github.com";
 const REPO_DEFAULT = { owner: "rewg40", repo: "my-godot-game", branch: "arena/73c7370f-my-godot-game" };
 /* Запас, если config.json не читается (CORS/прокси/офлайн-кэш): вход обязан остаться возможным. */
-const FALLBACK_HASHES = ["db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e"];  // код владельца
+const FALLBACK_HASHES = ["db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e"];  // запасной список
+const FALLBACK_OWNER_HASH = FALLBACK_HASHES[0];        // владелец: синхронная сверка, сеть не нужна
 const MIRRORS = [                                  // где ещё искать config/content
   (o) => `https://rewg40.github.io/my-godot-game/${o}`,
   (o) => `https://cdn.jsdelivr.net/gh/rewg40/my-godot-game@gh-pages/${o}`,
@@ -65,7 +66,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.2 · offline-safe";
+const SITE_BUILD = "2026-10-31.4 · offline login + remember";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -148,7 +149,7 @@ const utf8 = {
 const S = {
   config: { gate: { enabled: true, ownerCode: "", allowed: [] }, contentPath: SRC_PREFIX + "/content", imagesPath: SRC_PREFIX + "/content/images", modelsPath: SRC_PREFIX + "/content/models", inboxPath: SRC_PREFIX + "/content/agent-inbox", origin: { ...REPO_DEFAULT } },
   origin: { ...REPO_DEFAULT },
-  token: "", admin: false, cfgLoaded: false, cfgOk: false, mirror: null, readonlyGate: false,
+  token: "", admin: false, cfgLoaded: false, cfgOk: false, cfgFailed: false, inside: false, mirror: null, readonlyGate: false,
   mainTab: "scenario", mechIndex: MECH.map((m) => m.id), sub: "character",
   content: null, contentFile: null, contentSha: null, contentName: "",
   images: null, models: null, dirty: new Set(),
@@ -208,23 +209,27 @@ async function ghListDir(path) {
 
 /* loadText(sitePath): sitePath — путь относительно корня сайта (= game-docs/src при деплое).
    Сначала пробуем файл рядом с сайтом (Pages и локальный сервер), затем — репозиторий через API. */
-async function fetchText(url, mode) {
-  const r = await fetch(url, { cache: "no-store", mode: mode || "cors" });
-  if (!r.ok) throw new Error("HTTP " + r.status);
-  return await r.text();
+async function fetchText(url, mode, ms) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms || 4000);
+  try {
+    const r = await fetch(url, { cache: "no-store", mode: mode || "cors", signal: ctrl.signal });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return await r.text();
+  } finally { clearTimeout(t); }
 }
 /* Ищем файл: рядом с сайтом → Pages → jsDelivr → GitHub API (с токеном).
    Первый successful источник запоминается, чтобы не дёргать все подряд на каждый раздел. */
 async function loadText(sitePath) {
   if (location.protocol === "http:" || location.protocol === "https:") {
-    try { return await fetchText(encodeURI(sitePath) + "?v=" + Date.now()); } catch (e) { /* следующее зеркало */ }
+    try { return await fetchText(encodeURI(sitePath) + "?v=" + Date.now(), "same-origin", 4000); } catch (e) { /* следующее зеркало */ }
   }
   if (S.mirror != null && MIRRORS[S.mirror]) {
-    try { return await fetchText(MIRRORS[S.mirror](sitePath)); } catch (e) { /* следующее */ }
+    try { return await fetchText(MIRRORS[S.mirror](sitePath), "cors", 3500); } catch (e) { /* следующее */ }
   }
   for (let i = 0; i < MIRRORS.length; i++) {
     if (i === S.mirror) continue;
-    try { const t = await fetchText(MIRRORS[i](sitePath)); S.mirror = i; return t; } catch (e) { /* следующее */ }
+    try { const t = await fetchText(MIRRORS[i](sitePath), "cors", 3500); S.mirror = i; return t; } catch (e) { /* следующее */ }
   }
   if (S.origin.owner) return (await ghGetFile(`${SRC_PREFIX}/${sitePath}`)).text;
   throw new Error("файл недоступен ни локально, ни через репозиторий");
@@ -600,14 +605,14 @@ function buildSubtabs() {
 const statusCache = {};
 function statusOf(m) {
   const key = m.file;
-  const dr = JSON.parse(localStorage.getItem(draftKey(key)) || "null");
+  const dr = JSON.parse(localStorage.getItem(draftKey("content/" + key)) || "null");
   if (dr && dr.status) return dr.status;
   return statusCache[key] || "draft";
 }
 async function primeStatuses() {
   for (const m of MECH) {
     try {
-      const j = JSON.parse(await loadText(m.file));
+      const j = JSON.parse(await loadText("content/" + m.file));
       statusCache[m.file] = j.status;
     } catch (e) { /* нет файла/нет сети — не критично */ }
   }
@@ -744,7 +749,8 @@ function download(name, text, mime) {
 /* ----------------------------- доступ (замок) ------------------------------ */
 async function loadConfig() {
   let raw = null;
-  try { raw = await loadText("config.json"); S.cfgOk = true; } catch (e) { S.cfgOk = false; }
+  try { raw = await loadText("config.json"); S.cfgOk = true; S.cfgFailed = false; }
+  catch (e) { S.cfgOk = false; S.cfgFailed = true; }
   if (raw) { try { S.config = { ...S.config, ...JSON.parse(raw), gate: { ...S.config.gate, ...(JSON.parse(raw).gate || {}) } }; } catch (e) { /* ignore */ } }
   S.cfgLoaded = true;
   const host = location.hostname || "";
@@ -756,32 +762,39 @@ async function loadConfig() {
     }
   }
 }
+/* Проверка кода НЕ должна ничего качать: сеть в России у github.io живёт своей жизнью.
+   Шаги: (1) синхронно сверяем хеш с константой в app.js → пуск; (2) если есть config.json —
+   сверяемся с ним (это право записи); (3) если config не прочитан — пускаем на чтение. */
 async function tryUnlock(raw, quiet) {
-  const g = S.config.gate || {};
-  if (!g.enabled) return true;
   const code = String(raw == null ? "" : raw).trim().normalize("NFC");
-  if (!code) { gateMsg("Введи код — регистр и пробелы важны. Под полём есть кнопка «повторить проверку конфига».", true); return false; }
+  if (!code) { gateMsg("Пусто. Введи код доступа (регистр важен, пробелы можно убрать).", true); return false; }
   let h = "";
   try { h = String(await sha256Hex(code)).toLowerCase(); }
-  catch (e) { gateMsg("Браузер не может вычислить хеш: " + e.message, true); return false; }
-  if (h.length !== 64) { gateMsg("Хеш вернулся неполным (" + h.length + " симв.) — обнови страницу по HTTPS.", true); return false; }
-  const ownerHash = String(g.ownerCode || "").toLowerCase();
-  const allowlist = [...(g.allowed || []), ...(S.cfgOk ? [] : FALLBACK_HASHES)].map((x) => String(x).toLowerCase()).filter(Boolean);
-  if (!ownerHash && S.cfgOk) { g.ownerCode = FALLBACK_HASHES[0]; }   // конфиг без владельца — считаем владельца запасным
-  const knownOwner = ownerHash || (S.cfgOk ? "" : FALLBACK_HASHES[0]);
-  const isOwner = !!knownOwner && h === knownOwner;
-  const isGuest = !isOwner && allowlist.includes(h);
-  if (isOwner || isGuest) {
-    try { localStorage.setItem(LS.unlocked, h); localStorage.setItem(LS.admin, isOwner ? "1" : "0"); } catch (e) { /* private mode */ }
-    S.admin = isOwner; S.readonlyGate = !S.cfgOk; gateMsg("", false); return true;
-  }
-  if (!S.cfgOk) {   // конфиг не прочитан: пускаем на чтение, но предупреждаем
-    S.readonlyGate = true;
-    gateMsg("Код не совпал с запасным кодом владельца, а config.json сейчас не читается — открою только на чтение.", false);
+  catch (e) { gateMsg("Хеш не вычисляется: " + ((e && e.message) || e) + " — обнови страницу по https:// (Ctrl+F5).", true); return false; }
+  if (h.length !== 64) { gateMsg("Хеш неполный (" + h.length + " симв.) — скрипт устарел, обнови Ctrl+F5.", true); return false; }
+  const g = S.config.gate || {};
+  const owner = String(g.ownerCode || "").toLowerCase();
+  const cfgList = (g.allowed || []).map((x) => String(x).toLowerCase()).filter(Boolean);
+  const inside = (admin) => {
+    try { localStorage.setItem(LS.unlocked, h); localStorage.setItem(LS.admin, admin ? "1" : "0"); } catch (e) { /* private mode */ }
+    S.admin = admin; gateMsg("", false);
+  };
+  if (h === FALLBACK_OWNER_HASH) {                       // владелец — всегда, даже без сети
+    inside(true);
+    if (owner && owner !== h) gateMsg("Код владельца в config.json отличается от встроенного — обнови конфиг.", false);
+    S.readonlyGate = !S.cfgOk && !S.cfgLoaded;
     return true;
   }
-  if (!quiet) gateMsg("Код не подходит. Хеш введённого: " + h.slice(0, 12) + "… — такой строки нет в config.json. Если код выдавал автор — попроси добавить его в «Настройки → Доступ» и подожди ~1 мин до деплоя.", true);
-  return false;
+  if (S.cfgOk) {                                          // конфиг прочитан: решают списки из него
+    if (owner && h === owner) { inside(true); return true; }
+    if (cfgList.includes(h)) { inside(false); return true; }
+    if (!quiet) gateMsg("Код не подходит. Хеш введённого: " + h.slice(0, 12)
+      + "… — такой строки нет в config.json (владелец + " + cfgList.length + " гостевых).", true);
+    return false;
+  }
+  S.readonlyGate = true;                                  // сети нет — только чтение, но вход есть
+  gateMsg("config.json сейчас не читается — пускаю на чтение. Для записи дождись сети и нажми «⟳ Перепроверить конфиг».", false);
+  return true;
 }
 function gateMsg(text, isError) {
   const m = document.getElementById("gate-msg");
@@ -790,26 +803,30 @@ function gateMsg(text, isError) {
   m.hidden = !text;
   m.style.color = isError ? "var(--bad)" : "var(--tx3)";
 }
+function openSite() { $("#gate").hidden = true; $("#app").hidden = false; S.inside = true; return true; }
 function wireGate() {
   const g = S.config.gate || {};
+  // замок включаем по умолчанию только если конфиг реально не удалось прочитать;
+  // «ещё не дочитался» — не повод светить контент
+  const gateOn = S.cfgFailed ? true : (g.enabled !== false);
   const badge = document.getElementById("gate-build");
   if (badge) badge.textContent = "site " + SITE_BUILD + " · " + (S.cfgOk
     ? ("config: " + ((g.allowed || []).length ? g.allowed.length + " доп. код(ов) + владелец" : "только код владельца"))
-    : "config НЕ загружен — сверка по запасному коду");
+    : "config не загружен (сеть) — вход по встроенному коду владельца, только чтение");
   const local = ["localhost", "127.0.0.1", ""].includes(location.hostname);
   const forceOpen = new URLSearchParams(location.search).has("open") || location.hash.includes("open=1");
   if (forceOpen) S.readonlyGate = true;
-  if (forceOpen || !g.enabled || localStorage.getItem("zombi-docs:demomode") === "1") { $("#gate").hidden = true; $("#app").hidden = false; return true; }
+  if (forceOpen || !gateOn || localStorage.getItem("zombi-docs:demomode") === "1") { return openSite(); }
   let saved = null;
   try { saved = localStorage.getItem(LS.unlocked); } catch (e) { /* ignore */ }
-  const all = [...(g.allowed || []), g.ownerCode || ""].map((x) => String(x).toLowerCase());
-  if (saved && all.includes(saved)) { S.admin = localStorage.getItem(LS.admin) === "1"; $("#gate").hidden = true; $("#app").hidden = false; return true; }
+  const all = [...(g.allowed || []), g.ownerCode || "", ...FALLBACK_HASHES].map((x) => String(x).toLowerCase()).filter(Boolean);
+  if (saved && all.includes(saved)) { S.admin = localStorage.getItem(LS.admin) === "1"; return openSite(); }
   $("#gate").hidden = false; $("#app").hidden = true;
   const dm = document.getElementById("gate-demo");
   if (dm) {
     dm.hidden = !local;                                   // «демо» показываем только на локальном предпросмотре
     dm.onclick = () => { try { localStorage.setItem("zombi-docs:demomode", "1"); } catch (e) {}
-      $("#gate").hidden = true; $("#app").hidden = false; boot2(); toast("Демо-режим: замок отключён только в этом браузере.", "warn", 5000); };
+      openSite(); boot2(); toast("Демо-режим: замок отключён только в этом браузере.", "warn", 5000); };
   }
   const eye = document.getElementById("gate-eye");
   if (eye) eye.onclick = () => { const i = $("#gate-code"); i.type = i.type === "password" ? "text" : "password"; eye.textContent = i.type === "password" ? "👁" : "🙈"; };
@@ -822,7 +839,7 @@ function wireGate() {
     try { ok = await tryUnlock($("#gate-code").value); }
     catch (err) { gateMsg("Ошибка проверки кода: " + err.message, true); }
     if (btn) btn.disabled = false;
-    if (ok) { $("#gate").hidden = true; $("#app").hidden = false; boot2(); }
+    if (ok) { openSite(); boot2(); }
   };
   const auto = (location.hash.match(/[#&]code=([^&]+)/) || [])[1];
   if (auto) { $("#gate-code").value = decodeURIComponent(auto); setTimeout(() => { const f = $("#gate-form"); if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); }, 250); }
@@ -1245,7 +1262,8 @@ async function boot() {
     const o = JSON.parse(localStorage.getItem(LS.origin) || "null"); if (o) S.origin = { ...S.origin, ...o };
     S.token = localStorage.getItem(LS.token) || "";
   } catch (e) { /* ignore */ }
-  await loadConfig();
+  wireGate();                        // замок сразу: проверка кода не зависит от сети
+  const cfgP = loadConfig().catch(() => {});
   const cfg = S.config.origin;
   if (cfg && cfg.repo && !localStorage.getItem(LS.origin)) S.origin = { ...S.origin, owner: cfg.owner || S.origin.owner, repo: cfg.repo, branch: cfg.branch || S.origin.branch };
   if (S.config.token || S.config.githubToken) { delete S.config.token; delete S.config.githubToken; }  // на всякий случай: токены в репо не хранятся
@@ -1255,8 +1273,16 @@ async function boot() {
   wireDoc();
   updateFoot();
   primeStatuses();
-  wireGate();
-  if ($("#app").hidden) return;   // ждём код
+  const open = !!S.inside;                  // решение замка, а не состояние DOM
+  cfgP.then(async () => {
+    updateFoot();
+    if (S.inside) return;                            // уже внутри — не мешаем
+    const v = $("#gate-code") ? String($("#gate-code").value).trim() : "";
+    if (!v) { wireGate(); return; }                       // сам не вмешиваемся, пока поля пустые
+    if (await tryUnlock(v, true)) { openSite(); boot2(); }
+    else wireGate();
+  });
+  if (!open) return;   // ждём код
   boot2();
 }
 let booted = false;
