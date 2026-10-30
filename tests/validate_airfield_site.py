@@ -24,7 +24,7 @@ assert len(site.INFECTED) == 15 and len(site.LOOT) == 8 and len(site.STORY) == 2
 assert text.count('groups=["airfield_infected_marker"]') == 15
 assert text.count('groups=["airfield_loot_marker"]') == 8
 assert text.count('groups=["airfield_story_marker"]') == 2
-assert text.count('type="MultiMeshInstance3D"') == 6  # batched fence posts
+assert text.count('type="MultiMeshInstance3D"') == 7  # six fence spans and apron cracks
 assert text.count('instance=ExtResource("scene_fence_gate")') == 2
 assert 'EDITOR_ONLY_' not in text
 for path in re.findall(r'path="res://([^"]+)"', text):

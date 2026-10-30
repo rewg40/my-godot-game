@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import importlib.util
 import math
+import random
 from pathlib import Path
 
 import bpy
@@ -28,6 +29,7 @@ scene.cycles.use_denoising = True
 scene.render.image_settings.file_format = "JPEG"
 scene.render.image_settings.quality = 88
 scene.render.resolution_percentage = 100
+scene.view_settings.exposure = 0.7
 scene.world = bpy.data.worlds.new("Overcast daylight")
 scene.world.use_nodes = True
 scene.world.node_tree.nodes.get("Background").inputs["Color"].default_value = (.67, .72, .68, 1)
@@ -96,10 +98,18 @@ apron = textured("Weathered apron", "assets/models/airport_kit/textures/weathere
 taxi = textured("Weathered taxiway", "assets/models/airport_kit/textures/cracked_asphalt.jpg", (.69,.70,.67,1), (3,7))
 road = textured("Access road", "assets/models/airport_kit/textures/cracked_asphalt.jpg", (.68,.69,.65,1), (2,5))
 paint = flat_color("Old runway paint", (.72,.70,.60))
+crack = flat_color("Dark apron cracks", (.19,.20,.18))
 metal = flat_color("Aged fence metal", (.28,.27,.22), .65)
 plane("GrassTerrain", 0, 0, *site.FIELD, 0, grass)
 plane("Runway", 0, site.RUNWAY_Z, site.RUNWAY_LENGTH, site.RUNWAY_WIDTH, .018, asphalt)
 plane("Apron", -10, 64, 300, 108, .016, apron)
+crack_rng = random.Random(557)
+for _ in range(140):
+    x, z = crack_rng.uniform(-155, 135), crack_rng.uniform(10.5, 117)
+    angle = crack_rng.uniform(-math.pi, math.pi)
+    length, width = crack_rng.uniform(.6, 4.0), crack_rng.uniform(.025, .06)
+    strip = bar("Crack", (x, -z, .023), (length, width, .004), crack)
+    strip.rotation_euler.z = angle
 plane("Taxiway", -118, -5, 16, 70, .017, taxi)
 for x in site.GATES:
     plane("Access road", x, 132, 8, 48, .015, road)
@@ -207,6 +217,7 @@ camera = bpy.data.objects.new("Airfield camera", camera_data)
 scene.collection.objects.link(camera)
 scene.camera = camera
 camera_data.type = "ORTHO"
+camera_data.clip_end = 5000.0
 
 
 def render(name, location, target, ortho, width, height):
@@ -219,5 +230,5 @@ def render(name, location, target, ortho, width, height):
     print("Rendered", scene.render.filepath)
 
 
-render("airfield_site_campus.jpg", (220,-315,245), (-12,-20,0), 350, 1800, 1100)
+render("airfield_site_campus.jpg", (190,250,190), (-20,-40,0), 260, 1800, 1100)
 render("airfield_site_overview.jpg", (620,-800,780), (0,0,0), 1100, 1800, 1000)

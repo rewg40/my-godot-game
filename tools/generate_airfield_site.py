@@ -112,6 +112,12 @@ def plant_layout() -> list[tuple[str, str, float, float, float, float]]:
         model = "pine_tree" if i < 33 else ("shrub" if i < 83 else "grass_clump")
         scale = rng.uniform(0.64, 0.95) if model == "pine_tree" else rng.uniform(0.65, 1.2)
         result.append((f"{model}_{i:03}", model, x, z, rng.uniform(-180, 180), scale))
+    # Broken concrete at the outer apron has weeds, but its main approaches
+    # remain visually open. Vegetation has no collider and stays outside rooms.
+    for i in range(60):
+        x = rng.uniform(-155, 133)
+        z = rng.uniform(10.5, 15.5) if i % 2 else rng.uniform(112, 117)
+        result.append((f"ApronWeed_{i:02}", "grass_clump", x, z, rng.uniform(-180, 180), rng.uniform(.45, .9)))
     # A few sparse tufts break the runway edges rather than covering the strip.
     for i in range(32):
         x = -325 + i * 21 + rng.uniform(-3, 3)
@@ -170,6 +176,7 @@ def render() -> str:
             f'albedo_texture = ExtResource("{texture}")', "roughness = 1.0",
             "texture_repeat = true", f"uv1_scale = {v3(*uv, 1)}")
     sub("StandardMaterial3D", "paint_mat", "albedo_color = Color(0.72, 0.7, 0.6, 1)", "roughness = 1.0")
+    sub("StandardMaterial3D", "crack_mat", "albedo_color = Color(0.19, 0.20, 0.18, 1)", "roughness = 1.0")
     sub("StandardMaterial3D", "rust_mat", "albedo_color = Color(0.28, 0.27, 0.22, 1)", "metallic = 0.65", "roughness = 0.85")
     sub("PlaneMesh", "grass_mesh", f"size = {v2(*FIELD)}", 'material = SubResource("grass_mat")')
     sub("BoxShape3D", "ground_shape", f"size = {v3(FIELD[0], .5, FIELD[1])}")
@@ -178,10 +185,22 @@ def render() -> str:
     sub("PlaneMesh", "taxi_mesh", f"size = {v2(16, 70)}", 'material = SubResource("taxi_mat")')
     sub("PlaneMesh", "access_mesh", f"size = {v2(8, 48)}", 'material = SubResource("access_mat")')
     sub("BoxMesh", "unit_paint", f"size = {v3(1, .012, 1)}", 'material = SubResource("paint_mat")')
+    sub("BoxMesh", "unit_crack", f"size = {v3(1, .004, 1)}", 'material = SubResource("crack_mat")')
     sub("BoxMesh", "unit_rail", f"size = {v3(1, .065, .065)}", 'material = SubResource("rust_mat")')
     sub("CylinderMesh", "post_mesh", "top_radius = 0.07", "bottom_radius = 0.08", "height = 2.65", 'material = SubResource("rust_mat")')
     for identity, size in COLLIDERS.items():
         sub("BoxShape3D", "shape_" + identity, f"size = {v3(*size)}")
+    # Sparse surface damage is one MultiMesh, not 140 individual nodes.
+    crack_rng = random.Random(557)
+    crack_buffer: list[str] = []
+    for _ in range(140):
+        x, z = crack_rng.uniform(-155, 135), crack_rng.uniform(10.5, 117)
+        angle = crack_rng.uniform(-math.pi, math.pi)
+        length, width = crack_rng.uniform(.6, 4.0), crack_rng.uniform(.025, .06)
+        c, s = math.cos(angle), math.sin(angle)
+        crack_buffer.extend(map(n, (c * length, 0, s * width, x, 0, 1, 0, .023, -s * length, 0, c * width, z)))
+    sub("MultiMesh", "apron_cracks", "transform_format = 1", "instance_count = 140",
+        'mesh = SubResource("unit_crack")', "buffer = PackedFloat32Array(" + ", ".join(crack_buffer) + ")")
 
     node("AirfieldFull", "Node3D", "", groups="standalone_airfield")
     node("Ground", "Node3D", ".")
@@ -190,6 +209,7 @@ def render() -> str:
     node("GroundShape", "CollisionShape3D", "Ground/GroundCollision", f"position = {v3(0, -.25, 0)}", 'shape = SubResource("ground_shape")')
     node("Runway", "MeshInstance3D", "Ground", f"position = {v3(0, .018, RUNWAY_Z)}", 'mesh = SubResource("runway_mesh")')
     node("Apron", "MeshInstance3D", "Ground", f"position = {v3(-10, .016, 64)}", 'mesh = SubResource("apron_mesh")')
+    node("ApronCracks", "MultiMeshInstance3D", "Ground", 'multimesh = SubResource("apron_cracks")')
     node("Taxiway", "MeshInstance3D", "Ground", f"position = {v3(-118, .017, -5)}", 'mesh = SubResource("taxi_mesh")')
     for i, x in enumerate(GATES):
         node(f"AccessRoad{i+1}", "MeshInstance3D", "Ground", f"position = {v3(x, .015, 132)}", 'mesh = SubResource("access_mesh")')

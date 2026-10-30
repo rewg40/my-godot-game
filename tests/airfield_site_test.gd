@@ -104,7 +104,7 @@ func _run() -> void:
 	var save_path := SaveGame.TEST_PATH
 	var save_exists_before := FileAccess.file_exists(save_path)
 	var save_before := file_bytes(save_path)
-	var main := load("res://scenes/main.tscn").instantiate()
+	var main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
 	var button := find_button(main.current_screen, "ОСМОТР АЭРОДРОМА")
