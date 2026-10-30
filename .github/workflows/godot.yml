@@ -36,6 +36,20 @@ jobs:
             echo "::error::Godot import exited with code $result%0A$log"
             exit 1
           fi
+      - name: Test standalone nature island
+        shell: bash
+        run: |
+          python3 tests/validate_island_4km.py
+          set +e
+          godot --headless --path . --script res://tests/island_4km_test.gd 2>&1 | tee "$RUNNER_TEMP/island-4km.log"
+          result=${PIPESTATUS[0]}
+          set -e
+          if [ "$result" -ne 0 ] || ! grep -q 'ISLAND 4KM GODOT TESTS PASSED' "$RUNNER_TEMP/island-4km.log" || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:|ObjectDB instances leaked' "$RUNNER_TEMP/island-4km.log"; then
+            log="$(tail -n 100 "$RUNNER_TEMP/island-4km.log")"
+            log="${log//'%'/'%25'}"; log="${log//$'\r'/'%0D'}"; log="${log//$'\n'/'%0A'}"
+            echo "::error::Nature island Godot test exited with code $result%0A$log"
+            exit 1
+          fi
       - name: Test standalone airfield models
         shell: bash
         run: |

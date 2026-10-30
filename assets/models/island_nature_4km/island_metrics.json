@@ -1,0 +1,37 @@
+{
+  "seed": 174913,
+  "grid_size_m": 4400.0,
+  "shoreline_width_m": 4000.0,
+  "shoreline_depth_m": 4000.0,
+  "terrain_grid": 551,
+  "grid_step_m": 8.0,
+  "lake_level_m": 20.0,
+  "terrain_min_m": -29.0,
+  "terrain_max_m": 130.21,
+  "lake_area_m2": 913280,
+  "tree_count": 14913,
+  "pine_count": 5665,
+  "broadleaf_count": 9248,
+  "clearings": [
+    [
+      -1070,
+      -790,
+      190
+    ],
+    [
+      960,
+      720,
+      185
+    ],
+    [
+      950,
+      -1020,
+      210
+    ],
+    [
+      -1180,
+      860,
+      105
+    ]
+  ]
+}

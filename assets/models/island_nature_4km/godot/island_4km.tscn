@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://assets/models/island_nature_4km/godot/island_4km.gd" id="island"]
+[ext_resource type="PackedScene" path="res://assets/models/island_nature_4km/godot/island_landscape.glb" id="landscape"]
+
+[node name="NatureIsland4km" type="Node3D"]
+script = ExtResource("island")
+
+[node name="LandscapeAndLake" parent="." instance=ExtResource("landscape")]

@@ -67,6 +67,10 @@ python3 tools/rig_user_zombie.py /tmp/zombie-optimized.glb assets/models/zombie/
 
 `assets/environment/textures/grass_short.jpg` — уменьшенная и перекодированная версия **Grass 01** от Mykhailo Ohorodnichuk / Game Piggs (CC0), из https://github.com/permabulk69420-pixel/Oasis/blob/main/public/textures/grass/CREDITS.md. Источник: https://game-piggs.com/textures/grass-01/, лицензия: https://game-piggs.com/license/.
 
+## Отдельная природная модель острова 4 × 4 км
+
+`assets/models/island_nature_4km/` — отдельная процедурная модель для редактирования, а не замена острова в игре. Деревья основаны на перечисленных выше облегчённых CC0-моделях Poly Haven **Pine Tree 01** и **Tree Small 02** (Rico Cilliers и Rob Tuytel): геометрия упрощена, дополнительно отрисованы прозрачные карточки крон. Ландшафт окрашен производным сочетанием CC0-текстур **Grass 01** (Game Piggs), **Forest Leaves 02**, **Aerial Beach 01** и **Aerial Rocks 02** (Poly Haven). Ссылки на источники и условия указаны выше; текст CC0 включён в `docs/licenses/CC0-1.0.md`.
+
 ## Заброшенный автомобиль
 
 **Abandoned Generic Sedan 2 - Game Ready**, автор Rashad Ibrahimli, лицензия **CC BY 4.0**: https://creativecommons.org/licenses/by/4.0/. Файл `assets/models/props/abandoned_sedan.glb` используется без изменения модели; в игре изменены масштаб, положение и поворот экземпляров. Оригинал: https://sketchfab.com/3d-models/abandoned-generic-sedan-2-game-ready-db2df46c49f9441286c84c66208ef7ac. Зеркало: https://github.com/karimdev671-design/game-assets.
