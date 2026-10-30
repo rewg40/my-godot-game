@@ -24,11 +24,16 @@
     <h1>ZOMBI · закрытый проект</h1>
     <p>Сайт-библия игры. Доступ только для тех, кого впустил автор.<br>Введите код доступа.</p>
     <form id="gate-form" autocomplete="off">
-      <input id="gate-code" type="password" placeholder="код доступа" spellcheck="false">
+      <input id="gate-code" type="password" placeholder="код доступа" spellcheck="false" autocapitalize="none" autocorrect="off">
+      <button type="button" id="gate-eye" class="ghost" title="показать/скрыть введённый код">👁</button>
       <button type="submit">Войти</button>
     </form>
     <div id="gate-msg" class="gate-msg" hidden></div>
-    <p class="gate-hint">Коды хранятся в репозитории: <code>game-docs/src/config.json</code>. Свои коды автор добавляет в «Настройках» сайта.</p>
+    <p class="gate-hint">Коды хранятся в репозитории: <code>game-docs/src/config.json</code> (в виде SHA-256).<br>
+      Если код потерялся — владелец добавляет новый в «Настройках → Доступ».<br>
+      Можно войти по ссылке: <code>#code=ВАШ-КОД</code> (код подставится автоматически).</p>
+    <button id="gate-demo" class="ghost" hidden>🔓 Демо-режим (отключить замок в этом браузере)</button>
+    <div id="gate-build" class="gate-build"></div>
   </div>
 </div>
 
