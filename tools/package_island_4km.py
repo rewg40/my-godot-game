@@ -19,6 +19,7 @@ def build(output: Path) -> None:
     with ZipFile(output, 'w', compression=ZIP_DEFLATED, compresslevel=6) as archive:
         archive.writestr('README_RU.md', (KIT / 'README.md').read_text(encoding='utf-8'))
         archive.write(KIT / 'island_model_preview.jpg', 'PREVIEW_3D_MODEL.jpg')
+        archive.write(KIT / 'island_forest_preview.jpg', 'PREVIEW_FOREST.jpg')
         archive.write(KIT / 'concept_reference.jpg', 'CONCEPT_REFERENCE.jpg')
         for path in files:
             assert path.is_file(), path
@@ -34,7 +35,7 @@ def build(output: Path) -> None:
                      'assets/models/island_nature_4km/godot/island_4km.tscn',
                      'assets/models/island_nature_4km/godot/forest_positions.json'):
             assert name in available, f'Missing {name}'
-        for name in ('PREVIEW_3D_MODEL.jpg', 'CONCEPT_REFERENCE.jpg'):
+        for name in ('PREVIEW_3D_MODEL.jpg', 'PREVIEW_FOREST.jpg', 'CONCEPT_REFERENCE.jpg'):
             image = archive.read(name)
             assert image.startswith(b'\xff\xd8') and image.endswith(b'\xff\xd9')
         scene = archive.read('assets/models/island_nature_4km/godot/island_4km.tscn').decode('utf-8')

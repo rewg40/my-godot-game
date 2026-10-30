@@ -1,0 +1,44 @@
+name: Publish nature island model archive
+
+# Publish the requested ZIP once, without checking the generated archive into
+# Git. Normal future commits must not create new releases.
+on:
+  push:
+    branches: ['arena/b5354172-my-godot-game']
+    paths: ['.github/workflows/island-4km-release.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: startsWith(github.event.head_commit.message, 'Publish 4km nature island archive')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Validate and package the model
+        run: |
+          python3 tests/validate_island_4km.py
+          python3 tools/package_island_4km.py "$RUNNER_TEMP/island_4km_nature.zip"
+      - name: Preserve archive as an Actions artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: island-4km-nature-model
+          path: ${{ runner.temp }}/island_4km_nature.zip
+          compression-level: 0
+          retention-days: 30
+      - name: Publish prerelease download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          tag="nature-island-4km-${GITHUB_SHA:0:8}"
+          gh release create "$tag" "$RUNNER_TEMP/island_4km_nature.zip" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Остров 4 × 4 км — природная 3D-модель" \
+            --notes "Редактируемый остров с лесом, озером и рельефом, без зданий и дорог. Blender, GLB, сцена Godot, heightmap и рендеры. Это отдельная визуальная заготовка, не замена игрового мира." \
+            --prerelease
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[] | select(.name == "island_4km_nature.zip") | .url' | grep .
