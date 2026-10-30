@@ -796,23 +796,52 @@ async function tryUnlock(raw, quiet) {
   gateMsg("config.json сейчас не читается — пускаю на чтение. Для записи дождись сети и нажми «⟳ Перепроверить конфиг».", false);
   return true;
 }
+function gateStatus() {
+  const g = S.config.gate || {};
+  return [
+    "site " + SITE_BUILD,
+    "href " + location.href.slice(0, 120),
+    "config " + (S.cfgOk ? "ok (владелец + " + ((g.allowed || []).length) + " гостей)" : "не загружен"),
+    "mirror " + (S.mirror == null ? "нет" : S.mirror),
+    "origin " + S.origin.owner + "/" + S.origin.repo + "@" + S.origin.branch,
+    "token " + (S.token ? "есть" : "нет"),
+    "inside " + (S.inside ? "да" : "нет") + ", admin " + (S.admin ? "да" : "нет"),
+    "webcrypto " + (window.crypto && crypto.subtle ? "да" : "нет (использую JS-хеш)"),
+    "storage " + (() => { try { localStorage.setItem("zombi-probe", "1"); localStorage.removeItem("zombi-probe"); return "работает"; } catch (e) { return "заблокирован"; } })(),
+  ].join("\n");
+}
 function gateMsg(text, isError) {
   const m = document.getElementById("gate-msg");
   if (!m) return;
   m.textContent = text || "";
   m.hidden = !text;
   m.style.color = isError ? "var(--bad)" : "var(--tx3)";
+  m.title = "Нажми, чтобы открыть диагностику для агента";
+  m.onclick = showGateStatus;
 }
-function openSite() { $("#gate").hidden = true; $("#app").hidden = false; S.inside = true; return true; }
+function showGateStatus() {
+  const txt = gateStatus();
+  openModal("Диагностика замка", `<p class="muted">Скопируй это и отправь агенту — по этим строкам причина ясна за 10 секунд.</p>
+    <textarea id="dg-out" readonly style="width:100%;min-height:190px;font-family:var(--mono);font-size:12px">${esc(txt)}</textarea>
+    <div style="display:flex;gap:8px;margin-top:8px"><button id="dg-copy">Скопировать</button><button class="ghost" id="dg-reload">Перезагрузить страницу</button></div>`, true);
+  $("#dg-copy").onclick = () => {
+    const ta = $("#dg-out"); ta.select(); ta.focus();
+    let ok = false; try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    if (!ok && navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast("Скопировано", "ok", 2000), () => toast("Скопируй вручную: Ctrl+C", "warn", 5000));
+    else toast(ok ? "Скопировано" : "Скопируй вручную: Ctrl+C", ok ? "ok" : "warn", 3500);
+  };
+  $("#dg-reload").onclick = () => location.reload();
+}
 function wireGate() {
   const g = S.config.gate || {};
   // замок включаем по умолчанию только если конфиг реально не удалось прочитать;
   // «ещё не дочитался» — не повод светить контент
   const gateOn = S.cfgFailed ? true : (g.enabled !== false);
   const badge = document.getElementById("gate-build");
-  if (badge) badge.textContent = "site " + SITE_BUILD + " · " + (S.cfgOk
+  if (badge) { badge.textContent = "site " + SITE_BUILD + " · " + (S.cfgOk
     ? ("config: " + ((g.allowed || []).length ? g.allowed.length + " доп. код(ов) + владелец" : "только код владельца"))
     : "config не загружен (сеть) — вход по встроенному коду владельца, только чтение");
+    badge.onclick = showGateStatus; badge.style.cursor = "pointer"; badge.title = "Показать диагностику"; }
   const local = ["localhost", "127.0.0.1", ""].includes(location.hostname);
   const forceOpen = new URLSearchParams(location.search).has("open") || location.hash.includes("open=1");
   if (forceOpen) S.readonlyGate = true;

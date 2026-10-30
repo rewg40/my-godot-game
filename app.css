@@ -185,3 +185,7 @@ table.editable td:focus{outline:1px solid var(--acc2);background:#0f1a24}
   main.doc{padding:18px 12px 50px}.sect h2{font-size:16px;padding-right:0}.sect .sect-tools{position:static;display:flex;margin-top:8px}
 }
 @media print{.topbar,.subtabs,.sect-tools,.foot,.dirty-bar,.readonly-bar{display:none!important}body{background:#fff;color:#000}.sect{border:0;padding:0 0 8px}}
+
+.gate-box .muted,.muted{color:var(--tx3);font-size:12.5px;line-height:1.5}
+#gate-msg{cursor:pointer}
+#gate-build:hover{color:var(--tx2)}
