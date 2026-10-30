@@ -64,6 +64,24 @@ jobs:
             echo "::error::Full-size airfield test exited with code $result%0A$log"
             exit 1
           fi
+      - name: Test the separate airfield archive
+        shell: bash
+        run: |
+          python3 tools/package_airfield_walkthrough.py "$RUNNER_TEMP/airfield-walkthrough.zip"
+          mkdir -p "$RUNNER_TEMP/airfield-project"
+          unzip -q "$RUNNER_TEMP/airfield-walkthrough.zip" -d "$RUNNER_TEMP/airfield-project"
+          set +e
+          godot --headless --editor --path "$RUNNER_TEMP/airfield-project" --quit 2>&1 | tee "$RUNNER_TEMP/airfield-package-import.log"
+          import_result=${PIPESTATUS[0]}
+          godot --headless --path "$RUNNER_TEMP/airfield-project" --script res://tests/airfield_package_test.gd 2>&1 | tee "$RUNNER_TEMP/airfield-package.log"
+          test_result=${PIPESTATUS[0]}
+          set -e
+          if [ "$import_result" -ne 0 ] || [ "$test_result" -ne 0 ] || ! grep -q 'AIRFIELD PACKAGE TESTS PASSED' "$RUNNER_TEMP/airfield-package.log" || grep -hE 'SCRIPT ERROR|Parse Error|^ERROR:|ObjectDB instances leaked' "$RUNNER_TEMP/airfield-package-import.log" "$RUNNER_TEMP/airfield-package.log"; then
+            log="$(tail -n 60 "$RUNNER_TEMP/airfield-package-import.log"; tail -n 100 "$RUNNER_TEMP/airfield-package.log")"
+            log="${log//'%'/'%25'}"; log="${log//$'\r'/'%0D'}"; log="${log//$'\n'/'%0A'}"
+            echo "::error::Standalone package import=$import_result test=$test_result%0A$log"
+            exit 1
+          fi
       - name: Test the playable chapter
         shell: bash
         run: |

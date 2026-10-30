@@ -154,7 +154,7 @@ def render() -> str:
     for identity, path in [
         ("grass_tex", "res://assets/environment/textures/grass_short.jpg"),
         ("asphalt_tex", KIT + "textures/cracked_asphalt.jpg"),
-        ("concrete_tex", KIT + "textures/weathered_concrete.jpg"),
+        ("concrete_tex", KIT + "textures/apron_weathered.jpg"),
         ("fence_tex", KIT + "textures/chainlink.png"),
     ]:
         external("Texture2D", path, identity)

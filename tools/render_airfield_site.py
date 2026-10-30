@@ -94,7 +94,7 @@ def bar(name, center, size, material):
 
 grass = textured("Short grass", "assets/environment/textures/grass_short.jpg", (.69,.72,.59,1), (120,48))
 asphalt = textured("Cracked runway", "assets/models/airport_kit/textures/cracked_asphalt.jpg", (.75,.76,.72,1), (70,3))
-apron = textured("Weathered apron", "assets/models/airport_kit/textures/weathered_concrete.jpg", (.67,.67,.62,1), (30,10))
+apron = textured("Weathered apron", "assets/models/airport_kit/textures/apron_weathered.jpg", (.67,.67,.62,1), (30,10))
 taxi = textured("Weathered taxiway", "assets/models/airport_kit/textures/cracked_asphalt.jpg", (.69,.70,.67,1), (3,7))
 road = textured("Access road", "assets/models/airport_kit/textures/cracked_asphalt.jpg", (.68,.69,.65,1), (2,5))
 paint = flat_color("Old runway paint", (.72,.70,.60))

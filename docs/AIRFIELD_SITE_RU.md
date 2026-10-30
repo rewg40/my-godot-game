@@ -29,4 +29,6 @@ godot --headless --editor --path . --quit
 godot --headless --path . --script res://tests/airfield_site_test.gd
 ```
 
-`tools/render_airfield_site.py` воспроизводит две обзорные иллюстрации в Blender 4.3 (`blender --background --python tools/render_airfield_site.py`). Они показывают те же модели и координаты, но это не скриншоты Godot. Источники и лицензии объектов указаны в [`ASSET_CREDITS.md`](ASSET_CREDITS.md) и README набора.
+`tools/render_airfield_site.py` воспроизводит две обзорные иллюстрации в Blender 4.3 (`blender --background --python tools/render_airfield_site.py`). Они показывают те же модели и координаты, но это не скриншоты Godot. Текстура перрона создаётся скриптом `tools/prepare_airfield_apron_texture.py` (требуются Pillow и NumPy).
+
+Отдельный небольшой проект для просмотра можно собрать командой `python3 tools/package_airfield_walkthrough.py /путь/к/airfield_walkthrough.zip`. После распаковки его собственный `project.godot` запускает только осмотр, не основную игру; автоматический запуск вынесен в `tests/airfield_package_test.gd`. Источники и лицензии объектов указаны в [`ASSET_CREDITS.md`](ASSET_CREDITS.md) и README набора.

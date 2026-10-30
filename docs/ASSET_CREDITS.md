@@ -77,7 +77,7 @@ python3 tools/rig_user_zombie.py /tmp/zombie-optimized.glb assets/models/zombie/
 
 ## Набор аэродрома
 
-`assets/models/airport_kit/` — процедурно созданные для проекта приближённые модели аэродрома, редактируемая Blender-сцена и отдельные GLB. Для них изменены перечисленные выше CC0-фототекстуры Poly Haven (Concrete Wall 008, Weathered Planks, Rusty Metal 02, Asphalt 02) и повторно использованы указанные выше модели Pine Tree 01, Grass Medium 01, Shrub Sorrel 01 и Rock 07. У дерева добавлены процедурные карточки хвои; кусты, трава и камни размножены и масштабированы.
+`assets/models/airport_kit/` — процедурно созданные для проекта приближённые модели аэродрома, редактируемая Blender-сцена и отдельные GLB. Для них изменены перечисленные выше CC0-фототекстуры Poly Haven (Concrete Wall 008, Weathered Planks, Rusty Metal 02, Asphalt 02) и повторно использованы указанные выше модели Pine Tree 01, Grass Medium 01, Shrub Sorrel 01 и Rock 07. Текстура перрона `apron_weathered.jpg` создана смешиванием бетонной текстуры и Brown Mud 02 с добавлением процедурных пятен и трещин. У дерева добавлены процедурные карточки хвои; кусты, трава и камни размножены и масштабированы.
 
 Бонусная модель `assets/models/airport_kit/glb/abandoned_sedan.glb` и её копия в Blender-сцене — **Abandoned Generic Sedan 2 - Game Ready**, **Rashad Ibrahimli**, **CC BY 4.0**: https://creativecommons.org/licenses/by/4.0/. Источник: https://sketchfab.com/3d-models/abandoned-generic-sedan-2-game-ready-db2df46c49f9441286c84c66208ef7ac. Седан масштабирован, повёрнут и повторно экспортирован из `assets/models/props/abandoned_sedan.glb`. Указание автора, лицензии, источника и изменений включено также в README набора.
 

@@ -4,7 +4,7 @@
 
 [ext_resource type="Texture2D" path="res://assets/models/airport_kit/textures/cracked_asphalt.jpg" id="asphalt_tex"]
 
-[ext_resource type="Texture2D" path="res://assets/models/airport_kit/textures/weathered_concrete.jpg" id="concrete_tex"]
+[ext_resource type="Texture2D" path="res://assets/models/airport_kit/textures/apron_weathered.jpg" id="concrete_tex"]
 
 [ext_resource type="Texture2D" path="res://assets/models/airport_kit/textures/chainlink.png" id="fence_tex"]
 
