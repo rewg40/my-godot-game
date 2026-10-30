@@ -41,6 +41,11 @@ game-docs/
 
 Ручной перезапуск: `gh workflow run "Deploy docs site (ZOMBI bible)" --ref <ветка>`.
 
+Если GitHub Pages ещё не включён, workflow попытается включить сам (шаг
+«Ensure GitHub Pages enabled»). Если его не пустили права — включи один раз руками:
+Settings → Pages → Source: **Deploy from a branch** → Branch: **gh-pages** / **/(root)** → Save.
+Дальше всё публикуется автоматически при каждом коммите в `game-docs/**`.
+
 ## Локально
 
 ```bash

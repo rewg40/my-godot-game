@@ -72,7 +72,7 @@ jobs:
             .nojekyll
           commit-message: "chore(site): deploy ZOMBI bible (${{ github.ref_name }})"
 
-      - name: Ensure GitHub Pages is enabled (source: gh-pages /)
+      - name: "Ensure GitHub Pages enabled (источник gh-pages /)"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
