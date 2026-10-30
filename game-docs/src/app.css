@@ -27,7 +27,8 @@ code,kbd{font-family:var(--mono);font-size:.92em;background:#0b1017;border:1px s
 .gate-hint{font-size:12px;color:var(--tx3);margin-top:14px;line-height:1.55;text-align:left}
 .gate-msg{text-align:left;line-height:1.5}
 .gate-build{font-size:11px;color:#3f5063;margin-top:12px;font-family:var(--mono)}
-#gate-demo{margin-top:10px;font-size:12.5px}
+.gate-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+#gate-demo,#gate-retry{font-size:12.5px}
 #gate-form{align-items:stretch}
 #gate-form #gate-eye{padding:0 10px;border-radius:9px;font-size:15px}
 

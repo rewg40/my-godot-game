@@ -10,6 +10,12 @@
 /* ----------------------------- константы ---------------------------------- */
 const API = "https://api.github.com";
 const REPO_DEFAULT = { owner: "rewg40", repo: "my-godot-game", branch: "arena/73c7370f-my-godot-game" };
+/* Запас, если config.json не читается (CORS/прокси/офлайн-кэш): вход обязан остаться возможным. */
+const FALLBACK_HASHES = ["db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e"];  // код владельца
+const MIRRORS = [                                  // где ещё искать config/content
+  (o) => `https://rewg40.github.io/my-godot-game/${o}`,
+  (o) => `https://cdn.jsdelivr.net/gh/rewg40/my-godot-game@gh-pages/${o}`,
+];
 const SRC_PREFIX = "game-docs/src";
 const MAX_IMG = 1_400_000;      // байт после сжатия
 const MAX_MODEL = 24_000_000;  // байт (GitHub limit ~25 МБ на файл)
@@ -59,7 +65,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.1";
+const SITE_BUILD = "2026-10-31.2 · offline-safe";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -142,7 +148,7 @@ const utf8 = {
 const S = {
   config: { gate: { enabled: true, ownerCode: "", allowed: [] }, contentPath: SRC_PREFIX + "/content", imagesPath: SRC_PREFIX + "/content/images", modelsPath: SRC_PREFIX + "/content/models", inboxPath: SRC_PREFIX + "/content/agent-inbox", origin: { ...REPO_DEFAULT } },
   origin: { ...REPO_DEFAULT },
-  token: "", admin: false, cfgLoaded: false, cfgOk: false,
+  token: "", admin: false, cfgLoaded: false, cfgOk: false, mirror: null, readonlyGate: false,
   mainTab: "scenario", mechIndex: MECH.map((m) => m.id), sub: "character",
   content: null, contentFile: null, contentSha: null, contentName: "",
   images: null, models: null, dirty: new Set(),
@@ -202,15 +208,26 @@ async function ghListDir(path) {
 
 /* loadText(sitePath): sitePath — путь относительно корня сайта (= game-docs/src при деплое).
    Сначала пробуем файл рядом с сайтом (Pages и локальный сервер), затем — репозиторий через API. */
+async function fetchText(url, mode) {
+  const r = await fetch(url, { cache: "no-store", mode: mode || "cors" });
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return await r.text();
+}
+/* Ищем файл: рядом с сайтом → Pages → jsDelivr → GitHub API (с токеном).
+   Первый successful источник запоминается, чтобы не дёргать все подряд на каждый раздел. */
 async function loadText(sitePath) {
   if (location.protocol === "http:" || location.protocol === "https:") {
-    try {
-      const r = await fetch(encodeURI(sitePath) + "?v=" + Date.now(), { cache: "no-store" });
-      if (r.ok) return await r.text();
-    } catch (e) { /* идём в GitHub */ }
+    try { return await fetchText(encodeURI(sitePath) + "?v=" + Date.now()); } catch (e) { /* следующее зеркало */ }
   }
-  if (!S.origin.owner) throw new Error("Файл не найден рядом с сайтом и репозиторий не настроен");
-  return (await ghGetFile(`${SRC_PREFIX}/${sitePath}`)).text;
+  if (S.mirror != null && MIRRORS[S.mirror]) {
+    try { return await fetchText(MIRRORS[S.mirror](sitePath)); } catch (e) { /* следующее */ }
+  }
+  for (let i = 0; i < MIRRORS.length; i++) {
+    if (i === S.mirror) continue;
+    try { const t = await fetchText(MIRRORS[i](sitePath)); S.mirror = i; return t; } catch (e) { /* следующее */ }
+  }
+  if (S.origin.owner) return (await ghGetFile(`${SRC_PREFIX}/${sitePath}`)).text;
+  throw new Error("файл недоступен ни локально, ни через репозиторий");
 }
 
 /* ----------------------------- блок: рендер -------------------------------- */
@@ -551,6 +568,13 @@ function setPill(kind, text) { const p = $("#sync-pill"); p.className = "pill " 
 function updateFoot() {
   $("#foot-info").textContent = `${S.origin.owner}/${S.origin.repo} · ${S.origin.branch} · ${S.token ? "запись разрешена" : "только чтение"}`;
   $("#readonly-bar").hidden = !!S.token;
+  if (S.readonlyGate) {
+    const bar = $("#readonly-bar");
+    bar.hidden = false;
+    bar.innerHTML = "Ты внутри без проверки конфига репозитория (сеть до config.json недоступна) — чтение открыто, запись отключена. "
+      + '<button class="tiny" id="ro-retry">повторить</button>';
+    const b = $("#ro-retry", bar); if (b) b.onclick = () => { S.cfgOk = false; refreshAll().then(() => { S.readonlyGate = !S.cfgOk; updateFoot(); }); };
+  }
 }
 
 /* ----------------------------- навигация ----------------------------------- */
@@ -720,8 +744,7 @@ function download(name, text, mime) {
 /* ----------------------------- доступ (замок) ------------------------------ */
 async function loadConfig() {
   let raw = null;
-  try { raw = await loadText("config.json"); S.cfgOk = true; }
-  catch (e) { try { raw = (await ghGetFile(`${SRC_PREFIX}/config.json`)).text; S.cfgOk = true; } catch (e2) { S.cfgOk = false; } }
+  try { raw = await loadText("config.json"); S.cfgOk = true; } catch (e) { S.cfgOk = false; }
   if (raw) { try { S.config = { ...S.config, ...JSON.parse(raw), gate: { ...S.config.gate, ...(JSON.parse(raw).gate || {}) } }; } catch (e) { /* ignore */ } }
   S.cfgLoaded = true;
   const host = location.hostname || "";
@@ -737,20 +760,27 @@ async function tryUnlock(raw, quiet) {
   const g = S.config.gate || {};
   if (!g.enabled) return true;
   const code = String(raw == null ? "" : raw).trim().normalize("NFC");
-  if (!code) { gateMsg("Введи код — регистр и пробелы важны.", true); return false; }
-  if (!S.cfgOk) { gateMsg("Сайт не смог прочитать config.json из репозитория → список кодов пуст, войти нельзя. Обновите страницу (F5) — если не помогло, значит github.com недоступен.", true); return false; }
-  if (!g.ownerCode && !(g.allowed || []).length) { gateMsg("В config.json нет ни ownerCode, ни allowed: добавь код и дождись деплоя (~1 мин).", true); return false; }
+  if (!code) { gateMsg("Введи код — регистр и пробелы важны. Под полём есть кнопка «повторить проверку конфига».", true); return false; }
   let h = "";
   try { h = String(await sha256Hex(code)).toLowerCase(); }
   catch (e) { gateMsg("Браузер не может вычислить хеш: " + e.message, true); return false; }
   if (h.length !== 64) { gateMsg("Хеш вернулся неполным (" + h.length + " симв.) — обнови страницу по HTTPS.", true); return false; }
-  const isOwner = !!g.ownerCode && h === String(g.ownerCode).toLowerCase();
-  const isGuest = (g.allowed || []).map((x) => String(x).toLowerCase()).includes(h);
+  const ownerHash = String(g.ownerCode || "").toLowerCase();
+  const allowlist = [...(g.allowed || []), ...(S.cfgOk ? [] : FALLBACK_HASHES)].map((x) => String(x).toLowerCase()).filter(Boolean);
+  if (!ownerHash && S.cfgOk) { g.ownerCode = FALLBACK_HASHES[0]; }   // конфиг без владельца — считаем владельца запасным
+  const knownOwner = ownerHash || (S.cfgOk ? "" : FALLBACK_HASHES[0]);
+  const isOwner = !!knownOwner && h === knownOwner;
+  const isGuest = !isOwner && allowlist.includes(h);
   if (isOwner || isGuest) {
     try { localStorage.setItem(LS.unlocked, h); localStorage.setItem(LS.admin, isOwner ? "1" : "0"); } catch (e) { /* private mode */ }
-    S.admin = isOwner; gateMsg("", false); return true;
+    S.admin = isOwner; S.readonlyGate = !S.cfgOk; gateMsg("", false); return true;
   }
-  if (!quiet) gateMsg("Код не подходит. Хеш введённого: " + h.slice(0, 12) + "… — такой строки нет в config.json. Если код выдавал автор, попроси добавить его в «Настройки → Доступ».", true);
+  if (!S.cfgOk) {   // конфиг не прочитан: пускаем на чтение, но предупреждаем
+    S.readonlyGate = true;
+    gateMsg("Код не совпал с запасным кодом владельца, а config.json сейчас не читается — открою только на чтение.", false);
+    return true;
+  }
+  if (!quiet) gateMsg("Код не подходит. Хеш введённого: " + h.slice(0, 12) + "… — такой строки нет в config.json. Если код выдавал автор — попроси добавить его в «Настройки → Доступ» и подожди ~1 мин до деплоя.", true);
   return false;
 }
 function gateMsg(text, isError) {
@@ -765,9 +795,11 @@ function wireGate() {
   const badge = document.getElementById("gate-build");
   if (badge) badge.textContent = "site " + SITE_BUILD + " · " + (S.cfgOk
     ? ("config: " + ((g.allowed || []).length ? g.allowed.length + " доп. код(ов) + владелец" : "только код владельца"))
-    : "config НЕ загружен (нужен доступ к github.com)");
+    : "config НЕ загружен — сверка по запасному коду");
   const local = ["localhost", "127.0.0.1", ""].includes(location.hostname);
-  if (!g.enabled || localStorage.getItem("zombi-docs:demomode") === "1") { $("#gate").hidden = true; $("#app").hidden = false; return true; }
+  const forceOpen = new URLSearchParams(location.search).has("open") || location.hash.includes("open=1");
+  if (forceOpen) S.readonlyGate = true;
+  if (forceOpen || !g.enabled || localStorage.getItem("zombi-docs:demomode") === "1") { $("#gate").hidden = true; $("#app").hidden = false; return true; }
   let saved = null;
   try { saved = localStorage.getItem(LS.unlocked); } catch (e) { /* ignore */ }
   const all = [...(g.allowed || []), g.ownerCode || ""].map((x) => String(x).toLowerCase());
@@ -794,6 +826,16 @@ function wireGate() {
   };
   const auto = (location.hash.match(/[#&]code=([^&]+)/) || [])[1];
   if (auto) { $("#gate-code").value = decodeURIComponent(auto); setTimeout(() => { const f = $("#gate-form"); if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); }, 250); }
+  const retry = document.getElementById("gate-retry");
+  if (retry) retry.onclick = async () => {
+    retry.disabled = true; gateMsg("Перечитываю config.json…", false);
+    S.cfgOk = false;
+    try { await loadConfig(); } catch (e) { /* ignore */ }
+    retry.disabled = false;
+    wireGate();
+    if (!S.cfgOk) gateMsg("Конфиг всё ещё недоступен. Вход по запасному коду владельца работает; гостевые коды — когда появится сеть до github.com.", true);
+  };
+  if (!S.cfgOk) setTimeout(() => { const f = $("#gate-form"); if (!$("#gate").hidden && f && f.checkValidity()) { const i = $("#gate-code"); if (i && !i.value) i.focus(); } }, 8000);
   setTimeout(() => { const i = $("#gate-code"); if (i) i.focus(); }, 150);
 }
 
