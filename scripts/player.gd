@@ -146,8 +146,13 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = -0.1
 	move_and_slide()
-	global_position.x = clampf(global_position.x, 120.0 * world.MAP_SCALE, 3080.0 * world.MAP_SCALE)
-	global_position.z = clampf(global_position.z, 110.0 * world.MAP_SCALE, 2080.0 * world.MAP_SCALE)
+	# The standalone airfield viewer has its own metre-sized bounds. The main
+	# island retains the original limits and save coordinates unchanged.
+	if world.has_method("clamp_player_position"):
+		global_position = world.clamp_player_position(global_position)
+	else:
+		global_position.x = clampf(global_position.x, 120.0 * world.MAP_SCALE, 3080.0 * world.MAP_SCALE)
+		global_position.z = clampf(global_position.z, 110.0 * world.MAP_SCALE, 2080.0 * world.MAP_SCALE)
 	if global_position.y < -5.0:
 		world.player_defeated()
 	var has_bat: bool = world.weapon_id() == "club"

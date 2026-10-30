@@ -1,0 +1,2297 @@
+[gd_scene load_steps=76 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/textures/grass_short.jpg" id="grass_tex"]
+
+[ext_resource type="Texture2D" path="res://assets/models/airport_kit/textures/cracked_asphalt.jpg" id="asphalt_tex"]
+
+[ext_resource type="Texture2D" path="res://assets/models/airport_kit/textures/weathered_concrete.jpg" id="concrete_tex"]
+
+[ext_resource type="Texture2D" path="res://assets/models/airport_kit/textures/chainlink.png" id="fence_tex"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/godot_scenes/hangar_large.tscn" id="scene_hangar_large"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/godot_scenes/hangar_small.tscn" id="scene_hangar_small"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/godot_scenes/service_building.tscn" id="scene_service_building"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/godot_scenes/control_tower.tscn" id="scene_control_tower"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/godot_scenes/fuel_station.tscn" id="scene_fuel_station"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/godot_scenes/fence_gate.tscn" id="scene_fence_gate"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/pickup_olive.glb" id="model_pickup_olive"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/pickup_red.glb" id="model_pickup_red"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/utility_truck.glb" id="model_utility_truck"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/abandoned_sedan.glb" id="model_abandoned_sedan"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/cargo_crate.glb" id="model_cargo_crate"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/cargo_pallet.glb" id="model_cargo_pallet"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/rusty_barrel.glb" id="model_rusty_barrel"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/wire_cage.glb" id="model_wire_cage"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/waste_container.glb" id="model_waste_container"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/concrete_barrier.glb" id="model_concrete_barrier"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/antenna_mast.glb" id="model_antenna_mast"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/light_pole.glb" id="model_light_pole"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/pine_tree.glb" id="model_pine_tree"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/shrub.glb" id="model_shrub"]
+
+[ext_resource type="PackedScene" path="res://assets/models/airport_kit/glb/grass_clump.glb" id="model_grass_clump"]
+
+[sub_resource type="StandardMaterial3D" id="grass_mat"]
+albedo_color = Color(0.69, 0.72, 0.59, 1)
+albedo_texture = ExtResource("grass_tex")
+roughness = 1.0
+texture_repeat = true
+uv1_scale = Vector3(120, 48, 1)
+
+[sub_resource type="StandardMaterial3D" id="asphalt_mat"]
+albedo_color = Color(0.75, 0.76, 0.72, 1)
+albedo_texture = ExtResource("asphalt_tex")
+roughness = 1.0
+texture_repeat = true
+uv1_scale = Vector3(70, 3, 1)
+
+[sub_resource type="StandardMaterial3D" id="apron_mat"]
+albedo_color = Color(0.67, 0.67, 0.62, 1)
+albedo_texture = ExtResource("concrete_tex")
+roughness = 1.0
+texture_repeat = true
+uv1_scale = Vector3(30, 10, 1)
+
+[sub_resource type="StandardMaterial3D" id="taxi_mat"]
+albedo_color = Color(0.69, 0.7, 0.67, 1)
+albedo_texture = ExtResource("asphalt_tex")
+roughness = 1.0
+texture_repeat = true
+uv1_scale = Vector3(3, 7, 1)
+
+[sub_resource type="StandardMaterial3D" id="access_mat"]
+albedo_color = Color(0.68, 0.69, 0.65, 1)
+albedo_texture = ExtResource("asphalt_tex")
+roughness = 1.0
+texture_repeat = true
+uv1_scale = Vector3(2, 5, 1)
+
+[sub_resource type="StandardMaterial3D" id="paint_mat"]
+albedo_color = Color(0.72, 0.7, 0.6, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="rust_mat"]
+albedo_color = Color(0.28, 0.27, 0.22, 1)
+metallic = 0.65
+roughness = 0.85
+
+[sub_resource type="PlaneMesh" id="grass_mesh"]
+size = Vector2(900, 350)
+material = SubResource("grass_mat")
+
+[sub_resource type="BoxShape3D" id="ground_shape"]
+size = Vector3(900, 0.5, 350)
+
+[sub_resource type="PlaneMesh" id="runway_mesh"]
+size = Vector2(700, 28)
+material = SubResource("asphalt_mat")
+
+[sub_resource type="PlaneMesh" id="apron_mesh"]
+size = Vector2(300, 108)
+material = SubResource("apron_mat")
+
+[sub_resource type="PlaneMesh" id="taxi_mesh"]
+size = Vector2(16, 70)
+material = SubResource("taxi_mat")
+
+[sub_resource type="PlaneMesh" id="access_mesh"]
+size = Vector2(8, 48)
+material = SubResource("access_mat")
+
+[sub_resource type="BoxMesh" id="unit_paint"]
+size = Vector3(1, 0.012, 1)
+material = SubResource("paint_mat")
+
+[sub_resource type="BoxMesh" id="unit_rail"]
+size = Vector3(1, 0.065, 0.065)
+material = SubResource("rust_mat")
+
+[sub_resource type="CylinderMesh" id="post_mesh"]
+top_radius = 0.07
+bottom_radius = 0.08
+height = 2.65
+material = SubResource("rust_mat")
+
+[sub_resource type="BoxShape3D" id="shape_car"]
+size = Vector3(1.9, 1.65, 4.65)
+
+[sub_resource type="BoxShape3D" id="shape_truck"]
+size = Vector3(2, 1.9, 5.15)
+
+[sub_resource type="BoxShape3D" id="shape_crate"]
+size = Vector3(1.3, 1.3, 1.3)
+
+[sub_resource type="BoxShape3D" id="shape_pallet"]
+size = Vector3(1.2, 0.2, 1)
+
+[sub_resource type="BoxShape3D" id="shape_barrel"]
+size = Vector3(0.7, 0.98, 0.7)
+
+[sub_resource type="BoxShape3D" id="shape_cage"]
+size = Vector3(2.1, 1.65, 1.5)
+
+[sub_resource type="BoxShape3D" id="shape_container"]
+size = Vector3(2.16, 1.32, 1.44)
+
+[sub_resource type="BoxShape3D" id="shape_barrier"]
+size = Vector3(2.8, 1.05, 1)
+
+[sub_resource type="BoxShape3D" id="shape_antenna"]
+size = Vector3(1, 10, 1)
+
+[sub_resource type="BoxShape3D" id="shape_pole"]
+size = Vector3(0.28, 7, 0.28)
+
+[sub_resource type="StandardMaterial3D" id="fence_mat_North"]
+albedo_texture = ExtResource("fence_tex")
+albedo_color = Color(0.72, 0.73, 0.67, 1)
+transparency = 1
+cull_mode = 2
+roughness = 0.95
+texture_repeat = true
+uv1_scale = Vector3(360, 1, 1)
+
+[sub_resource type="QuadMesh" id="fence_mesh_North"]
+size = Vector2(864, 2.2)
+material = SubResource("fence_mat_North")
+
+[sub_resource type="BoxShape3D" id="fence_shape_North"]
+size = Vector3(864, 2.4, 0.12)
+
+[sub_resource type="MultiMesh" id="posts_North"]
+transform_format = 1
+instance_count = 109
+mesh = SubResource("post_mesh")
+buffer = PackedFloat32Array(1, 0, 0, -432, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -424, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -416, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -408, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -400, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -392, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -384, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -376, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -368, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -360, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -352, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -344, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -336, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -328, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -320, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -312, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -304, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -296, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -288, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -280, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -272, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -264, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -256, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -248, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -240, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -232, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -224, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -216, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -208, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -200, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -192, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -184, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -176, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -168, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -160, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -152, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -144, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -136, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -128, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -120, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -112, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -104, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -96, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -88, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -80, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -72, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -64, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -56, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -48, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -40, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -32, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -24, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -16, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -8, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 8, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 16, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 24, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 32, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 40, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 48, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 56, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 64, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 72, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 80, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 88, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 96, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 104, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 112, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 120, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 128, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 136, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 144, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 152, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 160, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 168, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 176, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 184, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 192, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 200, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 208, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 216, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 224, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 232, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 240, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 248, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 256, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 264, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 272, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 280, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 288, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 296, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 304, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 312, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 320, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 328, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 336, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 344, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 352, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 360, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 368, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 376, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 384, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 392, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 400, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 408, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 416, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 424, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 432, 0, 1, 0, 1.325, 0, 0, 1, 0)
+
+[sub_resource type="StandardMaterial3D" id="fence_mat_South0"]
+albedo_texture = ExtResource("fence_tex")
+albedo_color = Color(0.72, 0.73, 0.67, 1)
+transparency = 1
+cull_mode = 2
+roughness = 0.95
+texture_repeat = true
+uv1_scale = Vector3(137.4375, 1, 1)
+
+[sub_resource type="QuadMesh" id="fence_mesh_South0"]
+size = Vector2(329.85, 2.2)
+material = SubResource("fence_mat_South0")
+
+[sub_resource type="BoxShape3D" id="fence_shape_South0"]
+size = Vector3(329.85, 2.4, 0.12)
+
+[sub_resource type="MultiMesh" id="posts_South0"]
+transform_format = 1
+instance_count = 42
+mesh = SubResource("post_mesh")
+buffer = PackedFloat32Array(1, 0, 0, -164.925, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -156.879878, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -148.834756, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -140.789634, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -132.744512, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -124.69939, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -116.654268, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -108.609146, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -100.564024, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -92.518902, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -84.47378, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -76.428659, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -68.383537, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -60.338415, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -52.293293, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -44.248171, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -36.203049, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -28.157927, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -20.112805, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -12.067683, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -4.022561, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 4.022561, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 12.067683, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 20.112805, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 28.157927, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 36.203049, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 44.248171, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 52.293293, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 60.338415, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 68.383537, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 76.428659, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 84.47378, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 92.518902, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 100.564024, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 108.609146, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 116.654268, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 124.69939, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 132.744512, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 140.789634, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 148.834756, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 156.879878, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 164.925, 0, 1, 0, 1.325, 0, 0, 1, 0)
+
+[sub_resource type="StandardMaterial3D" id="fence_mat_South1"]
+albedo_texture = ExtResource("fence_tex")
+albedo_color = Color(0.72, 0.73, 0.67, 1)
+transparency = 1
+cull_mode = 2
+roughness = 0.95
+texture_repeat = true
+uv1_scale = Vector3(81.541667, 1, 1)
+
+[sub_resource type="QuadMesh" id="fence_mesh_South1"]
+size = Vector2(195.7, 2.2)
+material = SubResource("fence_mat_South1")
+
+[sub_resource type="BoxShape3D" id="fence_shape_South1"]
+size = Vector3(195.7, 2.4, 0.12)
+
+[sub_resource type="MultiMesh" id="posts_South1"]
+transform_format = 1
+instance_count = 25
+mesh = SubResource("post_mesh")
+buffer = PackedFloat32Array(1, 0, 0, -97.85, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -89.695833, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -81.541667, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -73.3875, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -65.233333, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -57.079167, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -48.925, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -40.770833, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -32.616667, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -24.4625, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -16.308333, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -8.154167, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -0, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 8.154167, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 16.308333, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 24.4625, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 32.616667, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 40.770833, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 48.925, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 57.079167, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 65.233333, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 73.3875, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 81.541667, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 89.695833, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 97.85, 0, 1, 0, 1.325, 0, 0, 1, 0)
+
+[sub_resource type="StandardMaterial3D" id="fence_mat_South2"]
+albedo_texture = ExtResource("fence_tex")
+albedo_color = Color(0.72, 0.73, 0.67, 1)
+transparency = 1
+cull_mode = 2
+roughness = 0.95
+texture_repeat = true
+uv1_scale = Vector3(137.4375, 1, 1)
+
+[sub_resource type="QuadMesh" id="fence_mesh_South2"]
+size = Vector2(329.85, 2.2)
+material = SubResource("fence_mat_South2")
+
+[sub_resource type="BoxShape3D" id="fence_shape_South2"]
+size = Vector3(329.85, 2.4, 0.12)
+
+[sub_resource type="MultiMesh" id="posts_South2"]
+transform_format = 1
+instance_count = 42
+mesh = SubResource("post_mesh")
+buffer = PackedFloat32Array(1, 0, 0, -164.925, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -156.879878, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -148.834756, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -140.789634, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -132.744512, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -124.69939, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -116.654268, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -108.609146, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -100.564024, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -92.518902, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -84.47378, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -76.428659, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -68.383537, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -60.338415, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -52.293293, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -44.248171, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -36.203049, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -28.157927, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -20.112805, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -12.067683, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -4.022561, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 4.022561, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 12.067683, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 20.112805, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 28.157927, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 36.203049, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 44.248171, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 52.293293, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 60.338415, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 68.383537, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 76.428659, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 84.47378, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 92.518902, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 100.564024, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 108.609146, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 116.654268, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 124.69939, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 132.744512, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 140.789634, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 148.834756, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 156.879878, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 164.925, 0, 1, 0, 1.325, 0, 0, 1, 0)
+
+[sub_resource type="StandardMaterial3D" id="fence_mat_West"]
+albedo_texture = ExtResource("fence_tex")
+albedo_color = Color(0.72, 0.73, 0.67, 1)
+transparency = 1
+cull_mode = 2
+roughness = 0.95
+texture_repeat = true
+uv1_scale = Vector3(129.166667, 1, 1)
+
+[sub_resource type="QuadMesh" id="fence_mesh_West"]
+size = Vector2(310, 2.2)
+material = SubResource("fence_mat_West")
+
+[sub_resource type="BoxShape3D" id="fence_shape_West"]
+size = Vector3(310, 2.4, 0.12)
+
+[sub_resource type="MultiMesh" id="posts_West"]
+transform_format = 1
+instance_count = 39
+mesh = SubResource("post_mesh")
+buffer = PackedFloat32Array(1, 0, 0, -155, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -146.842105, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -138.684211, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -130.526316, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -122.368421, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -114.210526, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -106.052632, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -97.894737, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -89.736842, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -81.578947, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -73.421053, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -65.263158, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -57.105263, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -48.947368, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -40.789474, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -32.631579, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -24.473684, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -16.315789, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -8.157895, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 8.157895, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 16.315789, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 24.473684, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 32.631579, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 40.789474, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 48.947368, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 57.105263, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 65.263158, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 73.421053, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 81.578947, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 89.736842, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 97.894737, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 106.052632, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 114.210526, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 122.368421, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 130.526316, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 138.684211, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 146.842105, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 155, 0, 1, 0, 1.325, 0, 0, 1, 0)
+
+[sub_resource type="StandardMaterial3D" id="fence_mat_East"]
+albedo_texture = ExtResource("fence_tex")
+albedo_color = Color(0.72, 0.73, 0.67, 1)
+transparency = 1
+cull_mode = 2
+roughness = 0.95
+texture_repeat = true
+uv1_scale = Vector3(129.166667, 1, 1)
+
+[sub_resource type="QuadMesh" id="fence_mesh_East"]
+size = Vector2(310, 2.2)
+material = SubResource("fence_mat_East")
+
+[sub_resource type="BoxShape3D" id="fence_shape_East"]
+size = Vector3(310, 2.4, 0.12)
+
+[sub_resource type="MultiMesh" id="posts_East"]
+transform_format = 1
+instance_count = 39
+mesh = SubResource("post_mesh")
+buffer = PackedFloat32Array(1, 0, 0, -155, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -146.842105, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -138.684211, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -130.526316, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -122.368421, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -114.210526, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -106.052632, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -97.894737, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -89.736842, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -81.578947, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -73.421053, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -65.263158, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -57.105263, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -48.947368, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -40.789474, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -32.631579, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -24.473684, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -16.315789, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, -8.157895, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 8.157895, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 16.315789, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 24.473684, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 32.631579, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 40.789474, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 48.947368, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 57.105263, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 65.263158, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 73.421053, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 81.578947, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 89.736842, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 97.894737, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 106.052632, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 114.210526, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 122.368421, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 130.526316, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 138.684211, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 146.842105, 0, 1, 0, 1.325, 0, 0, 1, 0, 1, 0, 0, 155, 0, 1, 0, 1.325, 0, 0, 1, 0)
+
+[node name="AirfieldFull" type="Node3D" groups=["standalone_airfield"]]
+
+[node name="Ground" type="Node3D" parent="."]
+
+[node name="GrassTerrain" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("grass_mesh")
+
+[node name="GroundCollision" type="StaticBody3D" parent="Ground"]
+collision_mask = 0
+
+[node name="GroundShape" type="CollisionShape3D" parent="Ground/GroundCollision"]
+position = Vector3(0, -0.25, 0)
+shape = SubResource("ground_shape")
+
+[node name="Runway" type="MeshInstance3D" parent="Ground"]
+position = Vector3(0, 0.018, -54)
+mesh = SubResource("runway_mesh")
+
+[node name="Apron" type="MeshInstance3D" parent="Ground"]
+position = Vector3(-10, 0.016, 64)
+mesh = SubResource("apron_mesh")
+
+[node name="Taxiway" type="MeshInstance3D" parent="Ground"]
+position = Vector3(-118, 0.017, -5)
+mesh = SubResource("taxi_mesh")
+
+[node name="AccessRoad1" type="MeshInstance3D" parent="Ground"]
+position = Vector3(-100, 0.015, 132)
+mesh = SubResource("access_mesh")
+
+[node name="AccessRoad2" type="MeshInstance3D" parent="Ground"]
+position = Vector3(100, 0.015, 132)
+mesh = SubResource("access_mesh")
+
+[node name="RunwayMarkings" type="Node3D" parent="."]
+
+[node name="EdgeLine-1" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(0, 0.031, -66.65)
+scale = Vector3(680, 1, 0.18)
+mesh = SubResource("unit_paint")
+
+[node name="EdgeLine1" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(0, 0.031, -41.35)
+scale = Vector3(680, 1, 0.18)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash00" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-326, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash01" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-312, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash02" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-298, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash03" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-284, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash04" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-270, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash05" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-256, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash07" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-228, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash08" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-214, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash09" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-200, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash10" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-186, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash11" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-172, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash12" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-158, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash13" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-144, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash14" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-130, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash15" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-116, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash16" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-102, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash17" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-88, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash18" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-74, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash19" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-60, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash20" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-46, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash22" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-18, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash23" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-4, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash24" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(10, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash25" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(24, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash26" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(38, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash27" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(52, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash28" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(66, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash29" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(80, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash30" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(94, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash31" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(108, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash32" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(122, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash33" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(136, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash35" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(164, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash36" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(178, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash37" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(192, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash38" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(206, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash39" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(220, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash40" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(234, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash41" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(248, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash42" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(262, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash43" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(276, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash44" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(290, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash45" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(304, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="CentreDash46" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(318, 0.032, -54)
+scale = Vector3(7, 1, 0.28)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold-1_0" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-322, 0.032, -63.8)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold-1_1" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-322, 0.032, -61)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold-1_2" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-322, 0.032, -58.2)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold-1_3" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-322, 0.032, -55.4)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold-1_4" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-322, 0.032, -52.6)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold-1_5" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-322, 0.032, -49.8)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold-1_6" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-322, 0.032, -47)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold-1_7" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(-322, 0.032, -44.2)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold1_0" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(322, 0.032, -63.8)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold1_1" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(322, 0.032, -61)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold1_2" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(322, 0.032, -58.2)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold1_3" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(322, 0.032, -55.4)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold1_4" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(322, 0.032, -52.6)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold1_5" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(322, 0.032, -49.8)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold1_6" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(322, 0.032, -47)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Threshold1_7" type="MeshInstance3D" parent="RunwayMarkings"]
+position = Vector3(322, 0.032, -44.2)
+scale = Vector3(11, 1, 1.05)
+mesh = SubResource("unit_paint")
+
+[node name="Structures" type="Node3D" parent="."]
+
+[node name="HangarLarge" parent="Structures" instance=ExtResource("scene_hangar_large") groups=["airfield_structure"]]
+position = Vector3(-118, 0.03, 65)
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="HangarSmall" parent="Structures" instance=ExtResource("scene_hangar_small") groups=["airfield_structure"]]
+position = Vector3(-50, 0.03, 65)
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="ServiceBuilding" parent="Structures" instance=ExtResource("scene_service_building") groups=["airfield_structure"]]
+position = Vector3(10, 0.03, 75)
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="ControlTower" parent="Structures" instance=ExtResource("scene_control_tower") groups=["airfield_structure"]]
+position = Vector3(45, 0.03, 75)
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="FuelStation" parent="Structures" instance=ExtResource("scene_fuel_station") groups=["airfield_structure"]]
+position = Vector3(91, 0.03, 61)
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="GateWest" parent="Structures" instance=ExtResource("scene_fence_gate") groups=["airfield_structure"]]
+position = Vector3(-100, 0.03, 155)
+rotation = Vector3(0, 0, 0)
+
+[node name="GateEast" parent="Structures" instance=ExtResource("scene_fence_gate") groups=["airfield_structure"]]
+position = Vector3(100, 0.03, 155)
+rotation = Vector3(0, 0, 0)
+
+[node name="Props" type="Node3D" parent="."]
+
+[node name="OlivePickup" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-76, 0.035, 26)
+rotation = Vector3(0, -0.314159, 0)
+
+[node name="Visual" parent="Props/OlivePickup" instance=ExtResource("model_pickup_olive")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/OlivePickup"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/OlivePickup/Collision"]
+position = Vector3(0, 0.825, 0)
+shape = SubResource("shape_car")
+
+[node name="RedPickup" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(22, 0.035, 33)
+rotation = Vector3(0, 0.453786, 0)
+
+[node name="Visual" parent="Props/RedPickup" instance=ExtResource("model_pickup_red")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/RedPickup"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/RedPickup/Collision"]
+position = Vector3(0, 0.825, 0)
+shape = SubResource("shape_car")
+
+[node name="UtilityTruck" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(102, 0.035, 26)
+rotation = Vector3(0, -1.012291, 0)
+
+[node name="Visual" parent="Props/UtilityTruck" instance=ExtResource("model_utility_truck")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/UtilityTruck"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/UtilityTruck/Collision"]
+position = Vector3(0, 0.95, 0)
+shape = SubResource("shape_truck")
+
+[node name="AbandonedSedan" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(51, 0.035, 28)
+rotation = Vector3(0, 0.488692, 0)
+
+[node name="Visual" parent="Props/AbandonedSedan" instance=ExtResource("model_abandoned_sedan")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/AbandonedSedan"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/AbandonedSedan/Collision"]
+position = Vector3(0, 0.825, 0)
+shape = SubResource("shape_car")
+
+[node name="CrateHangarA" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-130, 0.035, 72)
+rotation = Vector3(0, 0.122173, 0)
+
+[node name="Visual" parent="Props/CrateHangarA" instance=ExtResource("model_cargo_crate")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/CrateHangarA"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/CrateHangarA/Collision"]
+position = Vector3(0, 0.65, 0)
+shape = SubResource("shape_crate")
+
+[node name="CrateHangarB" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-128, 0.035, 72.5)
+rotation = Vector3(0, -0.15708, 0)
+
+[node name="Visual" parent="Props/CrateHangarB" instance=ExtResource("model_cargo_crate")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/CrateHangarB"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/CrateHangarB/Collision"]
+position = Vector3(0, 0.65, 0)
+shape = SubResource("shape_crate")
+
+[node name="CrateSmallHangar" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-56, 0.035, 70)
+rotation = Vector3(0, 0.087266, 0)
+
+[node name="Visual" parent="Props/CrateSmallHangar" instance=ExtResource("model_cargo_crate")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/CrateSmallHangar"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/CrateSmallHangar/Collision"]
+position = Vector3(0, 0.65, 0)
+shape = SubResource("shape_crate")
+
+[node name="CrateApronA" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-86, 0.035, 98)
+rotation = Vector3(0, 0.174533, 0)
+
+[node name="Visual" parent="Props/CrateApronA" instance=ExtResource("model_cargo_crate")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/CrateApronA"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/CrateApronA/Collision"]
+position = Vector3(0, 0.65, 0)
+shape = SubResource("shape_crate")
+
+[node name="CrateApronB" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-84.5, 0.035, 98.3)
+rotation = Vector3(0, -0.087266, 0)
+
+[node name="Visual" parent="Props/CrateApronB" instance=ExtResource("model_cargo_crate")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/CrateApronB"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/CrateApronB/Collision"]
+position = Vector3(0, 0.65, 0)
+shape = SubResource("shape_crate")
+
+[node name="CrateService" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(24, 0.035, 80)
+rotation = Vector3(0, 0.087266, 0)
+
+[node name="Visual" parent="Props/CrateService" instance=ExtResource("model_cargo_crate")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/CrateService"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/CrateService/Collision"]
+position = Vector3(0, 0.65, 0)
+shape = SubResource("shape_crate")
+
+[node name="PalletApron" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-83, 0.035, 100)
+rotation = Vector3(0, 0.139626, 0)
+
+[node name="Visual" parent="Props/PalletApron" instance=ExtResource("model_cargo_pallet")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/PalletApron"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/PalletApron/Collision"]
+position = Vector3(0, 0.1, 0)
+shape = SubResource("shape_pallet")
+
+[node name="PalletService" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(23, 0.035, 82)
+rotation = Vector3(0, -0.349066, 0)
+
+[node name="Visual" parent="Props/PalletService" instance=ExtResource("model_cargo_pallet")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/PalletService"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/PalletService/Collision"]
+position = Vector3(0, 0.1, 0)
+shape = SubResource("shape_pallet")
+
+[node name="RustyBarrelA" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(78, 0.035, 70)
+rotation = Vector3(0, 0, 0)
+
+[node name="Visual" parent="Props/RustyBarrelA" instance=ExtResource("model_rusty_barrel")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/RustyBarrelA"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/RustyBarrelA/Collision"]
+position = Vector3(0, 0.49, 0)
+shape = SubResource("shape_barrel")
+
+[node name="RustyBarrelB" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(79.2, 0.035, 70.2)
+rotation = Vector3(0, 0, 0)
+
+[node name="Visual" parent="Props/RustyBarrelB" instance=ExtResource("model_rusty_barrel")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/RustyBarrelB"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/RustyBarrelB/Collision"]
+position = Vector3(0, 0.49, 0)
+shape = SubResource("shape_barrel")
+
+[node name="RustyBarrelC" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-136, 0.035, 81)
+rotation = Vector3(0, 0, 0)
+
+[node name="Visual" parent="Props/RustyBarrelC" instance=ExtResource("model_rusty_barrel")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/RustyBarrelC"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/RustyBarrelC/Collision"]
+position = Vector3(0, 0.49, 0)
+shape = SubResource("shape_barrel")
+
+[node name="WireCage" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-78, 0.035, 99)
+rotation = Vector3(0, 0.069813, 0)
+
+[node name="Visual" parent="Props/WireCage" instance=ExtResource("model_wire_cage")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/WireCage"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/WireCage/Collision"]
+position = Vector3(0, 0.825, 0)
+shape = SubResource("shape_cage")
+
+[node name="WasteContainer" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(27, 0.035, 84)
+rotation = Vector3(0, -0.261799, 0)
+
+[node name="Visual" parent="Props/WasteContainer" instance=ExtResource("model_waste_container")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/WasteContainer"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/WasteContainer/Collision"]
+position = Vector3(0, 0.66, 0)
+shape = SubResource("shape_container")
+
+[node name="BarrierA" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(62, 0.035, 119)
+rotation = Vector3(0, 0.174533, 0)
+
+[node name="Visual" parent="Props/BarrierA" instance=ExtResource("model_concrete_barrier")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/BarrierA"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/BarrierA/Collision"]
+position = Vector3(0, 0.525, 0)
+shape = SubResource("shape_barrier")
+
+[node name="BarrierB" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(65, 0.035, 119.5)
+rotation = Vector3(0, 0.174533, 0)
+
+[node name="Visual" parent="Props/BarrierB" instance=ExtResource("model_concrete_barrier")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/BarrierB"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/BarrierB/Collision"]
+position = Vector3(0, 0.525, 0)
+shape = SubResource("shape_barrier")
+
+[node name="BarrierC" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-63, 0.035, 117)
+rotation = Vector3(0, -0.122173, 0)
+
+[node name="Visual" parent="Props/BarrierC" instance=ExtResource("model_concrete_barrier")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/BarrierC"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/BarrierC/Collision"]
+position = Vector3(0, 0.525, 0)
+shape = SubResource("shape_barrier")
+
+[node name="Antenna" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(63, 0.035, 90)
+rotation = Vector3(0, 0, 0)
+
+[node name="Visual" parent="Props/Antenna" instance=ExtResource("model_antenna_mast")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/Antenna"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/Antenna/Collision"]
+position = Vector3(0, 5, 0)
+shape = SubResource("shape_antenna")
+
+[node name="LightWest" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-147, 0.035, 33)
+rotation = Vector3(0, 1.396263, 0)
+
+[node name="Visual" parent="Props/LightWest" instance=ExtResource("model_light_pole")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/LightWest"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/LightWest/Collision"]
+position = Vector3(0, 3.5, 0)
+shape = SubResource("shape_pole")
+
+[node name="LightMiddle" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-17, 0.035, 25)
+rotation = Vector3(0, 1.396263, 0)
+
+[node name="Visual" parent="Props/LightMiddle" instance=ExtResource("model_light_pole")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/LightMiddle"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/LightMiddle/Collision"]
+position = Vector3(0, 3.5, 0)
+shape = SubResource("shape_pole")
+
+[node name="LightEast" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(122, 0.035, 33)
+rotation = Vector3(0, 1.396263, 0)
+
+[node name="Visual" parent="Props/LightEast" instance=ExtResource("model_light_pole")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/LightEast"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/LightEast/Collision"]
+position = Vector3(0, 3.5, 0)
+shape = SubResource("shape_pole")
+
+[node name="LightEntranceWest" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(-108, 0.035, 146)
+rotation = Vector3(0, 0, 0)
+
+[node name="Visual" parent="Props/LightEntranceWest" instance=ExtResource("model_light_pole")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/LightEntranceWest"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/LightEntranceWest/Collision"]
+position = Vector3(0, 3.5, 0)
+shape = SubResource("shape_pole")
+
+[node name="LightEntranceEast" type="Node3D" parent="Props" groups=["airfield_prop"]]
+position = Vector3(92, 0.035, 146)
+rotation = Vector3(0, 0, 0)
+
+[node name="Visual" parent="Props/LightEntranceEast" instance=ExtResource("model_light_pole")]
+
+[node name="Collision" type="StaticBody3D" parent="Props/LightEntranceEast"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Props/LightEntranceEast/Collision"]
+position = Vector3(0, 3.5, 0)
+shape = SubResource("shape_pole")
+
+[node name="PerimeterFence" type="Node3D" parent="."]
+
+[node name="North" type="Node3D" parent="PerimeterFence"]
+position = Vector3(0, 0, -155)
+rotation = Vector3(0, 0, 0)
+
+[node name="Wire" type="MeshInstance3D" parent="PerimeterFence/North"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("fence_mesh_North")
+
+[node name="Collision" type="StaticBody3D" parent="PerimeterFence/North"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="PerimeterFence/North/Collision"]
+position = Vector3(0, 1.2, 0)
+shape = SubResource("fence_shape_North")
+
+[node name="Rail0" type="MeshInstance3D" parent="PerimeterFence/North"]
+position = Vector3(0, 0.15, 0)
+scale = Vector3(864, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Rail1" type="MeshInstance3D" parent="PerimeterFence/North"]
+position = Vector3(0, 2.35, 0)
+scale = Vector3(864, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Posts" type="MultiMeshInstance3D" parent="PerimeterFence/North"]
+multimesh = SubResource("posts_North")
+
+[node name="South0" type="Node3D" parent="PerimeterFence"]
+position = Vector3(-267.075, 0, 155)
+rotation = Vector3(0, 0, 0)
+
+[node name="Wire" type="MeshInstance3D" parent="PerimeterFence/South0"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("fence_mesh_South0")
+
+[node name="Collision" type="StaticBody3D" parent="PerimeterFence/South0"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="PerimeterFence/South0/Collision"]
+position = Vector3(0, 1.2, 0)
+shape = SubResource("fence_shape_South0")
+
+[node name="Rail0" type="MeshInstance3D" parent="PerimeterFence/South0"]
+position = Vector3(0, 0.15, 0)
+scale = Vector3(329.85, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Rail1" type="MeshInstance3D" parent="PerimeterFence/South0"]
+position = Vector3(0, 2.35, 0)
+scale = Vector3(329.85, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Posts" type="MultiMeshInstance3D" parent="PerimeterFence/South0"]
+multimesh = SubResource("posts_South0")
+
+[node name="South1" type="Node3D" parent="PerimeterFence"]
+position = Vector3(0, 0, 155)
+rotation = Vector3(0, 0, 0)
+
+[node name="Wire" type="MeshInstance3D" parent="PerimeterFence/South1"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("fence_mesh_South1")
+
+[node name="Collision" type="StaticBody3D" parent="PerimeterFence/South1"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="PerimeterFence/South1/Collision"]
+position = Vector3(0, 1.2, 0)
+shape = SubResource("fence_shape_South1")
+
+[node name="Rail0" type="MeshInstance3D" parent="PerimeterFence/South1"]
+position = Vector3(0, 0.15, 0)
+scale = Vector3(195.7, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Rail1" type="MeshInstance3D" parent="PerimeterFence/South1"]
+position = Vector3(0, 2.35, 0)
+scale = Vector3(195.7, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Posts" type="MultiMeshInstance3D" parent="PerimeterFence/South1"]
+multimesh = SubResource("posts_South1")
+
+[node name="South2" type="Node3D" parent="PerimeterFence"]
+position = Vector3(267.075, 0, 155)
+rotation = Vector3(0, 0, 0)
+
+[node name="Wire" type="MeshInstance3D" parent="PerimeterFence/South2"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("fence_mesh_South2")
+
+[node name="Collision" type="StaticBody3D" parent="PerimeterFence/South2"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="PerimeterFence/South2/Collision"]
+position = Vector3(0, 1.2, 0)
+shape = SubResource("fence_shape_South2")
+
+[node name="Rail0" type="MeshInstance3D" parent="PerimeterFence/South2"]
+position = Vector3(0, 0.15, 0)
+scale = Vector3(329.85, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Rail1" type="MeshInstance3D" parent="PerimeterFence/South2"]
+position = Vector3(0, 2.35, 0)
+scale = Vector3(329.85, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Posts" type="MultiMeshInstance3D" parent="PerimeterFence/South2"]
+multimesh = SubResource("posts_South2")
+
+[node name="West" type="Node3D" parent="PerimeterFence"]
+position = Vector3(-432, 0, 0)
+rotation = Vector3(0, 1.570796, 0)
+
+[node name="Wire" type="MeshInstance3D" parent="PerimeterFence/West"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("fence_mesh_West")
+
+[node name="Collision" type="StaticBody3D" parent="PerimeterFence/West"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="PerimeterFence/West/Collision"]
+position = Vector3(0, 1.2, 0)
+shape = SubResource("fence_shape_West")
+
+[node name="Rail0" type="MeshInstance3D" parent="PerimeterFence/West"]
+position = Vector3(0, 0.15, 0)
+scale = Vector3(310, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Rail1" type="MeshInstance3D" parent="PerimeterFence/West"]
+position = Vector3(0, 2.35, 0)
+scale = Vector3(310, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Posts" type="MultiMeshInstance3D" parent="PerimeterFence/West"]
+multimesh = SubResource("posts_West")
+
+[node name="East" type="Node3D" parent="PerimeterFence"]
+position = Vector3(432, 0, 0)
+rotation = Vector3(0, 1.570796, 0)
+
+[node name="Wire" type="MeshInstance3D" parent="PerimeterFence/East"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("fence_mesh_East")
+
+[node name="Collision" type="StaticBody3D" parent="PerimeterFence/East"]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="PerimeterFence/East/Collision"]
+position = Vector3(0, 1.2, 0)
+shape = SubResource("fence_shape_East")
+
+[node name="Rail0" type="MeshInstance3D" parent="PerimeterFence/East"]
+position = Vector3(0, 0.15, 0)
+scale = Vector3(310, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Rail1" type="MeshInstance3D" parent="PerimeterFence/East"]
+position = Vector3(0, 2.35, 0)
+scale = Vector3(310, 1, 1)
+mesh = SubResource("unit_rail")
+
+[node name="Posts" type="MultiMeshInstance3D" parent="PerimeterFence/East"]
+multimesh = SubResource("posts_East")
+
+[node name="Vegetation" type="Node3D" parent="."]
+
+[node name="pine_tree_000" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-333.872783, 0.015, 134.992979)
+rotation = Vector3(0, 1.338303, 0)
+scale = Vector3(0.876195, 0.876195, 0.876195)
+
+[node name="pine_tree_001" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-383.521764, 0.015, -126.993335)
+rotation = Vector3(0, -2.223375, 0)
+scale = Vector3(0.758598, 0.758598, 0.758598)
+
+[node name="pine_tree_002" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(182.370959, 0.015, 36.103364)
+rotation = Vector3(0, -2.616058, 0)
+scale = Vector3(0.868351, 0.868351, 0.868351)
+
+[node name="pine_tree_003" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(387.481209, 0.015, -70.495644)
+rotation = Vector3(0, 0.493307, 0)
+scale = Vector3(0.695407, 0.695407, 0.695407)
+
+[node name="pine_tree_004" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-334.14916, 0.015, -98.901068)
+rotation = Vector3(0, 0.521084, 0)
+scale = Vector3(0.680534, 0.680534, 0.680534)
+
+[node name="pine_tree_005" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(191.206476, 0.015, 89.754261)
+rotation = Vector3(0, 3.10598, 0)
+scale = Vector3(0.720528, 0.720528, 0.720528)
+
+[node name="pine_tree_006" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(380.333395, 0.015, 88.767121)
+rotation = Vector3(0, 1.124221, 0)
+scale = Vector3(0.922175, 0.922175, 0.922175)
+
+[node name="pine_tree_007" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-388.05948, 0.015, -16.974891)
+rotation = Vector3(0, 1.859861, 0)
+scale = Vector3(0.649578, 0.649578, 0.649578)
+
+[node name="pine_tree_008" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(211.072414, 0.015, 72.099809)
+rotation = Vector3(0, -0.222407, 0)
+scale = Vector3(0.841733, 0.841733, 0.841733)
+
+[node name="pine_tree_009" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-343.76643, 0.015, -145.378048)
+rotation = Vector3(0, -1.31687, 0)
+scale = Vector3(0.737066, 0.737066, 0.737066)
+
+[node name="pine_tree_010" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-384.423519, 0.015, -92.36194)
+rotation = Vector3(0, -0.60629, 0)
+scale = Vector3(0.649868, 0.649868, 0.649868)
+
+[node name="pine_tree_011" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-398.402259, 0.015, 39.207986)
+rotation = Vector3(0, -1.659887, 0)
+scale = Vector3(0.823422, 0.823422, 0.823422)
+
+[node name="pine_tree_012" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(376.856991, 0.015, 116.730617)
+rotation = Vector3(0, -0.898797, 0)
+scale = Vector3(0.667745, 0.667745, 0.667745)
+
+[node name="pine_tree_013" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-321.133525, 0.015, 3.187722)
+rotation = Vector3(0, 0.604694, 0)
+scale = Vector3(0.882437, 0.882437, 0.882437)
+
+[node name="pine_tree_014" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-370.66677, 0.015, -86.453321)
+rotation = Vector3(0, -1.216803, 0)
+scale = Vector3(0.653528, 0.653528, 0.653528)
+
+[node name="pine_tree_015" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(57.809508, 0.015, 137.139506)
+rotation = Vector3(0, -1.566109, 0)
+scale = Vector3(0.901247, 0.901247, 0.901247)
+
+[node name="pine_tree_016" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-408.491334, 0.015, -80.194129)
+rotation = Vector3(0, 1.462376, 0)
+scale = Vector3(0.703764, 0.703764, 0.703764)
+
+[node name="pine_tree_017" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(40.227957, 0.015, -0.58599)
+rotation = Vector3(0, -1.713339, 0)
+scale = Vector3(0.78721, 0.78721, 0.78721)
+
+[node name="pine_tree_018" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(368.10641, 0.015, 83.120016)
+rotation = Vector3(0, -0.096592, 0)
+scale = Vector3(0.722717, 0.722717, 0.722717)
+
+[node name="pine_tree_019" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-383.122888, 0.015, 129.097489)
+rotation = Vector3(0, -0.938319, 0)
+scale = Vector3(0.878072, 0.878072, 0.878072)
+
+[node name="pine_tree_020" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-150.97559, 0.015, -134.723922)
+rotation = Vector3(0, 3.007396, 0)
+scale = Vector3(0.706307, 0.706307, 0.706307)
+
+[node name="pine_tree_021" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-382.820613, 0.015, 70.702526)
+rotation = Vector3(0, 0.131169, 0)
+scale = Vector3(0.676534, 0.676534, 0.676534)
+
+[node name="pine_tree_022" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(372.824958, 0.015, -96.39153)
+rotation = Vector3(0, 0.088671, 0)
+scale = Vector3(0.735193, 0.735193, 0.735193)
+
+[node name="pine_tree_023" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-98.366524, 0.015, -8.398273)
+rotation = Vector3(0, 2.337634, 0)
+scale = Vector3(0.867093, 0.867093, 0.867093)
+
+[node name="pine_tree_024" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-303.313597, 0.015, -106.627764)
+rotation = Vector3(0, 2.56756, 0)
+scale = Vector3(0.823825, 0.823825, 0.823825)
+
+[node name="pine_tree_025" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-390.637388, 0.015, 15.236934)
+rotation = Vector3(0, -1.794362, 0)
+scale = Vector3(0.742826, 0.742826, 0.742826)
+
+[node name="pine_tree_026" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(177.68607, 0.015, -144.419889)
+rotation = Vector3(0, 1.094081, 0)
+scale = Vector3(0.814538, 0.814538, 0.814538)
+
+[node name="pine_tree_027" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-186.287336, 0.015, -89.953374)
+rotation = Vector3(0, 1.761451, 0)
+scale = Vector3(0.845384, 0.845384, 0.845384)
+
+[node name="pine_tree_028" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-186.601797, 0.015, -4.429756)
+rotation = Vector3(0, 1.406709, 0)
+scale = Vector3(0.7364, 0.7364, 0.7364)
+
+[node name="pine_tree_029" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(375.207609, 0.015, -63.953879)
+rotation = Vector3(0, -0.389893, 0)
+scale = Vector3(0.873301, 0.873301, 0.873301)
+
+[node name="pine_tree_030" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-383.692505, 0.015, -61.599365)
+rotation = Vector3(0, -2.082597, 0)
+scale = Vector3(0.701695, 0.701695, 0.701695)
+
+[node name="pine_tree_031" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-272.295423, 0.015, 6.135895)
+rotation = Vector3(0, -1.138434, 0)
+scale = Vector3(0.679642, 0.679642, 0.679642)
+
+[node name="pine_tree_032" parent="Vegetation" instance=ExtResource("model_pine_tree")]
+position = Vector3(-381.369014, 0.015, 140.828108)
+rotation = Vector3(0, 1.00739, 0)
+scale = Vector3(0.946271, 0.946271, 0.946271)
+
+[node name="shrub_033" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-133.184989, 0.015, 1.260438)
+rotation = Vector3(0, -2.229986, 0)
+scale = Vector3(0.837264, 0.837264, 0.837264)
+
+[node name="shrub_034" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(412.362295, 0.015, -112.294953)
+rotation = Vector3(0, 2.255466, 0)
+scale = Vector3(0.879068, 0.879068, 0.879068)
+
+[node name="shrub_035" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-292.666508, 0.015, -78.906652)
+rotation = Vector3(0, 1.841974, 0)
+scale = Vector3(0.871622, 0.871622, 0.871622)
+
+[node name="shrub_036" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(302.807528, 0.015, 49.741786)
+rotation = Vector3(0, 2.007771, 0)
+scale = Vector3(0.677665, 0.677665, 0.677665)
+
+[node name="shrub_037" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(414.963239, 0.015, -84.226751)
+rotation = Vector3(0, -2.524234, 0)
+scale = Vector3(1.013992, 1.013992, 1.013992)
+
+[node name="shrub_038" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-307.371062, 0.015, 64.968346)
+rotation = Vector3(0, -2.760702, 0)
+scale = Vector3(1.13113, 1.13113, 1.13113)
+
+[node name="shrub_039" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-201.045954, 0.015, -128.785015)
+rotation = Vector3(0, -2.209685, 0)
+scale = Vector3(0.989798, 0.989798, 0.989798)
+
+[node name="shrub_040" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-25.612259, 0.015, -98.454562)
+rotation = Vector3(0, -0.963431, 0)
+scale = Vector3(1.196345, 1.196345, 1.196345)
+
+[node name="shrub_041" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(389.794587, 0.015, 12.414984)
+rotation = Vector3(0, 1.380632, 0)
+scale = Vector3(1.123602, 1.123602, 1.123602)
+
+[node name="shrub_042" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-393.644699, 0.015, 141.944889)
+rotation = Vector3(0, 1.014044, 0)
+scale = Vector3(0.863929, 0.863929, 0.863929)
+
+[node name="shrub_043" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-272.820333, 0.015, 110.581816)
+rotation = Vector3(0, 1.44577, 0)
+scale = Vector3(1.08483, 1.08483, 1.08483)
+
+[node name="shrub_044" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-24.871247, 0.015, -10.946478)
+rotation = Vector3(0, 0.336948, 0)
+scale = Vector3(0.919421, 0.919421, 0.919421)
+
+[node name="shrub_045" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(6.449922, 0.015, -20.858807)
+rotation = Vector3(0, -2.692403, 0)
+scale = Vector3(1.108975, 1.108975, 1.108975)
+
+[node name="shrub_046" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(343.816312, 0.015, -26.170158)
+rotation = Vector3(0, 1.488629, 0)
+scale = Vector3(0.784376, 0.784376, 0.784376)
+
+[node name="shrub_047" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(6.344878, 0.015, -142.35676)
+rotation = Vector3(0, -1.303562, 0)
+scale = Vector3(0.852732, 0.852732, 0.852732)
+
+[node name="shrub_048" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-227.782929, 0.015, 125.867881)
+rotation = Vector3(0, -2.69669, 0)
+scale = Vector3(0.781231, 0.781231, 0.781231)
+
+[node name="shrub_049" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-248.062981, 0.015, 93.429377)
+rotation = Vector3(0, -1.24866, 0)
+scale = Vector3(0.737877, 0.737877, 0.737877)
+
+[node name="shrub_050" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(306.24522, 0.015, 6.067879)
+rotation = Vector3(0, -3.129527, 0)
+scale = Vector3(1.087152, 1.087152, 1.087152)
+
+[node name="shrub_051" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(325.115639, 0.015, -114.826995)
+rotation = Vector3(0, -1.441829, 0)
+scale = Vector3(0.674002, 0.674002, 0.674002)
+
+[node name="shrub_052" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(61.044256, 0.015, 135.515599)
+rotation = Vector3(0, -2.524775, 0)
+scale = Vector3(0.819897, 0.819897, 0.819897)
+
+[node name="shrub_053" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(261.002563, 0.015, -77.1666)
+rotation = Vector3(0, -0.354728, 0)
+scale = Vector3(1.043197, 1.043197, 1.043197)
+
+[node name="shrub_054" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-378.780821, 0.015, 2.412017)
+rotation = Vector3(0, 1.257922, 0)
+scale = Vector3(1.076111, 1.076111, 1.076111)
+
+[node name="shrub_055" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(210.300714, 0.015, -12.887049)
+rotation = Vector3(0, 1.845022, 0)
+scale = Vector3(0.681715, 0.681715, 0.681715)
+
+[node name="shrub_056" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-416.525744, 0.015, 95.659481)
+rotation = Vector3(0, -2.235341, 0)
+scale = Vector3(1.199481, 1.199481, 1.199481)
+
+[node name="shrub_057" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(297.560165, 0.015, -142.270295)
+rotation = Vector3(0, -2.391322, 0)
+scale = Vector3(0.986424, 0.986424, 0.986424)
+
+[node name="shrub_058" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-289.53681, 0.015, -115.398947)
+rotation = Vector3(0, -0.745719, 0)
+scale = Vector3(1.157801, 1.157801, 1.157801)
+
+[node name="shrub_059" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-372.886084, 0.015, 45.897221)
+rotation = Vector3(0, -2.741482, 0)
+scale = Vector3(0.699206, 0.699206, 0.699206)
+
+[node name="shrub_060" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-398.923136, 0.015, 61.182508)
+rotation = Vector3(0, 2.66236, 0)
+scale = Vector3(0.679998, 0.679998, 0.679998)
+
+[node name="shrub_061" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(167.986838, 0.015, -26.197622)
+rotation = Vector3(0, -3.072221, 0)
+scale = Vector3(0.733443, 0.733443, 0.733443)
+
+[node name="shrub_062" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(372.107853, 0.015, 9.44268)
+rotation = Vector3(0, -0.02981, 0)
+scale = Vector3(0.724308, 0.724308, 0.724308)
+
+[node name="shrub_063" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(370.902696, 0.015, -50.644564)
+rotation = Vector3(0, 0.742324, 0)
+scale = Vector3(1.063032, 1.063032, 1.063032)
+
+[node name="shrub_064" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-351.718492, 0.015, 135.777808)
+rotation = Vector3(0, -3.099229, 0)
+scale = Vector3(0.949816, 0.949816, 0.949816)
+
+[node name="shrub_065" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-15.852237, 0.015, 140.484859)
+rotation = Vector3(0, -1.181734, 0)
+scale = Vector3(0.701852, 0.701852, 0.701852)
+
+[node name="shrub_066" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-184.191107, 0.015, -89.351277)
+rotation = Vector3(0, -1.470643, 0)
+scale = Vector3(0.819245, 0.819245, 0.819245)
+
+[node name="shrub_067" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(71.723204, 0.015, -34.080229)
+rotation = Vector3(0, -1.607507, 0)
+scale = Vector3(1.01958, 1.01958, 1.01958)
+
+[node name="shrub_068" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(185.970854, 0.015, 108.078336)
+rotation = Vector3(0, 2.915751, 0)
+scale = Vector3(0.991365, 0.991365, 0.991365)
+
+[node name="shrub_069" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(177.932592, 0.015, -107.800706)
+rotation = Vector3(0, -2.175235, 0)
+scale = Vector3(0.905456, 0.905456, 0.905456)
+
+[node name="shrub_070" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(366.458957, 0.015, 7.611326)
+rotation = Vector3(0, -0.931587, 0)
+scale = Vector3(0.959899, 0.959899, 0.959899)
+
+[node name="shrub_071" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(239.38611, 0.015, -107.895382)
+rotation = Vector3(0, -0.212688, 0)
+scale = Vector3(0.657455, 0.657455, 0.657455)
+
+[node name="shrub_072" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-221.472934, 0.015, 131.281728)
+rotation = Vector3(0, 0.984832, 0)
+scale = Vector3(1.086578, 1.086578, 1.086578)
+
+[node name="shrub_073" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(189.265687, 0.015, 137.405436)
+rotation = Vector3(0, -0.607588, 0)
+scale = Vector3(1.089509, 1.089509, 1.089509)
+
+[node name="shrub_074" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(299.502317, 0.015, 126.031552)
+rotation = Vector3(0, -1.041981, 0)
+scale = Vector3(0.94381, 0.94381, 0.94381)
+
+[node name="shrub_075" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-403.526321, 0.015, -7.405402)
+rotation = Vector3(0, -2.209322, 0)
+scale = Vector3(1.030293, 1.030293, 1.030293)
+
+[node name="shrub_076" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(371.4427, 0.015, -58.683647)
+rotation = Vector3(0, -0.991717, 0)
+scale = Vector3(1.164092, 1.164092, 1.164092)
+
+[node name="shrub_077" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-288.805791, 0.015, 106.324663)
+rotation = Vector3(0, 2.252581, 0)
+scale = Vector3(0.902622, 0.902622, 0.902622)
+
+[node name="shrub_078" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(307.755353, 0.015, -78.842185)
+rotation = Vector3(0, 0.526899, 0)
+scale = Vector3(1.176362, 1.176362, 1.176362)
+
+[node name="shrub_079" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(49.183274, 0.015, -20.510793)
+rotation = Vector3(0, -2.075101, 0)
+scale = Vector3(1.114741, 1.114741, 1.114741)
+
+[node name="shrub_080" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(-303.757102, 0.015, -110.535413)
+rotation = Vector3(0, 1.217696, 0)
+scale = Vector3(1.157807, 1.157807, 1.157807)
+
+[node name="shrub_081" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(131.246707, 0.015, 130.538364)
+rotation = Vector3(0, -1.118122, 0)
+scale = Vector3(0.865423, 0.865423, 0.865423)
+
+[node name="shrub_082" parent="Vegetation" instance=ExtResource("model_shrub")]
+position = Vector3(251.282964, 0.015, -22.080207)
+rotation = Vector3(0, 0.943921, 0)
+scale = Vector3(0.883605, 0.883605, 0.883605)
+
+[node name="grass_clump_083" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-207.363708, 0.015, 100.708166)
+rotation = Vector3(0, -1.764325, 0)
+scale = Vector3(1.179682, 1.179682, 1.179682)
+
+[node name="grass_clump_084" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-140.395271, 0.015, -106.492717)
+rotation = Vector3(0, 0.662974, 0)
+scale = Vector3(0.894654, 0.894654, 0.894654)
+
+[node name="grass_clump_085" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-224.880323, 0.015, -121.711172)
+rotation = Vector3(0, 0.890014, 0)
+scale = Vector3(1.045327, 1.045327, 1.045327)
+
+[node name="grass_clump_086" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(293.974007, 0.015, -145.217623)
+rotation = Vector3(0, -2.432274, 0)
+scale = Vector3(0.864518, 0.864518, 0.864518)
+
+[node name="grass_clump_087" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(192.311886, 0.015, -83.118136)
+rotation = Vector3(0, -2.743275, 0)
+scale = Vector3(0.876885, 0.876885, 0.876885)
+
+[node name="grass_clump_088" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(22.537442, 0.015, -145.245899)
+rotation = Vector3(0, 1.718477, 0)
+scale = Vector3(0.829524, 0.829524, 0.829524)
+
+[node name="grass_clump_089" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(256.589608, 0.015, 32.427607)
+rotation = Vector3(0, 0.503643, 0)
+scale = Vector3(0.968543, 0.968543, 0.968543)
+
+[node name="grass_clump_090" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-316.65411, 0.015, -25.132968)
+rotation = Vector3(0, -2.507667, 0)
+scale = Vector3(0.893722, 0.893722, 0.893722)
+
+[node name="grass_clump_091" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(183.424624, 0.015, 20.437511)
+rotation = Vector3(0, 3.138473, 0)
+scale = Vector3(1.030336, 1.030336, 1.030336)
+
+[node name="grass_clump_092" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-132.583918, 0.015, -3.595733)
+rotation = Vector3(0, -0.590273, 0)
+scale = Vector3(1.095359, 1.095359, 1.095359)
+
+[node name="grass_clump_093" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-151.883644, 0.015, -133.268111)
+rotation = Vector3(0, 0.408034, 0)
+scale = Vector3(0.808794, 0.808794, 0.808794)
+
+[node name="grass_clump_094" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(387.122911, 0.015, -136.953359)
+rotation = Vector3(0, 2.63958, 0)
+scale = Vector3(1.193575, 1.193575, 1.193575)
+
+[node name="grass_clump_095" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(418.56474, 0.015, -32.581384)
+rotation = Vector3(0, 2.621515, 0)
+scale = Vector3(1.154352, 1.154352, 1.154352)
+
+[node name="grass_clump_096" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(91.08897, 0.015, -124.750569)
+rotation = Vector3(0, 1.875113, 0)
+scale = Vector3(1.078809, 1.078809, 1.078809)
+
+[node name="grass_clump_097" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-376.40626, 0.015, -34.836808)
+rotation = Vector3(0, -3.001933, 0)
+scale = Vector3(0.685349, 0.685349, 0.685349)
+
+[node name="grass_clump_098" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(318.842603, 0.015, -123.798826)
+rotation = Vector3(0, -2.27371, 0)
+scale = Vector3(0.867539, 0.867539, 0.867539)
+
+[node name="grass_clump_099" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(93.449655, 0.015, -3.785732)
+rotation = Vector3(0, -2.799461, 0)
+scale = Vector3(1.120236, 1.120236, 1.120236)
+
+[node name="grass_clump_100" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(185.957245, 0.015, -100.458581)
+rotation = Vector3(0, 2.263554, 0)
+scale = Vector3(0.927914, 0.927914, 0.927914)
+
+[node name="grass_clump_101" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(183.002408, 0.015, 111.679421)
+rotation = Vector3(0, 0.001637, 0)
+scale = Vector3(0.784656, 0.784656, 0.784656)
+
+[node name="grass_clump_102" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(321.344046, 0.015, -97.334495)
+rotation = Vector3(0, -2.793635, 0)
+scale = Vector3(1.084144, 1.084144, 1.084144)
+
+[node name="grass_clump_103" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(48.898356, 0.015, -110.452158)
+rotation = Vector3(0, 2.208321, 0)
+scale = Vector3(0.706404, 0.706404, 0.706404)
+
+[node name="grass_clump_104" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-283.347729, 0.015, 64.041425)
+rotation = Vector3(0, 2.515785, 0)
+scale = Vector3(1.071856, 1.071856, 1.071856)
+
+[node name="grass_clump_105" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(396.902925, 0.015, -119.358114)
+rotation = Vector3(0, -0.676613, 0)
+scale = Vector3(1.039403, 1.039403, 1.039403)
+
+[node name="grass_clump_106" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(184.613257, 0.015, 39.310328)
+rotation = Vector3(0, 1.231472, 0)
+scale = Vector3(0.726663, 0.726663, 0.726663)
+
+[node name="grass_clump_107" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-143.332908, 0.015, -90.643229)
+rotation = Vector3(0, 2.64635, 0)
+scale = Vector3(0.708407, 0.708407, 0.708407)
+
+[node name="grass_clump_108" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-162.359892, 0.015, -96.157211)
+rotation = Vector3(0, 1.170599, 0)
+scale = Vector3(0.664031, 0.664031, 0.664031)
+
+[node name="grass_clump_109" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(340.885658, 0.015, -24.167379)
+rotation = Vector3(0, 2.206084, 0)
+scale = Vector3(1.057286, 1.057286, 1.057286)
+
+[node name="grass_clump_110" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(289.927449, 0.015, 67.520328)
+rotation = Vector3(0, 0.019463, 0)
+scale = Vector3(0.872671, 0.872671, 0.872671)
+
+[node name="grass_clump_111" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(288.789843, 0.015, -97.07746)
+rotation = Vector3(0, 0.572361, 0)
+scale = Vector3(0.755606, 0.755606, 0.755606)
+
+[node name="grass_clump_112" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(129.143963, 0.015, -133.056479)
+rotation = Vector3(0, 0.804344, 0)
+scale = Vector3(0.715626, 0.715626, 0.715626)
+
+[node name="grass_clump_113" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(21.008885, 0.015, -142.749101)
+rotation = Vector3(0, -2.5449, 0)
+scale = Vector3(1.134313, 1.134313, 1.134313)
+
+[node name="grass_clump_114" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(301.526189, 0.015, -138.294233)
+rotation = Vector3(0, -1.420489, 0)
+scale = Vector3(1.062856, 1.062856, 1.062856)
+
+[node name="grass_clump_115" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(75.499491, 0.015, -139.855583)
+rotation = Vector3(0, -2.661984, 0)
+scale = Vector3(0.682759, 0.682759, 0.682759)
+
+[node name="grass_clump_116" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-91.299703, 0.015, 136.930572)
+rotation = Vector3(0, 2.387025, 0)
+scale = Vector3(0.994784, 0.994784, 0.994784)
+
+[node name="grass_clump_117" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(302.389813, 0.015, 6.000795)
+rotation = Vector3(0, 2.416477, 0)
+scale = Vector3(0.976632, 0.976632, 0.976632)
+
+[node name="grass_clump_118" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(179.339856, 0.015, 68.321132)
+rotation = Vector3(0, -1.339563, 0)
+scale = Vector3(1.107502, 1.107502, 1.107502)
+
+[node name="grass_clump_119" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(373.560094, 0.015, -77.906204)
+rotation = Vector3(0, -0.710087, 0)
+scale = Vector3(1.005535, 1.005535, 1.005535)
+
+[node name="grass_clump_120" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(188.946532, 0.015, 107.798925)
+rotation = Vector3(0, -1.523969, 0)
+scale = Vector3(1.04752, 1.04752, 1.04752)
+
+[node name="grass_clump_121" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(182.660163, 0.015, 89.12721)
+rotation = Vector3(0, -2.033156, 0)
+scale = Vector3(0.930583, 0.930583, 0.930583)
+
+[node name="grass_clump_122" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(130.476381, 0.015, -130.705557)
+rotation = Vector3(0, -2.529805, 0)
+scale = Vector3(0.782633, 0.782633, 0.782633)
+
+[node name="grass_clump_123" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(407.291955, 0.015, -23.355654)
+rotation = Vector3(0, -2.030637, 0)
+scale = Vector3(0.867885, 0.867885, 0.867885)
+
+[node name="grass_clump_124" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(38.44732, 0.015, -101.026894)
+rotation = Vector3(0, 3.007352, 0)
+scale = Vector3(0.917114, 0.917114, 0.917114)
+
+[node name="grass_clump_125" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(145.474788, 0.015, -105.022875)
+rotation = Vector3(0, 0.944005, 0)
+scale = Vector3(0.700794, 0.700794, 0.700794)
+
+[node name="grass_clump_126" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(366.680506, 0.015, -1.849026)
+rotation = Vector3(0, 1.632522, 0)
+scale = Vector3(0.896808, 0.896808, 0.896808)
+
+[node name="grass_clump_127" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(161.556839, 0.015, -145.491748)
+rotation = Vector3(0, -1.052353, 0)
+scale = Vector3(1.10211, 1.10211, 1.10211)
+
+[node name="grass_clump_128" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-356.316236, 0.015, 84.525092)
+rotation = Vector3(0, 1.034339, 0)
+scale = Vector3(0.752498, 0.752498, 0.752498)
+
+[node name="grass_clump_129" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-292.752288, 0.015, 101.804656)
+rotation = Vector3(0, -1.635908, 0)
+scale = Vector3(0.93206, 0.93206, 0.93206)
+
+[node name="grass_clump_130" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-75.683845, 0.015, -118.947826)
+rotation = Vector3(0, -2.546842, 0)
+scale = Vector3(0.681037, 0.681037, 0.681037)
+
+[node name="grass_clump_131" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-370.401549, 0.015, -90.868854)
+rotation = Vector3(0, -2.31958, 0)
+scale = Vector3(1.000112, 1.000112, 1.000112)
+
+[node name="grass_clump_132" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(287.527338, 0.015, -23.94617)
+rotation = Vector3(0, -0.675075, 0)
+scale = Vector3(0.784962, 0.784962, 0.784962)
+
+[node name="grass_clump_133" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-20.402429, 0.015, -27.094358)
+rotation = Vector3(0, -2.824288, 0)
+scale = Vector3(0.750987, 0.750987, 0.750987)
+
+[node name="grass_clump_134" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-297.323703, 0.015, -119.466702)
+rotation = Vector3(0, 1.122392, 0)
+scale = Vector3(0.870818, 0.870818, 0.870818)
+
+[node name="grass_clump_135" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(131.393204, 0.015, -116.665968)
+rotation = Vector3(0, -1.156979, 0)
+scale = Vector3(1.189554, 1.189554, 1.189554)
+
+[node name="grass_clump_136" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-222.604704, 0.015, -111.692325)
+rotation = Vector3(0, 2.347214, 0)
+scale = Vector3(0.957008, 0.957008, 0.957008)
+
+[node name="grass_clump_137" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(50.465318, 0.015, -144.343472)
+rotation = Vector3(0, -2.152504, 0)
+scale = Vector3(1.015652, 1.015652, 1.015652)
+
+[node name="grass_clump_138" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-160.475108, 0.015, 124.742619)
+rotation = Vector3(0, -2.526303, 0)
+scale = Vector3(1.075247, 1.075247, 1.075247)
+
+[node name="grass_clump_139" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-416.656344, 0.015, -77.623089)
+rotation = Vector3(0, -0.910153, 0)
+scale = Vector3(0.91743, 0.91743, 0.91743)
+
+[node name="grass_clump_140" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-332.138721, 0.015, 63.160711)
+rotation = Vector3(0, 0.199524, 0)
+scale = Vector3(0.853059, 0.853059, 0.853059)
+
+[node name="grass_clump_141" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(155.598216, 0.015, -91.759273)
+rotation = Vector3(0, 1.289846, 0)
+scale = Vector3(0.707597, 0.707597, 0.707597)
+
+[node name="grass_clump_142" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(187.328806, 0.015, -138.668688)
+rotation = Vector3(0, -3.006175, 0)
+scale = Vector3(1.106127, 1.106127, 1.106127)
+
+[node name="grass_clump_143" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-375.512788, 0.015, 21.141527)
+rotation = Vector3(0, -1.179815, 0)
+scale = Vector3(0.772418, 0.772418, 0.772418)
+
+[node name="grass_clump_144" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-109.855312, 0.015, -7.511472)
+rotation = Vector3(0, -1.458001, 0)
+scale = Vector3(0.930152, 0.930152, 0.930152)
+
+[node name="grass_clump_145" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-145.365116, 0.015, -87.997563)
+rotation = Vector3(0, 1.377218, 0)
+scale = Vector3(0.858162, 0.858162, 0.858162)
+
+[node name="grass_clump_146" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-131.685606, 0.015, -82.516175)
+rotation = Vector3(0, 2.127404, 0)
+scale = Vector3(1.183337, 1.183337, 1.183337)
+
+[node name="grass_clump_147" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(288.273866, 0.015, 68.801506)
+rotation = Vector3(0, -1.837102, 0)
+scale = Vector3(1.000627, 1.000627, 1.000627)
+
+[node name="grass_clump_148" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-418.090518, 0.015, -12.464733)
+rotation = Vector3(0, 2.642469, 0)
+scale = Vector3(1.061818, 1.061818, 1.061818)
+
+[node name="grass_clump_149" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(319.783369, 0.015, 109.591437)
+rotation = Vector3(0, 0.906451, 0)
+scale = Vector3(1.050144, 1.050144, 1.050144)
+
+[node name="grass_clump_150" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-247.962894, 0.015, 33.677754)
+rotation = Vector3(0, -2.940901, 0)
+scale = Vector3(0.798028, 0.798028, 0.798028)
+
+[node name="grass_clump_151" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-383.969776, 0.015, -141.421137)
+rotation = Vector3(0, -2.404159, 0)
+scale = Vector3(0.789608, 0.789608, 0.789608)
+
+[node name="grass_clump_152" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(16.925336, 0.015, -130.066191)
+rotation = Vector3(0, 0.91256, 0)
+scale = Vector3(0.794239, 0.794239, 0.794239)
+
+[node name="grass_clump_153" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(239.37185, 0.015, 49.911707)
+rotation = Vector3(0, 0.830512, 0)
+scale = Vector3(1.077802, 1.077802, 1.077802)
+
+[node name="grass_clump_154" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(84.132175, 0.015, 6.214021)
+rotation = Vector3(0, 1.270605, 0)
+scale = Vector3(0.865922, 0.865922, 0.865922)
+
+[node name="grass_clump_155" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(357.429978, 0.015, -128.120901)
+rotation = Vector3(0, -0.213093, 0)
+scale = Vector3(0.915858, 0.915858, 0.915858)
+
+[node name="grass_clump_156" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(150.591845, 0.015, -85.199113)
+rotation = Vector3(0, -1.251264, 0)
+scale = Vector3(0.93059, 0.93059, 0.93059)
+
+[node name="grass_clump_157" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(73.768154, 0.015, 138.40724)
+rotation = Vector3(0, 1.80576, 0)
+scale = Vector3(1.098025, 1.098025, 1.098025)
+
+[node name="grass_clump_158" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-288.182372, 0.015, 109.617554)
+rotation = Vector3(0, 0.25723, 0)
+scale = Vector3(1.102843, 1.102843, 1.102843)
+
+[node name="grass_clump_159" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-261.29091, 0.015, 62.097328)
+rotation = Vector3(0, 1.479138, 0)
+scale = Vector3(0.837559, 0.837559, 0.837559)
+
+[node name="grass_clump_160" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-229.678682, 0.015, 31.61706)
+rotation = Vector3(0, 2.80818, 0)
+scale = Vector3(1.04638, 1.04638, 1.04638)
+
+[node name="grass_clump_161" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-151.413916, 0.015, -134.642755)
+rotation = Vector3(0, 1.287982, 0)
+scale = Vector3(0.816975, 0.816975, 0.816975)
+
+[node name="grass_clump_162" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-46.51188, 0.015, -127.509868)
+rotation = Vector3(0, -2.60124, 0)
+scale = Vector3(0.652041, 0.652041, 0.652041)
+
+[node name="grass_clump_163" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-224.606546, 0.015, -134.548877)
+rotation = Vector3(0, -0.964966, 0)
+scale = Vector3(0.91471, 0.91471, 0.91471)
+
+[node name="grass_clump_164" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(279.304288, 0.015, 0.98977)
+rotation = Vector3(0, 1.952865, 0)
+scale = Vector3(0.749432, 0.749432, 0.749432)
+
+[node name="grass_clump_165" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-401.181464, 0.015, -126.48952)
+rotation = Vector3(0, -1.177256, 0)
+scale = Vector3(0.690816, 0.690816, 0.690816)
+
+[node name="grass_clump_166" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-273.794307, 0.015, -132.307022)
+rotation = Vector3(0, 1.148384, 0)
+scale = Vector3(0.892331, 0.892331, 0.892331)
+
+[node name="grass_clump_167" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-148.235124, 0.015, -113.499989)
+rotation = Vector3(0, -0.454316, 0)
+scale = Vector3(0.757177, 0.757177, 0.757177)
+
+[node name="grass_clump_168" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(107.511589, 0.015, -128.559656)
+rotation = Vector3(0, -2.798632, 0)
+scale = Vector3(0.694883, 0.694883, 0.694883)
+
+[node name="grass_clump_169" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(284.857704, 0.015, -100.964019)
+rotation = Vector3(0, 2.734054, 0)
+scale = Vector3(1.078393, 1.078393, 1.078393)
+
+[node name="grass_clump_170" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-350.962584, 0.015, 12.404206)
+rotation = Vector3(0, -2.01667, 0)
+scale = Vector3(1.180365, 1.180365, 1.180365)
+
+[node name="grass_clump_171" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-313.130584, 0.015, 127.275745)
+rotation = Vector3(0, 3.088967, 0)
+scale = Vector3(0.785423, 0.785423, 0.785423)
+
+[node name="grass_clump_172" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(379.80092, 0.015, 107.974448)
+rotation = Vector3(0, -2.751705, 0)
+scale = Vector3(0.820688, 0.820688, 0.820688)
+
+[node name="grass_clump_173" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(112.857729, 0.015, 127.522105)
+rotation = Vector3(0, 0.524444, 0)
+scale = Vector3(0.673252, 0.673252, 0.673252)
+
+[node name="grass_clump_174" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-199.480866, 0.015, -116.0591)
+rotation = Vector3(0, -0.93992, 0)
+scale = Vector3(0.653001, 0.653001, 0.653001)
+
+[node name="RunwayWeed_00" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-323.373372, 0.015, -42.232211)
+rotation = Vector3(0, 0.122637, 0)
+scale = Vector3(0.475306, 0.475306, 0.475306)
+
+[node name="RunwayWeed_01" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-304.283891, 0.015, -66.350298)
+rotation = Vector3(0, -1.96699, 0)
+scale = Vector3(0.616383, 0.616383, 0.616383)
+
+[node name="RunwayWeed_02" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-285.542595, 0.015, -42.260067)
+rotation = Vector3(0, -0.551631, 0)
+scale = Vector3(0.636444, 0.636444, 0.636444)
+
+[node name="RunwayWeed_03" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-261.149209, 0.015, -68.009404)
+rotation = Vector3(0, 2.530228, 0)
+scale = Vector3(0.508637, 0.508637, 0.508637)
+
+[node name="RunwayWeed_04" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-239.364364, 0.015, -41.98224)
+rotation = Vector3(0, 0.063226, 0)
+scale = Vector3(0.672299, 0.672299, 0.672299)
+
+[node name="RunwayWeed_05" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-219.746599, 0.015, -68.476512)
+rotation = Vector3(0, 2.232434, 0)
+scale = Vector3(0.601686, 0.601686, 0.601686)
+
+[node name="RunwayWeed_06" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-198.95529, 0.015, -42.246179)
+rotation = Vector3(0, -1.761154, 0)
+scale = Vector3(0.590438, 0.590438, 0.590438)
+
+[node name="RunwayWeed_07" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-177.934868, 0.015, -67.88733)
+rotation = Vector3(0, 1.744604, 0)
+scale = Vector3(0.536599, 0.536599, 0.536599)
+
+[node name="RunwayWeed_08" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-158.163103, 0.015, -42.106745)
+rotation = Vector3(0, 0.803524, 0)
+scale = Vector3(0.675883, 0.675883, 0.675883)
+
+[node name="RunwayWeed_09" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-138.368677, 0.015, -67.892927)
+rotation = Vector3(0, 1.823958, 0)
+scale = Vector3(0.596382, 0.596382, 0.596382)
+
+[node name="RunwayWeed_10" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-114.95386, 0.015, -42.436615)
+rotation = Vector3(0, -2.686202, 0)
+scale = Vector3(0.480393, 0.480393, 0.480393)
+
+[node name="RunwayWeed_11" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-92.396376, 0.015, -65.822174)
+rotation = Vector3(0, 2.038044, 0)
+scale = Vector3(0.554495, 0.554495, 0.554495)
+
+[node name="RunwayWeed_12" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-72.912503, 0.015, -40.671584)
+rotation = Vector3(0, -1.844633, 0)
+scale = Vector3(0.59687, 0.59687, 0.59687)
+
+[node name="RunwayWeed_13" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-54.191421, 0.015, -66.841792)
+rotation = Vector3(0, 0.394269, 0)
+scale = Vector3(0.490768, 0.490768, 0.490768)
+
+[node name="RunwayWeed_14" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-28.015321, 0.015, -39.943113)
+rotation = Vector3(0, 1.253758, 0)
+scale = Vector3(0.581753, 0.581753, 0.581753)
+
+[node name="RunwayWeed_15" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(-7.944463, 0.015, -66.837498)
+rotation = Vector3(0, 1.427844, 0)
+scale = Vector3(0.391231, 0.391231, 0.391231)
+
+[node name="RunwayWeed_16" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(11.079957, 0.015, -41.246144)
+rotation = Vector3(0, -2.014742, 0)
+scale = Vector3(0.388819, 0.388819, 0.388819)
+
+[node name="RunwayWeed_17" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(34.447781, 0.015, -67.54225)
+rotation = Vector3(0, -2.25534, 0)
+scale = Vector3(0.520496, 0.520496, 0.520496)
+
+[node name="RunwayWeed_18" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(53.761802, 0.015, -40.580907)
+rotation = Vector3(0, -0.489394, 0)
+scale = Vector3(0.42876, 0.42876, 0.42876)
+
+[node name="RunwayWeed_19" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(75.694773, 0.015, -68.290179)
+rotation = Vector3(0, -1.140699, 0)
+scale = Vector3(0.478797, 0.478797, 0.478797)
+
+[node name="RunwayWeed_20" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(97.813808, 0.015, -39.650583)
+rotation = Vector3(0, -1.659775, 0)
+scale = Vector3(0.674107, 0.674107, 0.674107)
+
+[node name="RunwayWeed_21" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(113.326222, 0.015, -68.216544)
+rotation = Vector3(0, -1.091185, 0)
+scale = Vector3(0.440472, 0.440472, 0.440472)
+
+[node name="RunwayWeed_22" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(139.359086, 0.015, -39.904093)
+rotation = Vector3(0, -0.566324, 0)
+scale = Vector3(0.427958, 0.427958, 0.427958)
+
+[node name="RunwayWeed_23" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(159.665886, 0.015, -65.775634)
+rotation = Vector3(0, -1.511124, 0)
+scale = Vector3(0.641305, 0.641305, 0.641305)
+
+[node name="RunwayWeed_24" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(180.478415, 0.015, -39.646729)
+rotation = Vector3(0, -1.304762, 0)
+scale = Vector3(0.487759, 0.487759, 0.487759)
+
+[node name="RunwayWeed_25" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(199.467462, 0.015, -67.680071)
+rotation = Vector3(0, -2.300374, 0)
+scale = Vector3(0.350384, 0.350384, 0.350384)
+
+[node name="RunwayWeed_26" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(219.101634, 0.015, -42.304298)
+rotation = Vector3(0, 2.386856, 0)
+scale = Vector3(0.644204, 0.644204, 0.644204)
+
+[node name="RunwayWeed_27" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(239.085168, 0.015, -66.705173)
+rotation = Vector3(0, 1.568327, 0)
+scale = Vector3(0.41672, 0.41672, 0.41672)
+
+[node name="RunwayWeed_28" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(262.28464, 0.015, -41.872976)
+rotation = Vector3(0, 2.513424, 0)
+scale = Vector3(0.404109, 0.404109, 0.404109)
+
+[node name="RunwayWeed_29" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(284.539632, 0.015, -65.954254)
+rotation = Vector3(0, -0.704797, 0)
+scale = Vector3(0.370498, 0.370498, 0.370498)
+
+[node name="RunwayWeed_30" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(307.846364, 0.015, -42.173278)
+rotation = Vector3(0, 2.719251, 0)
+scale = Vector3(0.497395, 0.497395, 0.497395)
+
+[node name="RunwayWeed_31" parent="Vegetation" instance=ExtResource("model_grass_clump")]
+position = Vector3(323.716983, 0.015, -67.912626)
+rotation = Vector3(0, 0.018795, 0)
+scale = Vector3(0.675645, 0.675645, 0.675645)
+
+[node name="SpawnAndLootMarkers" type="Node3D" parent="."]
+
+[node name="Infected01" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(-119, 0.05, 62)
+
+[node name="Infected02" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(-111, 0.05, 70)
+
+[node name="Infected03" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(-52, 0.05, 65)
+
+[node name="Infected04" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(-45, 0.05, 71)
+
+[node name="Infected05" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(9, 0.05, 75)
+
+[node name="Infected06" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(40, 0.05, 70)
+
+[node name="Infected07" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(51, 0.05, 81)
+
+[node name="Infected08" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(86, 0.05, 63)
+
+[node name="Infected09" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(-92, 0.05, 25)
+
+[node name="Infected10" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(-18, 0.05, 31)
+
+[node name="Infected11" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(64, 0.05, 20)
+
+[node name="Infected12" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(109, 0.05, 28)
+
+[node name="Infected13" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(-135, 0.05, 107)
+
+[node name="Infected14" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(10, 0.05, 118)
+
+[node name="Infected15" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_infected_marker"]]
+position = Vector3(131, 0.05, 106)
+
+[node name="Loot01" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_loot_marker"]]
+position = Vector3(-124, 0.05, 70)
+
+[node name="Loot02" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_loot_marker"]]
+position = Vector3(-54, 0.05, 71)
+
+[node name="Loot03" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_loot_marker"]]
+position = Vector3(-86, 0.05, 100)
+
+[node name="Loot04" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_loot_marker"]]
+position = Vector3(5, 0.05, 78)
+
+[node name="Loot05" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_loot_marker"]]
+position = Vector3(38, 0.05, 73)
+
+[node name="Loot06" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_loot_marker"]]
+position = Vector3(80, 0.05, 68)
+
+[node name="Loot07" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_loot_marker"]]
+position = Vector3(25, 0.05, 83)
+
+[node name="Loot08" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_loot_marker"]]
+position = Vector3(109, 0.05, 29)
+
+[node name="StoryKeycard" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_story_marker"]]
+position = Vector3(5, 0.05, 78)
+
+[node name="StoryChip" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_story_marker"]]
+position = Vector3(-54, 0.05, 71)
+
+[node name="VisitorSpawn" type="Marker3D" parent="SpawnAndLootMarkers" groups=["airfield_visitor_spawn"]]
+position = Vector3(-100, 0.08, 139)

@@ -96,6 +96,9 @@ func show_menu(message: String = "") -> void:
 	var help = UI.button("УПРАВЛЕНИЕ", Vector2(330, 51))
 	buttons.add_child(help)
 	help.pressed.connect(func(): _show_menu_help(menu))
+	var airfield = UI.button("ОСМОТР АЭРОДРОМА", Vector2(330, 51))
+	buttons.add_child(airfield)
+	airfield.pressed.connect(open_airfield_preview)
 	var note = UI.label("ПРИЮТ  •  ИГРАБЕЛЬНАЯ ГЛАВА 01", 12, UI.GOLD, true)
 	note.position = Vector2(72, 629)
 	menu.add_child(note)
@@ -160,6 +163,20 @@ func _show_menu_help(menu: Control) -> void:
 	content.add_child(close)
 	close.pressed.connect(veil.queue_free)
 	close.grab_focus()
+
+func open_airfield_preview() -> void:
+	# A separate inspection scene, not a new game or save slot. This does not
+	# load, overwrite, or move the existing island and player-built bases.
+	var packed := load("res://scenes/airfield_walkthrough.tscn") as PackedScene
+	if packed == null:
+		show_menu("Не удалось загрузить сцену аэродрома. Проверьте импорт в Godot.")
+		return
+	if is_instance_valid(current_screen):
+		current_screen.queue_free()
+	var preview = packed.instantiate()
+	preview.main = self
+	add_child(preview)
+	current_screen = preview
 
 func start_game(continue_game: bool) -> void:
 	var data = {}

@@ -50,6 +50,20 @@ jobs:
             echo "::error::Airfield model test exited with code $result%0A$log"
             exit 1
           fi
+      - name: Test the full-size airfield walkthrough
+        shell: bash
+        run: |
+          python3 tests/validate_airfield_site.py
+          set +e
+          godot --headless --path . --script res://tests/airfield_site_test.gd 2>&1 | tee "$RUNNER_TEMP/airfield-site.log"
+          result=${PIPESTATUS[0]}
+          set -e
+          if [ "$result" -ne 0 ] || ! grep -q 'AIRFIELD SITE TESTS PASSED' "$RUNNER_TEMP/airfield-site.log" || grep -E 'SCRIPT ERROR|Parse Error|^ERROR:|ObjectDB instances leaked' "$RUNNER_TEMP/airfield-site.log"; then
+            log="$(tail -n 100 "$RUNNER_TEMP/airfield-site.log")"
+            log="${log//'%'/'%25'}"; log="${log//$'\r'/'%0D'}"; log="${log//$'\n'/'%0A'}"
+            echo "::error::Full-size airfield test exited with code $result%0A$log"
+            exit 1
+          fi
       - name: Test the playable chapter
         shell: bash
         run: |
