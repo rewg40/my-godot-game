@@ -12,7 +12,7 @@ GLB = KIT / "glb"
 ASSETS = {
     "hangar_large", "hangar_small", "control_tower", "service_building",
     "fuel_canopy", "fuel_tank", "fuel_pump", "pickup_olive", "pickup_red",
-    "utility_truck", "abandoned_sedan", "cargo_crate", "cargo_pallet", "rusty_barrel", "wire_cage",
+    "utility_truck", "abandoned_sedan", "cargo_crate", "cargo_pallet", "rusty_barrel", "wire_cage", "waste_container",
     "fence_section", "fence_gate", "concrete_barrier", "antenna_mast", "light_pole",
     "roof_panel", "wall_panel", "sliding_door_panel", "runway_10x10", "pine_tree",
     "grass_clump", "shrub", "rock_cluster", "marker_infected", "marker_loot", "marker_story",
@@ -25,6 +25,8 @@ REQUIRED_PARTS = {
     "fence_gate": ["Gate_left_pivot_OPEN", "Gate_right_pivot_OPEN", "Gate_leaf_-1_chain_separate", "Gate_leaf_1_chain_separate"],
     "pickup_olive": ["Chassis_separate", "Body_lower_separate", "Tyre_-1", "Tyre_1", "Roof_rack_separate"],
     "runway_10x10": ["Runway_cracked_asphalt_module_10m", "Surface_crack_strips"],
+    "waste_container": ["Open_top_tapered_bin_walls_separate", "Container_floor_separate"],
+    "wall_panel": ["Wall_panel_window_glass_separate", "Wall_panel_window_frame_separate"],
     "pine_tree": ["Spruce_like_needle_cards_separate", "Spruce_branch_stems_separate"],
     "marker_infected": ["MARKER_INFECTED"],
     "marker_loot": ["MARKER_LOOT"],

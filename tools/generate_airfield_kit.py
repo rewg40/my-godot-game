@@ -788,6 +788,26 @@ def wire_cage(m):
     return a
 
 
+def waste_container(m):
+    a=Asset("waste_container",(-21.1,-23,0))
+    # Four tapered steel walls make an open bin, not a solid cube.
+    bottom=[(-.86,-.54,.12),(.86,-.54,.12),(.86,.54,.12),(-.86,.54,.12)]
+    top=[(-1.08,-.72,1.32),(1.08,-.72,1.32),(1.08,.72,1.32),(-1.08,.72,1.32)]
+    verts=bottom+top
+    faces=[(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)]
+    mesh_object(a,"Open_top_tapered_bin_walls_separate",verts,faces,m["green"],uv_scale=.65)
+    box(a,"Container_floor_separate",(0,0,.10),(1.76,1.12,.20),m["rust"])
+    seg=[]
+    for i in range(4):
+        j=(i+1)%4
+        seg += [(top[i],top[j]),(bottom[i],bottom[j])]
+    batch_beams(a,"Container_rim_and_base_separate",seg,.085,m["frame"])
+    for x in (-.7,.7):
+        for y in (-.5,.5):
+            cylinder(a,f"Container_wheel_{x}_{y}",(x,y,.12),.12,.12,m["rubber"],axis=(1,0,0),sides=12)
+    return a
+
+
 def fence_section(m):
     a=Asset("fence_section",(-16,-23,0))
     w,h=4,2.35
@@ -872,8 +892,17 @@ def loose_panels(m):
     roof=Asset("roof_panel",(7,-23,0))
     box(roof,"Corrugated_roof_panel_separate",(0,0,.06),(3.0,4.0,.12),m["roof"],uv_scale=.4)
     wall=Asset("wall_panel",(12,-23,0))
-    box(wall,"Corrugated_wall_panel_separate",(0,0,1.5),(3,.12,3),m["roof"],uv_scale=.4)
-    for z in (.2,2.8): box(wall,f"Panel_brace_{z}",(0,-.08,z),(3,.07,.08),m["frame"])
+    # Modular wall panel has an actual glazed window opening.
+    for x in (-1.05,1.05):
+        box(wall,f"Corrugated_window_wall_pier_{x}",(x,0,1.5),(.9,.12,3),m["roof"],uv_scale=.4)
+    box(wall,"Corrugated_window_wall_sill",(0,0,.55),(1.2,.12,1.1),m["roof"],uv_scale=.4)
+    box(wall,"Corrugated_window_wall_header",(0,0,2.7),(1.2,.12,.6),m["roof"],uv_scale=.4)
+    box(wall,"Wall_panel_window_glass_separate",(0,0,1.75),(1.2,.04,1.3),m["glass"])
+    seg=[]
+    for x in (-.6,0,.6):seg.append(((x,-.09,1.1),(x,-.09,2.4)))
+    for z in (1.1,1.75,2.4):seg.append(((-.6,-.09,z),(.6,-.09,z)))
+    batch_beams(wall,"Wall_panel_window_frame_separate",seg,.07,m["frame"])
+    for z in (.2,2.8):box(wall,f"Panel_brace_{z}",(0,-.08,z),(3,.07,.08),m["frame"])
     door=Asset("sliding_door_panel",(17,-23,0))
     box(door,"Sliding_door_leaf_separate",(0,0,2.5),(4,.16,5),m["roof"],uv_scale=.4)
     for z in (.25,2.5,4.75): box(door,f"Door_reinforcement_{z}",(0,-.11,z),(4,.08,.10),m["frame"])
@@ -1101,7 +1130,7 @@ def main():
     pickup(m,"pickup_red",(15,-8,0),m["red"])
     pickup(m,"utility_truck",(21,-8,0),m["sand"],covered=True)
     import_abandoned_sedan()
-    cargo_crate(m);cargo_pallet(m);rusty_barrel(m);wire_cage(m)
+    cargo_crate(m);cargo_pallet(m);rusty_barrel(m);wire_cage(m);waste_container(m)
     fence_section(m);fence_gate(m);concrete_barrier(m);antenna_mast(m);light_pole(m)
     loose_panels(m)
     # Keep the display runway away from the three vehicles.

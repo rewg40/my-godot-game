@@ -8,7 +8,7 @@ const ASSETS := [
 	"hangar_large", "hangar_small", "control_tower", "service_building",
 	"fuel_canopy", "fuel_tank", "fuel_pump", "pickup_olive", "pickup_red",
 	"utility_truck", "abandoned_sedan", "cargo_crate", "cargo_pallet", "rusty_barrel",
-	"wire_cage", "fence_section", "fence_gate", "concrete_barrier", "antenna_mast",
+	"wire_cage", "waste_container", "fence_section", "fence_gate", "concrete_barrier", "antenna_mast",
 	"light_pole", "roof_panel", "wall_panel", "sliding_door_panel", "runway_10x10",
 	"pine_tree", "grass_clump", "shrub", "rock_cluster", "marker_infected", "marker_loot", "marker_story"
 ]
