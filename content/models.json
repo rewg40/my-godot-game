@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "updated": "2026-10-30T21:17:05Z",
+  "items": [
+    {
+      "id": "example",
+      "name": "Здесь будет GLB из `персонаж 1.7z`",
+      "file": "models/README.md",
+      "description": "Загрузи GLB через вкладку «＋ 3D-модель» или положи файл в репозиторий и добавь запись сюда.",
+      "tags": [
+        "todo"
+      ],
+      "tab": "assets",
+      "size_mb": null,
+      "tris": null,
+      "date": "2026-10-30"
+    }
+  ]
+}

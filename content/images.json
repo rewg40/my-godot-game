@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "updated": "2026-10-30T21:17:05Z",
+  "items": [
+    {
+      "id": "placeholder-island",
+      "name": "Заглушка: остров в тумане",
+      "file": "images/placeholder-island.svg",
+      "caption": "Плейсхолдер — замени на концепт №1 из плейлиста.",
+      "tags": [
+        "concept",
+        "cover"
+      ],
+      "link": "",
+      "tab": "scenario",
+      "author": "agent",
+      "date": "2026-10-30"
+    }
+  ]
+}

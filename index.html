@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZOMBI · Библия проекта — сценарий, механика, превью</title>
+<meta name="description" content="Внутренний сайт-документация зомби-выживача: сценарий, 10 разделов механики, картинки и 3D-модели. Хранение — GitHub, доступ — по коду.">
+<link rel="stylesheet" href="app.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🧟</text></svg>">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/",
+    "fflate": "https://cdn.jsdelivr.net/npm/fflate@0.8.0/esm/browser.js"
+  }
+}
+</script>
+</head>
+<body>
+<div id="gate" class="gate" hidden>
+  <div class="gate-box">
+    <div class="gate-emoji">🔒</div>
+    <h1>ZOMBI · закрытый проект</h1>
+    <p>Сайт-библия игры. Доступ только для тех, кого впустил автор.<br>Введите код доступа.</p>
+    <form id="gate-form" autocomplete="off">
+      <input id="gate-code" type="password" placeholder="код доступа" spellcheck="false">
+      <button type="submit">Войти</button>
+    </form>
+    <div id="gate-msg" class="gate-msg" hidden></div>
+    <p class="gate-hint">Коды хранятся в репозитории: <code>game-docs/src/config.json</code>. Свои коды автор добавляет в «Настройках» сайта.</p>
+  </div>
+</div>
+
+<div id="app" class="app" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-logo">🧟</span>
+      <div>
+        <b>ZOMBI</b>
+        <span class="brand-sub">библия проекта · остров · Godot 4.x</span>
+      </div>
+    </div>
+
+    <nav class="tabs" id="main-tabs">
+      <button data-tab="scenario" class="tab-btn active">Сценарий</button>
+      <button data-tab="mechanics" class="tab-btn">Механика</button>
+      <button data-tab="preview" class="tab-btn">Картинки / превью</button>
+    </nav>
+
+    <div class="topbar-actions">
+      <span id="sync-pill" class="pill" title="Состояние синхронизации с GitHub">—</span>
+      <button id="btn-refresh" class="ghost" title="Подтянуть свежие файлы из репозитория (F5-кэш bypass)">↻ Обновить</button>
+      <button id="btn-save" class="primary" title="Отправить изменения в репозиторий (Ctrl+S)">⤒ Сохранить в GitHub</button>
+      <button id="btn-settings" class="ghost" title="Настройки доступа и репозитория">⚙</button>
+    </div>
+  </header>
+
+  <div class="subtabs" id="subtabs" hidden></div>
+
+  <div id="dirty-bar" class="dirty-bar" hidden>
+    ⚠ Есть несохранённые правки (они лежат в этом браузере).
+    <button id="btn-dirty-save" class="tiny">Сохранить в репозиторий</button>
+    <button id="btn-dirty-reset" class="tiny ghost">Отменить правки</button>
+  </div>
+  <div id="readonly-bar" class="readonly-bar" hidden>
+    Токен GitHub не задан — читать можно, писать нельзя.
+    <button id="btn-token-now" class="tiny">Задать токен</button>
+  </div>
+
+  <main class="doc" id="doc"><div class="loading">Загрузка документа…</div></main>
+
+  <footer class="foot">
+    <span id="foot-info">—</span>
+    <span class="foot-sep">·</span>
+    <a href="#" id="lnk-agent">Инструкция для агента</a>
+    <span class="foot-sep">·</span>
+    <a href="#" id="lnk-usage">Как пользоваться</a>
+    <span class="foot-sep">·</span>
+    <a href="#" id="lnk-inbox">Запросы агенту</a>
+  </footer>
+</div>
+
+<div id="modal-root" class="modal-root" hidden></div>
+<div id="toast-root" class="toast-root"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
