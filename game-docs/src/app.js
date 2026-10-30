@@ -59,9 +59,68 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
+const SITE_BUILD = "2026-10-31.1";
+/* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
+   старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
+function sha256Pure(text) {
+  const isP = (n) => { for (let i = 2; i * i <= n; i++) if (!(n % i)) return false; return n > 1; };
+  const K = (() => { const o = []; for (let i = 2, c = 0; c < 64; i++) if (isP(i)) { o.push(((Math.pow(i, 1 / 3) % 1) * 4294967296) | 0); c++; } return o; })();
+  const H0 = (() => { const o = []; for (let i = 2, c = 0; c < 8; i++) if (isP(i)) { o.push(((Math.pow(i, 1 / 2) % 1) * 4294967296) | 0); c++; } return o; })();
+  const H = H0.slice();
+  const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+  const bytes = [];
+  for (let i = 0; i < text.length; i++) {
+    let c = text.charCodeAt(i);
+    if (c < 0x80) bytes.push(c);
+    else if (c < 0x800) bytes.push(0xc0 | (c >> 6), 0x80 | (c & 0x3f));
+    else if (c >= 0xd800 && c < 0xdc00 && i + 1 < text.length) {
+      const cp = 0x10000 + (((c & 0x3ff) << 10) | (text.charCodeAt(i + 1) & 0x3ff));
+      bytes.push(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3f), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f));
+      i++;
+    } else bytes.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+  }
+  const bitLen = bytes.length * 8;
+  bytes.push(0x80);
+  const target = (Math.floor((bytes.length - 1) / 64) + 1) * 64 - 8;
+  while (bytes.length < target) bytes.push(0);
+  const hi = Math.floor(bitLen / 4294967296), lo = bitLen >>> 0;
+  bytes.push((hi >>> 24) & 255, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255,
+             (lo >>> 24) & 255, (lo >>> 16) & 255, (lo >>> 8) & 255, lo & 255);
+  const w = new Int32Array(64);
+  for (let off = 0; off < bytes.length; off += 64) {
+    for (let i = 0; i < 16; i++) {
+      const j = off + i * 4;
+      w[i] = ((bytes[j] << 24) | (bytes[j + 1] << 16) | (bytes[j + 2] << 8) | bytes[j + 3]) | 0;
+    }
+    for (let i = 16; i < 64; i++) {
+      const x = w[i - 15], y = w[i - 2];
+      const s0 = (rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3)) | 0;
+      const s1 = (rotr(y, 17) ^ rotr(y, 19) ^ (y >>> 10)) | 0;
+      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+    }
+    let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+    for (let i = 0; i < 64; i++) {
+      const S1 = (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) | 0;
+      const ch = ((e & f) ^ (~e & g)) | 0;
+      const t1 = (h + S1 + ch + K[i] + w[i]) | 0;
+      const S0 = (rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) | 0;
+      const mj = ((a & b) ^ (a & c) ^ (b & c)) | 0;
+      const t2 = (S0 + mj) | 0;
+      h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+    H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+  }
+  return H.map((x) => (x >>> 0).toString(16).padStart(8, "0")).join("");
+}
 async function sha256Hex(str) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  try {
+    if (globalThis.crypto && crypto.subtle && crypto.subtle.digest) {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    }
+  } catch (e) { /* ниже — JS-фолбэк */ }
+  return sha256Pure(str);
 }
 function b64FromBytes(bytes) {
   let bin = "";
@@ -83,7 +142,7 @@ const utf8 = {
 const S = {
   config: { gate: { enabled: true, ownerCode: "", allowed: [] }, contentPath: SRC_PREFIX + "/content", imagesPath: SRC_PREFIX + "/content/images", modelsPath: SRC_PREFIX + "/content/models", inboxPath: SRC_PREFIX + "/content/agent-inbox", origin: { ...REPO_DEFAULT } },
   origin: { ...REPO_DEFAULT },
-  token: "", admin: false, cfgLoaded: false,
+  token: "", admin: false, cfgLoaded: false, cfgOk: false,
   mainTab: "scenario", mechIndex: MECH.map((m) => m.id), sub: "character",
   content: null, contentFile: null, contentSha: null, contentName: "",
   images: null, models: null, dirty: new Set(),
@@ -661,7 +720,8 @@ function download(name, text, mime) {
 /* ----------------------------- доступ (замок) ------------------------------ */
 async function loadConfig() {
   let raw = null;
-  try { raw = await loadText("config.json"); } catch (e) { raw = null; }
+  try { raw = await loadText("config.json"); S.cfgOk = true; }
+  catch (e) { try { raw = (await ghGetFile(`${SRC_PREFIX}/config.json`)).text; S.cfgOk = true; } catch (e2) { S.cfgOk = false; } }
   if (raw) { try { S.config = { ...S.config, ...JSON.parse(raw), gate: { ...S.config.gate, ...(JSON.parse(raw).gate || {}) } }; } catch (e) { /* ignore */ } }
   S.cfgLoaded = true;
   const host = location.hostname || "";
@@ -676,27 +736,65 @@ async function loadConfig() {
 async function tryUnlock(raw, quiet) {
   const g = S.config.gate || {};
   if (!g.enabled) return true;
-  const h = await sha256Hex(raw);
-  if (g.ownerCode && h === g.ownerCode.toLowerCase()) {
-    localStorage.setItem(LS.unlocked, h); localStorage.setItem(LS.admin, "1"); S.admin = true; return true;
+  const code = String(raw == null ? "" : raw).trim().normalize("NFC");
+  if (!code) { gateMsg("Введи код — регистр и пробелы важны.", true); return false; }
+  if (!S.cfgOk) { gateMsg("Сайт не смог прочитать config.json из репозитория → список кодов пуст, войти нельзя. Обновите страницу (F5) — если не помогло, значит github.com недоступен.", true); return false; }
+  if (!g.ownerCode && !(g.allowed || []).length) { gateMsg("В config.json нет ни ownerCode, ни allowed: добавь код и дождись деплоя (~1 мин).", true); return false; }
+  let h = "";
+  try { h = String(await sha256Hex(code)).toLowerCase(); }
+  catch (e) { gateMsg("Браузер не может вычислить хеш: " + e.message, true); return false; }
+  if (h.length !== 64) { gateMsg("Хеш вернулся неполным (" + h.length + " симв.) — обнови страницу по HTTPS.", true); return false; }
+  const isOwner = !!g.ownerCode && h === String(g.ownerCode).toLowerCase();
+  const isGuest = (g.allowed || []).map((x) => String(x).toLowerCase()).includes(h);
+  if (isOwner || isGuest) {
+    try { localStorage.setItem(LS.unlocked, h); localStorage.setItem(LS.admin, isOwner ? "1" : "0"); } catch (e) { /* private mode */ }
+    S.admin = isOwner; gateMsg("", false); return true;
   }
-  if ((g.allowed || []).includes(h.toLowerCase())) { localStorage.setItem(LS.unlocked, h); localStorage.setItem(LS.admin, "0"); S.admin = false; return true; }
-  if (!quiet) toast("Код не подходит. Его должен добавить автор в «Настройки → Доступ».", "bad", 6000);
+  if (!quiet) gateMsg("Код не подходит. Хеш введённого: " + h.slice(0, 12) + "… — такой строки нет в config.json. Если код выдавал автор, попроси добавить его в «Настройки → Доступ».", true);
   return false;
+}
+function gateMsg(text, isError) {
+  const m = document.getElementById("gate-msg");
+  if (!m) return;
+  m.textContent = text || "";
+  m.hidden = !text;
+  m.style.color = isError ? "var(--bad)" : "var(--tx3)";
 }
 function wireGate() {
   const g = S.config.gate || {};
-  if (!g.enabled) { $("#gate").hidden = true; $("#app").hidden = false; return; }
-  const saved = localStorage.getItem(LS.unlocked);
-  const all = [...(g.allowed || []), g.ownerCode || ""].map((s) => (s || "").toLowerCase());
-  if (saved && all.includes(saved)) { S.admin = localStorage.getItem(LS.admin) === "1"; $("#gate").hidden = true; $("#app").hidden = false; return; }
+  const badge = document.getElementById("gate-build");
+  if (badge) badge.textContent = "site " + SITE_BUILD + " · " + (S.cfgOk
+    ? ("config: " + ((g.allowed || []).length ? g.allowed.length + " доп. код(ов) + владелец" : "только код владельца"))
+    : "config НЕ загружен (нужен доступ к github.com)");
+  const local = ["localhost", "127.0.0.1", ""].includes(location.hostname);
+  if (!g.enabled || localStorage.getItem("zombi-docs:demomode") === "1") { $("#gate").hidden = true; $("#app").hidden = false; return true; }
+  let saved = null;
+  try { saved = localStorage.getItem(LS.unlocked); } catch (e) { /* ignore */ }
+  const all = [...(g.allowed || []), g.ownerCode || ""].map((x) => String(x).toLowerCase());
+  if (saved && all.includes(saved)) { S.admin = localStorage.getItem(LS.admin) === "1"; $("#gate").hidden = true; $("#app").hidden = false; return true; }
   $("#gate").hidden = false; $("#app").hidden = true;
+  const dm = document.getElementById("gate-demo");
+  if (dm) {
+    dm.hidden = !local;                                   // «демо» показываем только на локальном предпросмотре
+    dm.onclick = () => { try { localStorage.setItem("zombi-docs:demomode", "1"); } catch (e) {}
+      $("#gate").hidden = true; $("#app").hidden = false; boot2(); toast("Демо-режим: замок отключён только в этом браузере.", "warn", 5000); };
+  }
+  const eye = document.getElementById("gate-eye");
+  if (eye) eye.onclick = () => { const i = $("#gate-code"); i.type = i.type === "password" ? "text" : "password"; eye.textContent = i.type === "password" ? "👁" : "🙈"; };
   $("#gate-form").onsubmit = async (e) => {
     e.preventDefault();
-    const ok = await tryUnlock($("#gate-code").value.trim());
+    const btn = e.target.querySelector("button[type=submit]");
+    if (btn) btn.disabled = true;
+    gateMsg("Проверяю…", false);
+    let ok = false;
+    try { ok = await tryUnlock($("#gate-code").value); }
+    catch (err) { gateMsg("Ошибка проверки кода: " + err.message, true); }
+    if (btn) btn.disabled = false;
     if (ok) { $("#gate").hidden = true; $("#app").hidden = false; boot2(); }
-    else { const m = $("#gate-msg"); m.hidden = false; m.textContent = "Неверный код доступа."; }
   };
+  const auto = (location.hash.match(/[#&]code=([^&]+)/) || [])[1];
+  if (auto) { $("#gate-code").value = decodeURIComponent(auto); setTimeout(() => { const f = $("#gate-form"); if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); }, 250); }
+  setTimeout(() => { const i = $("#gate-code"); if (i) i.focus(); }, 150);
 }
 
 /* ----------------------------- картинки ------------------------------------ */
