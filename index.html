@@ -31,8 +31,12 @@
     <div id="gate-msg" class="gate-msg" hidden></div>
     <p class="gate-hint">Коды хранятся в репозитории: <code>game-docs/src/config.json</code> (в виде SHA-256).<br>
       Если код потерялся — владелец добавляет новый в «Настройках → Доступ».<br>
-      Можно войти по ссылке: <code>#code=ВАШ-КОД</code> (код подставится автоматически).</p>
-    <button id="gate-demo" class="ghost" hidden>🔓 Демо-режим (отключить замок в этом браузере)</button>
+      Можно войти по ссылке: <code>#code=ВАШ-КОД</code> (код подставится автоматически).<br>
+      Если сеть до репозитория не работает — открой <code>?open=1</code>: просмотр доступен, сохранение нет.</p>
+    <div class="gate-btns">
+      <button id="gate-retry" class="ghost" type="button">⟳ Перепроверить конфиг</button>
+      <button id="gate-demo" class="ghost" type="button" hidden>🔓 Демо-режим (без замка, только в этом браузере)</button>
+    </div>
     <div id="gate-build" class="gate-build"></div>
   </div>
 </div>
