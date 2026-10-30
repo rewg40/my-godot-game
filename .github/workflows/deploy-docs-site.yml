@@ -21,7 +21,6 @@ on:
 permissions:
   contents: write   # публикация в ветку gh-pages
   pages: write      # если Pages уже включён — шаг не нужен; если нет — включи один раз в Settings
-  id-token: read
 
 concurrency:
   group: deploy-docs-site
