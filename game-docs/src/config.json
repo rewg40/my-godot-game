@@ -3,7 +3,8 @@
     "enabled": true,
     "ownerCode": "db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e",
     "allowed": [
-      "3df29798f9240aebc77f782e0b6ec2370215dc7844cb64d9c10d11d44ca7dddb"
+      "3df29798f9240aebc77f782e0b6ec2370215dc7844cb64d9c10d11d44ca7dddb",
+      "3a79a10dc047593b4889be8dc2d37f79c0cdb323ca04b710061954cb7aa09586"
     ]
   },
   "contentPath": "game-docs/src/content",
