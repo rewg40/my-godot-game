@@ -112,11 +112,6 @@ pre.code .nm{color:#ffcb6b}
 figure.img{margin:6px 0 2px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;background:#0d141c;border:1px solid var(--line);border-radius:12px;padding:10px}
 figure.img img{max-width:min(460px,100%);border-radius:8px;display:block;background:#000}
 figure.img figcaption{color:var(--tx2);font-size:13px;max-width:520px}
-figure.vid{margin:6px 0 2px;display:flex;flex-direction:column;gap:8px;background:#0d141c;border:1px solid var(--line);border-radius:12px;padding:10px}
-figure.vid video{width:100%;max-width:860px;border-radius:8px;display:block;background:#000}
-figure.vid figcaption{color:var(--tx2);font-size:13px;max-width:860px}
-figure.vid figcaption .tiny{margin-left:6px;white-space:nowrap}
-.vid-missing{color:var(--tx3);font-size:13px;padding:26px 12px;text-align:center;border:1px dashed var(--line2);border-radius:8px}
 .gloss{margin-top:26px;padding:14px 16px;background:var(--bg2);border:1px dashed var(--line2);border-radius:12px}
 .gloss h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--tx3)}
 .gloss dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0;font-size:13.5px}
@@ -201,3 +196,18 @@ table.editable td:focus{outline:1px solid var(--acc2);background:#0f1a24}
 
 .end-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}
 .end-actions a{text-decoration:none}
+
+/* Guest links share reading, never the owner's credentials or editing controls. */
+.share-panel{border:1px solid #2c6096;background:#101e2d;border-radius:12px;padding:16px;margin:0 0 16px}
+.share-panel h4{font-size:16px;margin:0 0 8px;color:var(--tx)}
+.share-panel p{font-size:13px;color:var(--tx2);margin:0 0 12px}
+.share-panel .hint{font-size:12px;margin:12px 0 0;color:var(--tx2)}
+.share-panel input{overflow-wrap:anywhere}
+.share-panel a{text-decoration:none}
+.access-advanced{border-top:1px solid var(--line2);padding-top:12px}
+.access-advanced summary{cursor:pointer;color:var(--tx2);font-size:13px;margin-bottom:12px}
+.access-advanced fieldset{border:0;padding:0;margin:12px 0;min-width:0}
+.access-advanced fieldset:disabled{opacity:.55}
+.field-status{padding:10px 12px;border:1px solid var(--line2);border-radius:8px;font-size:13px;color:var(--tx2);overflow-wrap:anywhere}
+.field-status.bad{border-color:#753b37;color:#ffaaa2;background:#281817}
+@media(max-width:780px){.share-panel{padding:12px}.share-panel .foot-row{align-items:stretch}.share-panel .foot-row>*{text-align:center;flex:1 1 160px}}
