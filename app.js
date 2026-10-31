@@ -47,6 +47,22 @@ const STATUS = { draft: "черновик", wip: "в работе", done: "го�
 
 /* ----------------------------- утилиты ------------------------------------ */
 const $ = (s, r = document) => r.querySelector(s);
+const copyText = async (t) => {
+  let ok = false;
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    ok = document.execCommand("copy"); ta.remove();
+  } catch (e) { ok = false; }
+  if (!ok && navigator.clipboard) { try { await navigator.clipboard.writeText(t); ok = true; } catch (e) { ok = false; } }
+  toast(ok ? "Скопировано" : "Не скопировалось — выдели вручную", ok ? "ok" : "warn", 2200);
+  return ok;
+};
+function fileUrl(file) {   // ссылка на файл в веб-интерфейсе GitHub (необязательно авторизованной)
+  if (!file) return "#";
+  return `https://github.com/${S.origin.owner}/${S.origin.repo}/blob/${S.origin.branch}/${SRC_PREFIX}/content/${file}`;
+}
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -66,7 +82,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.8 · un-dim overlay fix";
+const SITE_BUILD = "2026-10-31.9 · agent handoff";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -327,7 +343,20 @@ function renderDoc(d) {
     host.appendChild(g);
   }
   const end = el("div", "end-card");
-  end.innerHTML = `Файл: <code>${esc(S.contentFile || "")}</code> · правки сохраняются в репозиторий (⤒ Ctrl+S), агент читает те же файлы.`;
+  const repoPath = `${SRC_PREFIX}/content/${S.contentFile || ""}`;
+  const brief = `работай по README.md в корне rewg40/my-godot-game и добавь в ${repoPath}: `;
+  end.innerHTML = `Файл этого раздела: <code>${esc(repoPath)}</code> · репозиторий = единственное хранилище, правки уходят туда же (⤒ или Ctrl+S), агент читает те же файлы.
+    <div class="end-actions">
+      <button class="tiny ghost" data-act="path">Скопировать путь</button>
+      <button class="tiny ghost" data-act="brief">Скопировать задачу для агента</button>
+      <a class="tiny ghost" href="${esc(fileUrl(S.contentFile))}" target="_blank" rel="noopener">Открыть на GitHub</a>
+    </div>`;
+  end.onclick = (e) => {
+    const b = e.target.closest("button[data-act]");
+    if (!b) return;
+    if (b.dataset.act === "path") copyText(repoPath);
+    else copyText(brief);
+  };
   host.appendChild(end);
 }
 
