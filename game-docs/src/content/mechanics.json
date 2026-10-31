@@ -1,0 +1,24 @@
+{
+  "id": "mechanics",
+  "kind": "mechanics-index",
+  "title": "Механика",
+  "tabs": [
+    "character",
+    "craft",
+    "research",
+    "weather",
+    "npc",
+    "quests",
+    "locations",
+    "destruction",
+    "physics",
+    "zombies",
+    "combat",
+    "inventory",
+    "assets",
+    "production",
+    "multiplayer"
+  ],
+  "note": "порядок подвкладок = порядок в tabs; подписи задаёт app.js (MECH)",
+  "updated": "2026-10-31T11:56:19Z"
+}

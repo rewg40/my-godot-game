@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ru" data-build="2026-10-31.11 · гостевой просмотр без токена">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZOMBI · Библия проекта — сценарий, механика, превью</title>
+<meta name="description" content="Внутренний сайт-документация зомби-выживача: сценарий, 13 разделов механики (включая физику), картинки и 3D-модели. Хранение — GitHub, доступ — по коду.">
+<noscript><link rel="stylesheet" href="app.css"></noscript>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🧟</text></svg>">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/",
+    "fflate": "https://cdn.jsdelivr.net/npm/fflate@0.8.0/esm/browser.js"
+  }
+}
+</script>
+    <!-- INLINE-GATE:START -->
+<script>
+// Содержимое встроенного замка. Генератор build-inline-gate.js подставляет db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e и вставляет
+// этот файл внутрь index.html между маркерами INLINE-GATE. Здесь только ES5, без внешних зависимостей.
+// ВАЖНО: не начинать файл с /* … */ — открывающий блок-комментарий ломает инлайн-<script>.
+// === INLINE-GATE (автосборка: node game-docs/tools/build-inline-gate.js) — не править вручную ===
+(function () {
+  var OWNER_HASH = "db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e";
+    function sha256Pure(text) {
+    const isP = (n) => { for (let i = 2; i * i <= n; i++) if (!(n % i)) return false; return n > 1; };
+    const K = (() => { const o = []; for (let i = 2, c = 0; c < 64; i++) if (isP(i)) { o.push(((Math.pow(i, 1 / 3) % 1) * 4294967296) | 0); c++; } return o; })();
+    const H0 = (() => { const o = []; for (let i = 2, c = 0; c < 8; i++) if (isP(i)) { o.push(((Math.pow(i, 1 / 2) % 1) * 4294967296) | 0); c++; } return o; })();
+    const H = H0.slice();
+    const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+    const bytes = [];
+    for (let i = 0; i < text.length; i++) {
+      let c = text.charCodeAt(i);
+      if (c < 0x80) bytes.push(c);
+      else if (c < 0x800) bytes.push(0xc0 | (c >> 6), 0x80 | (c & 0x3f));
+      else if (c >= 0xd800 && c < 0xdc00 && i + 1 < text.length) {
+        const cp = 0x10000 + (((c & 0x3ff) << 10) | (text.charCodeAt(i + 1) & 0x3ff));
+        bytes.push(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3f), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f));
+        i++;
+      } else bytes.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+    }
+    const bitLen = bytes.length * 8;
+    bytes.push(0x80);
+    const target = (Math.floor((bytes.length - 1) / 64) + 1) * 64 - 8;
+    while (bytes.length < target) bytes.push(0);
+    const hi = Math.floor(bitLen / 4294967296), lo = bitLen >>> 0;
+    bytes.push((hi >>> 24) & 255, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255,
+               (lo >>> 24) & 255, (lo >>> 16) & 255, (lo >>> 8) & 255, lo & 255);
+    const w = new Int32Array(64);
+    for (let off = 0; off < bytes.length; off += 64) {
+      for (let i = 0; i < 16; i++) {
+        const j = off + i * 4;
+        w[i] = ((bytes[j] << 24) | (bytes[j + 1] << 16) | (bytes[j + 2] << 8) | bytes[j + 3]) | 0;
+      }
+      for (let i = 16; i < 64; i++) {
+        const x = w[i - 15], y = w[i - 2];
+        const s0 = (rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3)) | 0;
+        const s1 = (rotr(y, 17) ^ rotr(y, 19) ^ (y >>> 10)) | 0;
+        w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+      }
+      let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+      for (let i = 0; i < 64; i++) {
+        const S1 = (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) | 0;
+        const ch = ((e & f) ^ (~e & g)) | 0;
+        const t1 = (h + S1 + ch + K[i] + w[i]) | 0;
+        const S0 = (rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) | 0;
+        const mj = ((a & b) ^ (a & c) ^ (b & c)) | 0;
+        const t2 = (S0 + mj) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+      H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+    }
+    return H.map((x) => (x >>> 0).toString(16).padStart(8, "0")).join("");
+  }
+  window.__ZOMBI_INLINE_GATE__ = 1;   // app.js: обработчик встроенного замка важнее
+  var LS = { tk: "zombi-docs:unlocked", ad: "zombi-docs:admin", ro: "zombi-docs:readonly-gate", stamp: "zombi-docs:build" };
+  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function set(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+  function passGate(unlockedBy, admin, readonly) {
+    window.__ZOMBI_GATE__ = { unlockedBy: unlockedBy, admin: !!admin, readonly: !!readonly };
+    set(LS.stamp, "inline");
+    var g = document.getElementById("gate"), a = document.getElementById("app");
+    if (g) { g.hidden = true; g.style.display = "none"; }        // скрытие и атрибутом, и стилем: .gate имеет display:grid
+    if (a) { a.hidden = false; a.style.display = "flex"; }
+    var ld = document.getElementById("gate-loader");
+    if (ld) ld.textContent = "замок пройден (" + unlockedBy + ")" + (readonly ? (unlockedBy === "гостевая ссылка" ? " · только чтение, без GitHub-токена" : " · только чтение: конфигурация недоступна") : " · жду app.js…");
+    // app.js подхватит window.__ZOMBI_GATE__ и сам отрисует содержимое;
+    // здесь важнее не плодить переходы по таймеру (они и давали «затемнённый, но неактивный» экран).
+    return true;
+  }
+  function stampLine(text, warn) {
+    var el = document.getElementById("gate-fallback");
+    if (el) { el.textContent = text; el.style.color = warn ? "#e2703a" : ""; }
+  }
+  function msg(text, bad) {
+    var m = document.getElementById("gate-msg");
+    if (!m) return;
+    m.textContent = text || ""; m.hidden = !text; m.style.color = bad ? "#e2703a" : "var(--tx3)";
+  }
+  function tryCode(raw, silent) {
+    var code = String(raw || "").trim();
+    if (window.String && code.normalize) code = code.normalize("NFC");
+    if (!code) { if (!silent) msg("Введи код доступа."); return false; }
+    var h = "";
+    try { h = sha256Pure(code).toLowerCase(); } catch (e) { stampLine("SHA-256 в этом браузере не работает: " + e.message, true); return false; }
+    if (h === OWNER_HASH) { set(LS.tk, h); set(LS.ad, "1"); passGate("код владельца", true, false); return true; }
+    var saved = get(LS.tk);
+    if (saved && saved === h) { passGate("этот браузер", get(LS.ad) === "1", get(LS.ro) === "1"); return true; }
+    if (silent) return false;
+    msg("Код не подходит. Хеш введённого: " + h.slice(0, 12) + "… — сверяю гостевые списки…");
+    tryCheckGuest(h);
+    return false;
+  }
+  function tryCheckGuest(h) {
+    var ctl = null;
+    try { ctl = new AbortController(); setTimeout(function () { try { ctl.abort(); } catch (e) {} }, 3500); } catch (e) {}
+    fetch("config.json?nc=" + Date.now().toString(36), { cache: "no-store", signal: ctl && ctl.signal })
+      .then(function (r) { if (!r.ok) throw new Error("http"); return r.json(); })
+      .then(function (cfg) {
+        var g = (cfg && cfg.gate) || {};
+        if (String(g.ownerCode || "").toLowerCase() === h) { set(LS.tk, h); set(LS.ad, "1"); passGate("код владельца (config)", true, false); return; }
+        var list = (g.allowed || []).map(function (x) { return String(x).toLowerCase(); });
+        if (list.indexOf(h) >= 0) { set(LS.tk, h); set(LS.ad, "0"); passGate("гостевой код", false, false); return; }
+        msg("Код не подходит: хеш " + h.slice(0, 12) + "… есть ни в ownerCode, ни в allowed (" + list.length + " шт.) config.json. Владелец добавляет гостей: ⚙ → Доступ.");
+      })
+      .catch(function () {
+        set(LS.ro, "1");
+        msg("Код не подошёл под встроенный код владельца, а config.json сейчас не читается — для гостевого кода нужен доступ к репозиторию. Кнопка «⟳ Перепроверить конфиг» повторит попытку.");
+      });
+  }
+  function wire() {
+    var f = document.getElementById("gate-form");
+    if (f && !f.__ig) {
+      f.__ig = 1;
+      function val() { var el = document.getElementById("gate-code"); return el ? el.value : ""; }
+      f.addEventListener("submit", function (e) { e.preventDefault(); tryCode(val(), false); }, false);
+      // живая проверка: как только код совпал — вход без нажатия кнопки
+      setInterval(function () { var v = val(); if (v && v.length > 3) tryCode(v, true); }, 700);
+      var eye = document.getElementById("gate-eye");
+      if (eye) eye.onclick = function () { var el = document.getElementById("gate-code"); el.type = el.type === "password" ? "text" : "password"; };
+    }
+    var rt = document.getElementById("gate-retry");
+    if (rt && !rt.__ig) { rt.__ig = 1; rt.onclick = function () { location.reload(); }; }
+    var rb = document.getElementById("gate-hardreload");
+    if (rb && !rb.__ig) { rb.__ig = 1; rb.onclick = function () { set(LS.tk, null); set(LS.ro, null); location.href = location.pathname + "?nc=" + Date.now().toString(36); }; }
+  }
+  function boot() {
+    var q = (location.search || ""), hash = (location.hash || "");
+    if (q.indexOf("reset=1") >= 0) {
+      set(LS.tk, null); set(LS.ro, null); set(LS.stamp, null); try { localStorage.clear(); } catch (e) {}
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}   // убираем ?reset=1 из адреса, не перезагружаясь
+      q = "";
+    }
+    var view = /[?&]open=1(?:&|$)/.test(q) || /[#&]open=1(?:&|$)/.test(hash);
+    if (view) { set(LS.ro, "1"); passGate("гостевая ссылка", false, true); wire(); return; }
+    var saved = get(LS.tk);
+    if (saved && saved === OWNER_HASH) { passGate("этот браузер", true, false); wire(); return; }
+    var m = hash.match(/[#&]code=([^&]+)/);
+    var g = document.getElementById("gate");
+    if (g) { g.hidden = false; g.style.display = ""; }
+    stampLine("сайт открылся · код проверяется здесь, без app.js и без сети");
+    if (m) { var code = decodeURIComponent(m[1]); var el = document.getElementById("gate-code"); if (el) el.value = code; tryCode(code, false); wire(); return; }
+    wire();
+    var input = document.getElementById("gate-code");
+    if (input) { input.type = "text"; input.setAttribute("placeholder", "код доступа"); input.focus(); }
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, false);
+  else boot();
+})();
+// === /INLINE-GATE ===
+</script>
+
+    <!-- INLINE-GATE:END -->
+</head>
+<body>
+<div id="gate" class="gate" hidden style="display:none">
+  <div class="gate-box">
+    <div class="gate-emoji">🔒</div>
+    <h1>ZOMBI · закрытый проект</h1>
+    <p>Сайт-библия игры. Доступ только для тех, кого впустил автор.<br>Введите код доступа.</p>
+    <form id="gate-form" autocomplete="off">
+      <input id="gate-code" type="password" placeholder="код доступа" spellcheck="false" autocapitalize="none" autocorrect="off">
+      <button type="button" id="gate-eye" class="ghost" title="показать/скрыть введённый код">👁</button>
+      <button type="submit">Войти</button>
+    </form>
+    <div id="gate-msg" class="gate-msg" hidden></div>
+    <p class="gate-hint">Для просмотра без кода владелец может отправить ссылку «Поделиться». Коды хранятся в <code>game-docs/src/config.json</code> (SHA-256).<br>
+      Если код потерялся — владелец добавляет новый в «Настройках → Доступ».<br>
+      Можно войти по ссылке: <code>#code=ВАШ-КОД</code> (код подставится автоматически).<br>
+      Если сеть до репозитория не работает — открой <code>?open=1</code>: просмотр доступен, сохранение нет.</p>
+    <div class="gate-btns">
+      <button id="gate-retry" class="ghost" type="button">⟳ Перепроверить конфиг</button>
+      <button id="gate-demo" class="ghost" type="button" hidden>🔓 Демо-режим (без замка, только в этом браузере)</button>
+    </div>
+    <div id="gate-build" class="gate-build"></div>
+    <div id="gate-loader" class="gate-build" style="opacity:.75"></div>
+    <div id="gate-fallback" class="gate-build">код проверяется прямо в браузере · для гостя есть ссылка «Поделиться» · <a href="https://github.com/rewg40/my-godot-game/blob/main/game-docs/src/docs/USAGE.md">что делать, если не пускает</a></div>
+  </div>
+</div>
+
+<div id="app" class="app" hidden style="display:none">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-logo">🧟</span>
+      <div>
+        <b>ZOMBI</b>
+        <span class="brand-sub">библия проекта · остров · Godot 4.x</span>
+      </div>
+    </div>
+
+    <nav class="tabs" id="main-tabs">
+      <button data-tab="scenario" class="tab-btn active">Сценарий</button>
+      <button data-tab="mechanics" class="tab-btn">Механика</button>
+      <button data-tab="preview" class="tab-btn">Картинки / превью</button>
+    </nav>
+
+    <div class="topbar-actions">
+      <span id="sync-pill" class="pill" title="Состояние синхронизации с GitHub">—</span>
+      <button id="btn-refresh" class="ghost" title="Подтянуть свежие файлы из репозитория (F5-кэш bypass)">↻ Обновить</button>
+      <button id="btn-share" class="ghost" title="Ссылка для просмотра без GitHub-токена">Поделиться</button>
+      <button id="btn-save" class="primary" title="Отправить изменения в репозиторий (Ctrl+S)">⤒ Сохранить в GitHub</button>
+      <button id="btn-settings" class="ghost" title="Настройки доступа и репозитория">⚙</button>
+    </div>
+  </header>
+
+  <div class="subtabs" id="subtabs" hidden></div>
+
+  <div id="dirty-bar" class="dirty-bar" hidden>
+    ⚠ Есть несохранённые правки (они лежат в этом браузере).
+    <button id="btn-dirty-save" class="tiny">Сохранить в репозиторий</button>
+    <button id="btn-dirty-reset" class="tiny ghost">Отменить правки</button>
+  </div>
+  <div id="readonly-bar" class="readonly-bar" hidden>
+    Токен GitHub не задан — читать можно, писать нельзя.
+    <button id="btn-token-now" class="tiny">Задать токен</button>
+  </div>
+
+  <main class="doc" id="doc"><div class="loading">Загрузка документа…</div></main>
+
+  <footer class="foot">
+    <span id="foot-info">—</span>
+    <span class="foot-sep">·</span>
+    <a href="#" id="lnk-agent">Инструкция для агента</a>
+    <span class="foot-sep">·</span>
+    <a href="#" id="lnk-usage">Как пользоваться</a>
+    <span class="foot-sep">·</span>
+    <a href="#" id="lnk-inbox">Запросы агенту</a>
+    <span class="foot-sep">·</span>
+    <a href="#" id="lnk-selftest" data-selftest="1">Проверить, слушает ли браузер клики</a>
+    <span id="selftest-out" class="foot-note"></span>
+  </footer>
+</div>
+
+<div id="modal-root" class="modal-root" hidden style="display:none"></div>
+<div id="toast-root" class="toast-root"></div>
+
+<script>
+// === SITE-LOADER (править здесь; автотесты: node game-docs/tools/check-site.js) ===
+// Две задачи:
+//  1) анти-кэш: browser/провайдер может держать старый app.js — грузим с уникальным параметром
+//     и сверяем штамп (app.js по window.__ZOMBI_STALE__ решает, нужен ли принудительный reload);
+//  2) ЗАПАСНЫЕ ИСТОЧНИКИ: github.io в РФ блокируют, а index.html при этом обычно живёт в кэше.
+//     Если app.js/app.css/content не отдаёт ни реальный origin, ни зеркала — страница обязана
+//     открыться с любого доступного адреса, иначе человек видит просто «вкладки не работают».
+(function () {
+  var P = "zombi-docs:loader";
+  var OWNER = "rewg40", REPO = "my-godot-game", BR = "gh-pages";   // BR — ветка Pages
+  function extra() {                      // пользовательский источник: ?mirror=… или сохранённый
+    var out = [];
+    var m = (location.search.match(/[?&]mirror=([^&]+)/) || [])[1];
+    if (!m) { try { m = localStorage.getItem("zombi-docs:mirror"); } catch (e) {} }
+    if (m) { try { m = decodeURIComponent(m); } catch (e) {} out.push(/\/$/.test(m) ? m : m + "/"); }
+    return out;
+  }
+  var SRC = "game-docs/src/";   // в репозитории сайт лежит тут (на Pages — корень)
+  try {
+    var sv = JSON.parse(localStorage.getItem("zombi-docs:src") || "");
+    if (sv && sv.prefix) SRC = sv.prefix;
+    var q = location.search;
+    if (q.indexOf("src=0") >= 0) { SRC = ""; localStorage.removeItem("zombi-docs:src"); }
+    var at = q.indexOf("src=");
+    if (at >= 0) {
+      var raw = q.slice(at + 4).split("&")[0];
+      if (raw && raw !== "0") {
+        SRC = decodeURIComponent(raw).split("/").filter(function (x) { return x !== "" }).join("/");
+        if (SRC) SRC = SRC + "/";
+        localStorage.setItem("zombi-docs:src", JSON.stringify({ prefix: SRC }));
+      }
+    }
+  } catch (e) {}
+  window.__ZOMBI_SRC_PREFIX__ = SRC;
+  var MIRRORS = [
+    "",                                                              // рядом со страницей (Pages/локальный сервер)
+    "https://github.com/" + OWNER + "/" + REPO + "/raw/" + BR + "/" + SRC,   // github.com живёт, когда режут github.io
+    "https://cdn.jsdelivr.net/gh/" + OWNER + "/" + REPO + "@" + BR + "/",
+    "https://rawcdn.githack.com/" + OWNER + "/" + REPO + "/" + BR + "/",
+    "https://" + OWNER + ".github.io/" + REPO + "/"
+  ];
+  function say(t) { var e = document.getElementById("gate-loader"); if (e) e.textContent = t; }
+  function seenStamp() { try { return localStorage.getItem(P) || ""; } catch (e) { return ""; } }
+  window.__ZOMBI_STALE__ = location.search.indexOf("nostamp=1") >= 0 ? "" : seenStamp();
+  try { localStorage.setItem(P, "z"); } catch (e) {}
+  function bust() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function urlAt(i, file, nocache) {
+    var base = MIRRORS[i];
+    if (base === "") { var u = encodeURI(file); return nocache ? u + "?nc=" + nocache : u; }
+    return base + encodeURI(file) + (nocache ? "?x=" + nocache : "");
+  }
+  MIRRORS = MIRRORS.concat(extra());   // свой зеркальный адрес можно задать без пересборки сайта
+  window.__ZOMBI_SOURCES__ = MIRRORS;
+  try { var mm = (location.search.match(/[?&]mirror=([^&]+)/) || [])[1]; if (mm) localStorage.setItem("zombi-docs:mirror", decodeURIComponent(mm)); if (location.search.indexOf("mirror=0") >= 0) localStorage.removeItem("zombi-docs:mirror"); } catch (e) {}
+  var tried = [];
+  function probe(file, onok, onfail, isCss) {
+    var i = 0;
+    function attempt(nocache) {
+      if (i >= MIRRORS.length) { onfail(tried); return; }
+      var u = urlAt(i, file, nocache);
+      tried.push(u.slice(0, 74));
+      var done = false;
+      function next() { if (done) return; done = true; i++; attempt(false); }
+      if (isCss) {
+        var l = document.createElement("link");
+        l.rel = "stylesheet"; l.href = u;
+        l.onload = function () { if (done) return; done = true; onok(i, u); };
+        l.onerror = next;
+        document.head.appendChild(l);
+        setTimeout(next, 3500);
+      } else {
+        var st = document.createElement("script");
+        st.src = u;
+        st.onload = function () { if (done) return; done = true; try { st.setAttribute("data-zombi-ok", "1"); } catch (err) {} onok(i, u); };
+        st.onerror = next;
+        document.body.appendChild(st);
+        setTimeout(next, 5000);
+      }
+    }
+    attempt(bust());
+  }
+  // стили: тот же порядок, но падение не блокирует запуск
+  probe("app.css", function (i, u) { if (i > 0) window.__ZOMBI_CSS_BASE__ = u.replace(/[^/]*$/, ""); }, function () {}, true);
+  probe("app.js",
+    function (i, u) {
+      window.__ZOMBI_BASE__ = i > 0 ? u.replace(/[^/]*$/, "") : "";
+      window.__ZOMBI_SRC__ = i === 0 ? "origin" : MIRRORS[i];
+      setTimeout(function () {
+        if (window.__ZOMBI_APP__) return;
+        var w = window.__ZOMBI_SHOWERR__;
+        if (w) w("app.js загрузился, но не запустился: скрипт не дошёл до своей первой строки." + String.fromCharCode(10) + "Причина обычно в том, что вместо JS пришёл HTML (прокси-заглушка, «страница блокировки», кэш). Открой ?fresh=1 или возьми «Офлайн-копия».");
+      }, 2500);
+      say(i === 0 ? "app.js подтверждён" : "сайт работает с зеркала: " + MIRRORS[i]);
+    },
+    function () {
+      say("не удалось получить app.js — сайт открывается в режиме чтения из зеркала или офлайн-копии");
+      // офлайн-копия: выкачиваем весь контент напрямую (без app.js) и показываем как текст
+      try { localStorage.setItem("zombi-docs:dead-sources", JSON.stringify(tried)); } catch (e) {}
+      window.__ZOMBI_OFFLINE_FAIL__ = tried;
+      var w = window.__ZOMBI_SHOWERR__;
+      if (w) w("Скрипт интерфейса (app.js) не загрузился ни с одного адреса. Попробуй «Офлайн-копия» —" +
+               String.fromCharCode(10) + "перепробовано: " + tried.join(String.fromCharCode(10)));
+    }, false);
+})();
+</script>
+
+  <!-- ZOMBI-WATCHDOG:START --><script>
+//Сторожевой скрипт, встраивается в <head> index.html генератором build-inline-gate.js.
+//Живёт ВНЕ app.js: если тот устарел (кэш), не загрузился или упал — человек всё равно
+//видит причину и кнопку лечения, вместо «нажимаю, ничего не происходит».
+//Здесь только ES5: никакого async/await, стрелок и шаблонных литералов.
+(function () {
+  window.__ZOMBI_CLICKS__ = 0;
+  // «жив» ли настоящий app.js: он сам сообщает о себе флагом при старте
+  window.__ZOMBI_APP__ = 0;
+  window.__ZOMBI_ERRS__ = [];
+
+  function showErr(msg) {
+    var box = document.getElementById("zombi-err");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "zombi-err";
+      box.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:9999;max-width:min(600px,92vw);" +
+        "background:#2a1416;border:1px solid #7c3a3a;color:#ffd9d9;padding:10px 12px;border-radius:10px;" +
+        "font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;box-shadow:0 10px 30px rgba(0,0,0,.5)";
+      (document.body || document.documentElement).appendChild(box);
+    }
+    if (box.getAttribute("data-seen") === msg) return;
+    box.setAttribute("data-seen", msg);
+    box.textContent = "";
+    var b = document.createElement("b");
+    b.textContent = "Сторож сайта: вот что не так";
+    box.appendChild(b);
+    box.appendChild(document.createTextNode(String.fromCharCode(10) + msg));
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:8px;margin-top:8px;flex-wrap:wrap";
+    function btn(label, fn) {
+      var el = document.createElement("button");
+      el.textContent = label;
+      el.style.cssText = "font:12px sans-serif;cursor:pointer;padding:4px 9px;border-radius:7px;border:1px solid #7c3a3a;background:#1b0f11;color:#ffd9d9";
+      el.onclick = fn;
+      row.appendChild(el);
+    }
+    btn("Перезагрузить начисто", function () {
+      try { localStorage.removeItem("zombi-docs:build"); localStorage.removeItem("zombi-docs:loader"); } catch (e) {}
+      var u = location.href.split("?")[0].split("#")[0];
+      location.href = u + "?fresh=1" + (location.hash || "");
+    });
+    btn("Офлайн-копия", function () { downloadOffline(this); });
+    btn("Скопировать", function () {
+      var ta = document.createElement("textarea");
+      ta.value = diagText();
+      ta.style.cssText = "position:fixed;left:-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      ta.remove();
+    });
+    btn("Скрыть", function () { box.parentNode && box.parentNode.removeChild(box); });
+    box.appendChild(row);
+  }
+
+  function srcList() {
+    var arr = (window.__ZOMBI_SOURCES__ || [""]).slice();
+    for (var i = 0; i < arr.length; i++) if (arr[i] === "") arr[i] = location.href.split("/").slice(0, 3).join("/") + "/";
+    return arr;
+  }
+  function getTxt(u) {
+    return fetch(u, { cache: "no-store", mode: "cors" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.text();
+    });
+  }
+  // Список = content/*.json в репозитории; чего нет — то просто пропустится.
+  var FILES = ["scenario.json", "mech_character.json", "mech_craft.json", "mech_research.json", "mech_weather.json", "mech_npc.json",
+    "mech_quests.json", "mech_locations.json", "mech_destruction.json", "mech_physics.json", "mech_zombies.json",
+    "mech_combat.json", "mech_inventory.json", "mech_assets.json", "mech_production.json", "mech_multiplayer.json", "images.json",
+    "models.json", "config.json"];
+  function downloadOffline(btn) {
+    var srcs = srcList(), out = [], done = 0, label0 = btn && btn.textContent;
+    if (btn) { btn.disabled = true; btn.textContent = "Скачиваю из зеркала..."; }
+    function finish() {
+      if (btn) { btn.disabled = false; btn.textContent = label0 || "Офлайн-копия"; }
+      if (!out.length) { showErr("Ни одно зеркало не отдало файлы. Открой сайт через VPN или попроси агента выложить копию архивом."); return; }
+      var head = "ZOMBI - офлайн-копия библии - собрано " + new Date().toISOString() + String.fromCharCode(10) +
+        "источник: " + srcs.join(", ") + String.fromCharCode(10) + String.fromCharCode(10);
+      var blob = new Blob([head + out.join(String.fromCharCode(10) + String.fromCharCode(10))], { type: "text/plain;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "zombi-bible.txt";
+      document.body.appendChild(a); a.click(); a.remove();
+      showErr("Офлайн-копия собрана: " + out.length + " из " + FILES.length + " файлов. Файл zombi-bible.txt сохранён в загрузки.");
+    }
+    function step() {
+      if (done >= FILES.length) { finish(); return; }
+      var f = FILES[done++], k = 0;
+      (function tryOne() {
+        if (k >= srcs.length) { step(); return; }
+        getTxt(srcs[k] + "content/" + f).then(function (t) {
+          out.push("=== " + f + " ===" + String.fromCharCode(10) + t);
+          step();
+        })["catch"](function () { k++; tryOne(); });
+      })();
+    }
+    step();
+  }
+  window.__ZOMBI_DOWNLOAD__ = downloadOffline;
+
+  window.__ZOMBI_SHOWERR__ = showErr;
+
+  function diagText() {
+    var doc = document.getElementById("doc");
+    var st = [];
+    st.push("href: " + location.href);
+    st.push("userAgent: " + navigator.userAgent);
+    st.push("app.js штамп: " + (window.__ZOMBI_STAMP__ || "не прочитан (app.js не загрузился)"));
+    st.push("HTML штамп: " + (document.documentElement.getAttribute("data-build") || "нет"));
+    st.push("кликов по вкладкам: " + window.__ZOMBI_CLICKS__ + (window.__ZOMBI_LASTTAB__ ? " (последний: " + window.__ZOMBI_LASTTAB__ + ")" : ""));
+    st.push("ошибок: " + (window.__ZOMBI_ERRS__.join(" | ") || "нет"));
+st.push("зеркала: " + srcList().join(" ; "));
+    try { var ds = JSON.parse(localStorage.getItem("zombi-docs:dead-sources") || "null"); if (ds) st.push("не ответили: " + ds.join(" ; ")); } catch (e) {}
+        st.push("файлов не доехало: " + (window.__ZOMBI_RES_FAIL__ || 0));
+    st.push("состояние #doc: " + ((doc && doc.textContent) || "пусто").replace(/\s+/g, " ").slice(0, 220));
+    return st.join("\n");
+  }
+  window.__ZOMBI_DIAG__ = diagText;
+
+  function selftest() {
+    var htmlStamp = (document.documentElement.getAttribute("data-build") || "нет в HTML");
+    var out = document.getElementById("selftest-out");
+    var t = document.getElementById("lnk-selftest");
+    if (t) t.textContent = "Проверить клики ещё раз";
+    var msg = [
+      "Клик по этой ссылке браузер поймал (всего кликов по сайту: " + window.__ZOMBI_CLICKS__ + ").",
+      "JS в index.html выполняется. app.js: " + (window.__ZOMBI_APP__ ? "жив, версия " + window.__ZOMBI_APP__ : "НЕ загрузился или заблокирован (в HTML версия " + htmlStamp + ")"),
+      "HTML: " + htmlStamp,
+    ];
+    if (out) out.textContent = msg.join(String.fromCharCode(10));
+    if (!window.__ZOMBI_APP__) {
+      showErr("Клики браузер ловит, но app.js не работает: браузер, прокси или блокировщик не даёт скачать app.js." +
+        String.fromCharCode(10) + "Открой страницу с ?fresh=1, отключи «турбо»/блокировщик для this сайта." +
+        String.fromCharCode(10) + "HTML: " + htmlStamp);
+    }
+    return true;
+  }
+  window.__ZOMBI_SELFTEST__ = selftest;
+
+  document.addEventListener("click", function (e) {
+    var st = e.target && e.target.closest ? e.target.closest("[data-selftest]") : null;
+    if (st) { e.preventDefault(); selftest(); return; }
+    var t = e.target && e.target.closest ? e.target.closest("#main-tabs [data-tab], #subtabs .subtab") : null;
+    if (!t) return;
+    window.__ZOMBI_CLICKS__++;
+    window.__ZOMBI_LASTTAB__ = (t.getAttribute("data-tab") || t.textContent || "").replace(/\s+/g, " ").trim().slice(0, 24);
+    var ld = document.getElementById("gate-loader");
+    if (ld) ld.textContent = "клик #" + window.__ZOMBI_CLICKS__ + " · " + window.__ZOMBI_LASTTAB__;
+  }, true);
+
+  // Разделяем два класса: «скрипт не приехал» (ресурс) и «скрипт упал» (исполнение).
+  // Картинка/шрифт/стиль не доехали — это не повод показывать красную карточку.
+  window.addEventListener("error", function (e) {
+    var tgt = e && e.target;
+    var isRes = !!(tgt && tgt.tagName && /^(LINK|IMG|SCRIPT|LINK|SOURCE|VIDEO|AUDIO|IMG)$/.test(tgt.tagName) && !e.message);
+    if (isRes) {
+      window.__ZOMBI_RES_FAIL__ = (window.__ZOMBI_RES_FAIL__ || 0) + 1;
+      var tag = tgt.tagName, nm = (tgt.src || tgt.href || "").split("/").pop().split("?")[0];
+      var ld = document.getElementById("gate-loader");
+      if (ld) ld.textContent = "не доехали файлы: " + window.__ZOMBI_RES_FAIL__ + " (последний: " + tag + " " + nm + ")";
+      if (tag === "SCRIPT" && !window.__ZOMBI_APP__) {
+        setTimeout(function () {
+          if (window.__ZOMBI_APP__) return;                 // зеркало подключилось чуть позже
+          if (document.querySelector("script[src][data-zombi-ok]")) return;
+          showErr("Скрипт app.js не пришёл ни с одного адреса (блокировка github.io и зеркал или заглушка провайдера)." + String.fromCharCode(10) +
+                  "перепробовано: " + ((window.__ZOMBI_SOURCES__ || []).join(String.fromCharCode(10)) || "нет списка") + String.fromCharCode(10) +
+                  "Лечение: «Офлайн-копия» ниже или ?mirror=<рабочий адрес>/");
+        }, 1500);
+      }
+      return;
+    }
+    var src = e && e.filename ? String(e.filename).split("/").pop().split("?")[0] : "?";
+    var line = (e && e.message ? e.message : "скрипт упал без сообщения") + "  (" + src + ":" + (e && e.lineno) + ":" + (e && e.colno) + ")";
+    window.__ZOMBI_ERRS__.push(line);
+    showErr(line + String.fromCharCode(10) + "app.js: " + (window.__ZOMBI_APP__ || "штамп не прочитан"));
+  }, true);
+
+  window.addEventListener("unhandledrejection", function (e) {
+    var r = e && e.reason;
+    var line = "Promise: " + ((r && (r.message || r.stack)) || r || "без причины");
+    window.__ZOMBI_ERRS__.push(line);
+    showErr(line);
+  });
+
+  // если документ так и не загрузился — объясняем вместо вечной «Загрузки…»;
+  // пока приложение живёт (app.js с зеркала может подключиться позже) — перепроверяем, а не кричим
+  (function watchDoc(n) {
+    setTimeout(function () {
+      var doc = document.getElementById("doc");
+      var t = doc ? String(doc.textContent || "") : "";
+      var failed = /Не удалось загрузить|не загружен/i.test(t);
+      var stuck = /Загрузка/.test(t) && !failed;
+      if (!stuck && !failed) return;                   // документ отрисован — всё хорошо
+      if (failed) {
+        showErr(["Документ не загружен (один клик по вкладке уже что-то сделал, но файлы не приходят).",
+                 t.replace(/\s+/g, " ").slice(0, 200),
+                 "app.js: " + (window.__ZOMBI_APP__ || "не загрузился"),
+                 "лечение: «Перезагрузить начисто», «Офлайн-копия» или ?mirror=<адрес>/"].join(String.fromCharCode(10)));
+        return;
+      }
+      var loaded = !!document.querySelector("script[src][data-zombi-ok]");
+      if (!window.__ZOMBI_APP__ && !loaded && n < 6) { watchDoc(n + 1); return; }   // app.js ещё может приехать с зеркала
+      showErr(["Документ не загружен: content/*.json недоступен (кэш браузера, блокировка github.io или Pages ещё не пересобрался).", t.replace(/\s+/g, " ").slice(0, 180), "app.js: " + (window.__ZOMBI_APP__ || "не загрузился ни с одного адреса")].join(String.fromCharCode(10)));
+    }, 7000);
+  })(0);
+})();
+</script>
+
+<!-- ZOMBI-WATCHDOG:END -->
+</body>
+</html>

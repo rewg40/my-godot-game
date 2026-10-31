@@ -1,0 +1,90 @@
+name: Deploy docs site (ZOMBI bible)
+
+# Собирает сайт-библию проекта из game-docs/src/ и публикует на GitHub Pages
+# (ветка gh-pages, корень сайта). Работает и из этой ветки, и из main.
+
+on:
+  push:
+    branches:
+      - main
+      - arena/d4678daa-my-godot-game
+    paths:
+      - 'game-docs/**'
+      - '.github/workflows/deploy-docs-site.yml'
+  workflow_dispatch:
+    inputs:
+      note:
+        description: 'Причина ручного деплоя (необязательно)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write   # публикация в ветку gh-pages
+  pages: write      # если Pages уже включён — шаг не нужен; если нет — включи один раз в Settings
+
+concurrency:
+  group: deploy-docs-site
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: game-docs/package-lock.json
+
+      - name: Check site and guest access
+        run: |
+          npm ci --prefix game-docs
+          npm test --prefix game-docs
+
+      - name: Assemble static site
+        working-directory: game-docs/src
+        run: |
+          set -euo pipefail
+          rm -rf _site && mkdir -p _site
+          cp index.html app.css app.js config.json _site/
+          cp -r content _site/content
+          if [ -d docs ]; then mkdir -p _site/docs && cp -r docs/. _site/docs/; fi
+          : > _site/.nojekyll
+          python3 - <<'PY'
+          import json, pathlib, sys
+          bad = []
+          for p in sorted(pathlib.Path('_site/content').glob('*.json')):
+              try:
+                  json.loads(p.read_text(encoding='utf-8'))
+                  print('json ok  :', p.name)
+              except Exception as e:
+                  bad.append((p.name, e))
+                  print('json FAIL:', p.name, e)
+          if bad:
+              sys.exit('Контент-JSON битый — сайт не публикуется, пока не починишь.')
+          PY
+          du -sh _site
+
+      - name: Publish to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: game-docs/src/_site
+          clean: true
+          clean-exclude: |
+            .nojekyll
+          commit-message: "chore(site): deploy ZOMBI bible (${{ github.ref_name }})"
+
+      - name: Summary
+        run: |
+          echo "### Сайт обновлён" >> "$GITHUB_STEP_SUMMARY"
+          echo "URL: https://rewg40.github.io/my-godot-game/" >> "$GITHUB_STEP_SUMMARY"
+          echo "Источник: \`game-docs/src/\` в ветке \`${{ github.ref_name }}\`" >> "$GITHUB_STEP_SUMMARY"
