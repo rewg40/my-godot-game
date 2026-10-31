@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" data-build="2026-10-31.11 · гостевой просмотр без токена">
+<html lang="ru" data-build="2026-10-31.12 · редактор вкладок и вопросов">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -154,7 +154,8 @@
       try { history.replaceState(null, "", location.pathname); } catch (e) {}   // убираем ?reset=1 из адреса, не перезагружаясь
       q = "";
     }
-    var view = /[?&]open=1(?:&|$)/.test(q) || /[#&]open=1(?:&|$)/.test(hash);
+    var edit = /[?&]edit=1(?:&|$)/.test(q) || /[#&]edit=1(?:&|$)/.test(hash);
+    var view = !edit && (/[?&]open=1(?:&|$)/.test(q) || /[#&]open=1(?:&|$)/.test(hash));
     if (view) { set(LS.ro, "1"); passGate("гостевая ссылка", false, true); wire(); return; }
     var saved = get(LS.tk);
     if (saved && saved === OWNER_HASH) { passGate("этот браузер", true, false); wire(); return; }
@@ -220,8 +221,9 @@
     <div class="topbar-actions">
       <span id="sync-pill" class="pill" title="Состояние синхронизации с GitHub">—</span>
       <button id="btn-refresh" class="ghost" title="Подтянуть свежие файлы из репозитория (F5-кэш bypass)">↻ Обновить</button>
-      <button id="btn-share" class="ghost" title="Ссылка для просмотра без GitHub-токена">Поделиться</button>
-      <button id="btn-save" class="primary" title="Отправить изменения в репозиторий (Ctrl+S)">⤒ Сохранить в GitHub</button>
+      <button id="btn-edit-tab" class="primary" title="Добавить изменения прямо в текущую вкладку">✎ Редактировать вкладку</button>
+      <button id="btn-share" class="ghost" title="Ссылки для редактирования и просмотра">Поделиться</button>
+      <button id="btn-save" class="ghost" title="Опубликовать текущую вкладку для всех посетителей (Ctrl+S)">⤒ Опубликовать вкладку</button>
       <button id="btn-settings" class="ghost" title="Настройки доступа и репозитория">⚙</button>
     </div>
   </header>
@@ -229,13 +231,13 @@
   <div class="subtabs" id="subtabs" hidden></div>
 
   <div id="dirty-bar" class="dirty-bar" hidden>
-    ⚠ Есть несохранённые правки (они лежат в этом браузере).
-    <button id="btn-dirty-save" class="tiny">Сохранить в репозиторий</button>
+    <span id="dirty-text">Изменения сохранены в этом браузере. Для других посетителей нужна публикация.</span>
+    <button id="btn-dirty-save" class="tiny">Опубликовать вкладку</button>
     <button id="btn-dirty-reset" class="tiny ghost">Отменить правки</button>
   </div>
   <div id="readonly-bar" class="readonly-bar" hidden>
-    Токен GitHub не задан — читать можно, писать нельзя.
-    <button id="btn-token-now" class="tiny">Задать токен</button>
+    Редактирование доступно локально. Для публикации подключи GitHub.
+    <button id="btn-token-now" class="tiny">Подключить GitHub</button>
   </div>
 
   <main class="doc" id="doc"><div class="loading">Загрузка документа…</div></main>

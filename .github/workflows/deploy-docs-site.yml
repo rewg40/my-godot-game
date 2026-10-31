@@ -43,7 +43,7 @@ jobs:
           cache: npm
           cache-dependency-path: game-docs/package-lock.json
 
-      - name: Check site and guest access
+      - name: Check site, editor and access
         run: |
           npm ci --prefix game-docs
           npm test --prefix game-docs

@@ -20,6 +20,7 @@ const gateEnd = html.indexOf("<!-- INLINE-GATE:END -->");
 const gateScript = html.slice(html.indexOf("<script>", gateStart) + 8, html.indexOf("</script>", gateStart));
 assert.ok(gateEnd > gateStart);
 
+const fileForHash = (hash) => hash.startsWith("#mechanics/") ? "mech_" + (hash.split("/")[1] || "character") + ".json" : hash === "#preview" ? "preview.json" : "scenario.json";
 const wait = (ms = 0) => new Promise((resolve) => setTimeout(resolve, ms));
 async function until(predicate, label, timeout = 2500) {
   const end = Date.now() + timeout;
@@ -52,19 +53,31 @@ async function makePage(t, options = {}) {
   const calls = [];
   const copied = [];
   let writes = 0;
+  let pending = 0;
   const owner = options.owner !== false;
   window.localStorage.setItem("zombi-docs:token", options.token === undefined ? TOKEN : options.token);
   if (owner) {
     window.localStorage.setItem("zombi-docs:unlocked", config.gate.ownerCode);
     window.localStorage.setItem("zombi-docs:admin", "1");
   }
-  if (options.draft) window.localStorage.setItem("zombi-docs:draft:mech_assets.json", JSON.stringify(options.draft));
+  if (options.draft) window.localStorage.setItem("zombi-docs:draft:" + (options.draftFile || fileForHash(url.hash)), JSON.stringify(options.draft));
+  if (options.storageFail) {
+    const proto = Object.getPrototypeOf(window.localStorage);
+    const original = proto.setItem;
+    proto.setItem = function (key, value) {
+      if (String(key).startsWith("zombi-docs:draft:")) throw new window.DOMException("Mock storage quota", "QuotaExceededError");
+      return original.call(this, key, value);
+    };
+    t.after(() => { proto.setItem = original; });
+  }
   Object.defineProperty(window, "crypto", { value: webcrypto, configurable: true });
   window.TextEncoder = TextEncoder;
   window.TextDecoder = TextDecoder;
   Object.defineProperty(window.navigator, "clipboard", { configurable: true, value: { writeText: async (text) => { copied.push(text); } } });
   doc.execCommand = () => false;
   window.fetch = async (input, init = {}) => {
+    pending++;
+    try {
     const href = new URL(String(input), url.href).href;
     const parsed = new URL(href);
     const method = (init.method || "GET").toUpperCase();
@@ -79,6 +92,13 @@ async function makePage(t, options = {}) {
         return reply({ sha: "mock-config-sha" });
       }
       if (/\/branches\//.test(parsed.pathname)) return reply({ name: BRANCH });
+      if (/\/contents\/game-docs\/src\/content\/.+\.json$/.test(parsed.pathname)) {
+        if (method === "PUT") {
+          if (options.contentPutStatus) return reply({ message: "Mock content write failure" }, options.contentPutStatus);
+          return reply({ commit: { sha: "mock-content-commit" }, content: { sha: "mock-content-new-sha" } });
+        }
+        return reply({ sha: "mock-content-sha" });
+      }
       return reply({ full_name: "rewg40/my-godot-game", permissions: { push: true, pull: true } });
     }
     if (parsed.origin === url.origin) {
@@ -90,6 +110,7 @@ async function makePage(t, options = {}) {
       }
     }
     return reply({ message: "External network disabled in test" }, 503);
+    } finally { pending--; }
   };
   t.after(() => window.close());
   if (doc.readyState === "loading") {
@@ -100,10 +121,11 @@ async function makePage(t, options = {}) {
   window.addEventListener("unhandledrejection", (e) => errors.push("unhandled: " + (e.reason?.stack || e.reason)));
   window.eval(app);
   const expectedTitle = (file) => JSON.parse(fs.readFileSync(path.join(SRC, "content", file), "utf8")).title;
-  const initialFile = url.hash.startsWith("#mechanics/") ? "mech_assets.json" : url.hash === "#preview" ? "preview.json" : "scenario.json";
+  const initialFile = fileForHash(url.hash);
   await until(() => doc.querySelector("#doc h1")?.textContent === expectedTitle(initialFile),
     () => "initial document loaded: " + JSON.stringify({ title: doc.querySelector("#doc h1")?.textContent, expected: expectedTitle(initialFile), doc: doc.querySelector("#doc").textContent.slice(0, 250), errors }));
   await until(() => doc.querySelector("#foot-info").textContent.includes(BRANCH), "config loaded");
+  await until(() => pending === 0, "background loads settle");
   assert.deepEqual(errors, [], "no browser runtime errors");
   return { window, doc, calls, copied, errors, get writes() { return writes; }, expectedTitle,
     apiCalls: () => calls.filter((c) => new URL(c.href).hostname === "api.github.com"),
@@ -275,4 +297,164 @@ test("public config contains no credential fields and workflow deploys this sour
   const workflow = fs.readFileSync(path.join(__dirname, "..", "..", ".github", "workflows", "deploy-docs-site.yml"), "utf8");
   assert.ok(workflow.includes("      - " + BRANCH + "\n"));
   assert.ok(workflow.includes("npm test --prefix game-docs"));
+});
+
+/* ----------------------------- full local editor -------------------------- */
+function submitForm(p, form) {
+  form.dispatchEvent(new p.window.Event("submit", { bubbles: true, cancelable: true }));
+}
+function draftOf(p, file) {
+  return JSON.parse(p.window.localStorage.getItem("zombi-docs:draft:" + file));
+}
+function addInlineQuestion(p, text, answer = "") {
+  const form = p.doc.querySelector("[data-qform]");
+  assert.ok(form, "inline question form is visible");
+  form.elements.question.value = text;
+  form.elements.answer.value = answer;
+  submitForm(p, form);
+}
+
+test("normal editor entry without a token adds, answers, resolves and keeps questions locally", async (t) => {
+  const p = await makePage(t, { token: "", url: BASE + "?edit=1#mechanics/zombies" });
+  assert.equal(p.doc.querySelector("#btn-edit-tab").hidden, false);
+  assert.equal(p.doc.querySelector("#btn-save").disabled, false, "publication button explains how to connect GitHub");
+  assert.match(p.doc.querySelector("#readonly-bar").textContent, /Редактирование включено/);
+  const before = p.doc.querySelectorAll(".question-item").length;
+  addInlineQuestion(p, "Как зомби теряет цель?", "После десяти секунд без видимости.");
+  await until(() => p.doc.querySelectorAll(".question-item").length === before + 1, "question rendered");
+  assert.equal(p.writes, 0, "local editing must not call GitHub");
+  assert.equal(p.doc.querySelector("#dirty-bar").hidden, false);
+  let draft = draftOf(p, "mech_zombies.json");
+  let block = draft.blocks.find((b, i) => b.type === "todo" && draft.blocks[i - 1]?.text === "Открытые вопросы");
+  assert.equal(block.items.at(-1).text, "Как зомби теряет цель?");
+  assert.equal(block.items.at(-1).answer, "После десяти секунд без видимости.");
+  assert.ok(!("_banner" in draft), "transient UI banner is not persisted");
+  const last = p.doc.querySelectorAll(".question-item")[before];
+  last.querySelector('[data-qact="toggle"]').click();
+  await until(() => p.doc.querySelectorAll(".question-item")[before].classList.contains("resolved"), "resolved locally");
+  p.doc.querySelectorAll(".question-item")[before].querySelector('[data-qact="answer"]').click();
+  p.doc.querySelector("#q-answer").value = "Возвращается к точке патруля.";
+  p.click("#q-save");
+  await until(() => p.doc.querySelector("#modal-root").hidden, "answer modal closes");
+  draft = draftOf(p, "mech_zombies.json");
+  block = draft.blocks.find((b, i) => b.type === "todo" && draft.blocks[i - 1]?.text === "Открытые вопросы");
+  assert.equal(block.items.at(-1).done, true);
+  assert.equal(block.items.at(-1).answer, "Возвращается к точке патруля.");
+  // Navigating away and back reloads the same local draft and keeps the dirty indicator.
+  [...p.doc.querySelectorAll("#subtabs .subtab")].find((x) => x.textContent.includes("Персонаж")).click();
+  await until(() => p.doc.querySelector("#doc h1")?.textContent === p.expectedTitle("mech_character.json"), "other tab");
+  [...p.doc.querySelectorAll("#subtabs .subtab")].find((x) => x.textContent.includes("ИИ монстров")).click();
+  await until(() => p.doc.querySelector("#doc h1")?.textContent === p.expectedTitle("mech_zombies.json"), "return to draft");
+  assert.ok(p.doc.querySelector("#doc").textContent.includes("Возвращается к точке патруля."));
+  assert.equal(p.doc.querySelector("#dirty-bar").hidden, false);
+  p.click("#btn-save");
+  assert.equal(p.doc.querySelector("#st-github").hidden, false, "missing token opens publication settings");
+  assert.equal(p.writes, 0);
+  assert.equal(p.errors.length, 0);
+});
+
+test("question text is escaped, deletion is confirmed, and refresh never discards the draft", async (t) => {
+  const p = await makePage(t, { token: "", url: BASE + "#mechanics/zombies" });
+  addInlineQuestion(p, '<img src=x onerror="window.__xss=1"> Вопрос?');
+  await until(() => p.doc.querySelector("#doc").textContent.includes("Вопрос?"), "escaped question appears");
+  assert.equal(p.window.__xss, undefined);
+  assert.equal(p.doc.querySelector(".question-text img"), null);
+  p.click("#btn-refresh");
+  await until(() => p.doc.querySelector("#toast-root").textContent.includes("Свежие данные подтянуты"), "refresh completes");
+  assert.ok(p.doc.querySelector("#doc").textContent.includes("Вопрос?"), "refresh preserves local draft");
+  p.window.confirm = () => false;
+  const count = p.doc.querySelectorAll(".question-item").length;
+  p.doc.querySelector('.question-item [data-qact="delete"]').click();
+  assert.equal(p.doc.querySelectorAll(".question-item").length, count);
+  p.window.confirm = () => true;
+  p.doc.querySelector('.question-item [data-qact="delete"]').click();
+  await until(() => p.doc.querySelectorAll(".question-item").length === count - 1, "delete persists");
+  assert.equal(p.writes, 0);
+  assert.equal(p.errors.length, 0);
+});
+
+test("tab composer inserts text into the chosen section and saves without GitHub", async (t) => {
+  const p = await makePage(t, { token: "", url: BASE + "#mechanics/zombies" });
+  p.click("#btn-edit-tab");
+  assert.equal(p.doc.querySelector("#modal-root").hidden, false);
+  p.doc.querySelector("#tc-text").value = "## Новое правило\nЗомби обходит препятствие слева.";
+  const heading = [...p.doc.querySelectorAll("#tc-target option")].find((o) => o.textContent === "Открытые вопросы");
+  assert.ok(heading);
+  p.doc.querySelector("#tc-target").value = heading.value;
+  p.click("#tc-save");
+  await until(() => p.doc.querySelector("#modal-root").hidden, "composer closes");
+  const draft = draftOf(p, "mech_zombies.json");
+  const at = draft.blocks.findIndex((b) => b.type === "h" && b.text === "Новое правило");
+  assert.ok(at > +heading.value);
+  assert.equal(draft.blocks[at + 1].text[0], "Зомби обходит препятствие слева.");
+  assert.ok(p.doc.querySelector("#doc").textContent.includes("Зомби обходит препятствие слева."));
+  assert.equal(p.writes, 0);
+  assert.equal(p.errors.length, 0);
+});
+
+test("explicit publication commits the current tab and removes only its published draft", async (t) => {
+  const p = await makePage(t, { url: BASE + "#mechanics/zombies" });
+  await until(() => !p.doc.querySelector("#btn-save").disabled, "owner ready");
+  addInlineQuestion(p, "Публикуемый вопрос", "Публикуемый ответ");
+  await until(() => p.doc.querySelector("#doc").textContent.includes("Публикуемый вопрос"), "local question");
+  p.click("#btn-save");
+  await until(() => p.writes === 1, () => "one content PUT: " + JSON.stringify({ writes: p.writes, pill: p.doc.querySelector("#sync-pill").textContent, errors: p.errors, calls: p.calls.map((c) => c.method + " " + c.href) }));
+  const put = p.calls.find((c) => c.method === "PUT");
+  assert.ok(put.href.includes("/contents/game-docs/src/content/mech_zombies.json"));
+  const body = JSON.parse(put.body);
+  assert.equal(body.branch, BRANCH);
+  const committed = JSON.parse(Buffer.from(body.content, "base64").toString("utf8"));
+  assert.ok(JSON.stringify(committed).includes("Публикуемый ответ"));
+  assert.ok(!("_banner" in committed));
+  assert.ok(!JSON.stringify(committed).includes(TOKEN));
+  await until(() => p.window.localStorage.getItem("zombi-docs:draft:mech_zombies.json") === null, "published draft cleared");
+  assert.equal(p.doc.querySelector("#dirty-bar").hidden, true);
+  assert.equal(p.errors.length, 0);
+});
+
+test("failed publication keeps the local question and explains the error", async (t) => {
+  const p = await makePage(t, { url: BASE + "#mechanics/zombies", contentPutStatus: 403 });
+  await until(() => !p.doc.querySelector("#btn-save").disabled, "owner ready");
+  addInlineQuestion(p, "Не опубликовано, но сохранено");
+  await until(() => p.doc.querySelector("#doc").textContent.includes("Не опубликовано, но сохранено"), "local question");
+  p.click("#btn-save");
+  await until(() => p.doc.querySelector("#sync-pill").textContent.includes("не опубликовано"), "failure visible");
+  assert.ok(draftOf(p, "mech_zombies.json").blocks.some((b) => (b.items || []).some((i) => i.text === "Не опубликовано, но сохранено")));
+  assert.equal(p.doc.querySelector("#dirty-bar").hidden, false);
+  assert.equal(p.errors.length, 0);
+});
+
+test("storage quota failure keeps the question form open instead of claiming a save", async (t) => {
+  const p = await makePage(t, { token: "", url: BASE + "#mechanics/zombies", storageFail: true });
+  const form = p.doc.querySelector("[data-qform]");
+  form.elements.question.value = "Вопрос при переполненном хранилище";
+  submitForm(p, form);
+  assert.equal(p.doc.querySelector("[data-qform] textarea[name=question]").value, "Вопрос при переполненном хранилище", "form text remains");
+  assert.match(p.doc.querySelector("[data-qform] .field-status").textContent, /не сохранил/);
+  assert.match(p.doc.querySelector("#dirty-text").textContent, /не смог сохранить/);
+  assert.equal(p.writes, 0);
+});
+
+test("editor link overrides an old guest bookmark only after owner gate; guest link stays read-only", async (t) => {
+  const makeGate = async (url, owner) => {
+    const dom = new JSDOM(html, { url, runScripts: "outside-only" });
+    t.after(() => dom.window.close());
+    if (owner) dom.window.localStorage.setItem("zombi-docs:unlocked", config.gate.ownerCode);
+    if (dom.window.document.readyState === "loading") await new Promise((resolve) => dom.window.document.addEventListener("DOMContentLoaded", resolve, { once: true }));
+    dom.window.eval(gateScript);
+    return dom.window;
+  };
+  const ownerEdit = await makeGate(BASE + "?open=1&edit=1#mechanics/zombies", true);
+  assert.equal(ownerEdit.document.querySelector("#gate").hidden, true);
+  assert.equal(ownerEdit.__ZOMBI_GATE__.readonly, false);
+  const anonymousEdit = await makeGate(BASE + "?edit=1#mechanics/zombies", false);
+  assert.equal(anonymousEdit.document.querySelector("#gate").hidden, false, "edit link is not an authentication bypass");
+  const guest = await makeGate(BASE + "?open=1#mechanics/zombies", true);
+  assert.equal(guest.__ZOMBI_GATE__.readonly, true);
+  const p = await makePage(t, { url: BASE + "?open=1&edit=1#mechanics/zombies" });
+  assert.equal(p.doc.querySelector("#btn-edit-tab").hidden, false);
+  assert.ok(p.doc.querySelector("[data-qform]"));
+  const settingsLink = openAccess(p);
+  assert.equal(settingsLink, BASE + "?open=1#mechanics/zombies");
+  assert.equal(p.doc.querySelector("#st-edit-link").value, BASE + "?edit=1#mechanics/zombies");
 });

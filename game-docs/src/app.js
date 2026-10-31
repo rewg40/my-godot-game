@@ -93,7 +93,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.11 · гостевой просмотр без токена";
+const SITE_BUILD = "2026-10-31.12 · редактор вкладок и вопросов";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -179,21 +179,28 @@ const S = {
   token: "", viewOnly: isViewLink(), admin: false, cfgLoaded: false, cfgOk: false, cfgFailed: false, inside: false, mirror: null, base: (typeof window !== "undefined" && window.__ZOMBI_BASE__) || "", readonlyGate: false, docReady: false, lastErr: "",
   mainTab: "scenario", mechIndex: MECH.map((m) => m.id), sub: "character",
   content: null, contentFile: null, contentSha: null, contentName: "",
-  images: null, models: null, dirty: new Set(),
+  images: null, models: null, dirty: new Set(), draftErrors: new Set(), publishing: false, revision: 0,
 };
 const draftKey = (file) => LS.draft + file;
-const hasDraft = (file) => !!localStorage.getItem(draftKey(file));
+const hasDraft = (file) => { try { return !!localStorage.getItem(draftKey(file)); } catch (e) { return false; } };
+function cleanDoc(d) { const copy = { ...d }; delete copy._banner; return copy; }
 
 /* ----------------------------- GitHub API ---------------------------------- */
+function isEditLink() {
+  const query = new URLSearchParams(location.search);
+  const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+  return query.get("edit") === "1" || hash.get("edit") === "1";
+}
 function isViewLink() {
+  if (isEditLink()) return false; // an explicit editor link wins over an old ?open=1 bookmark
   const query = new URLSearchParams(location.search);
   const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
   return query.get("open") === "1" || hash.get("open") === "1";
 }
 function writeBlockReason() {
   if (S.viewOnly) return "Это ссылка для просмотра: запись отключена, токен владельца не используется.";
-  if (S.readonlyGate) return "Конфигурация ещё не проверена: доступен только просмотр. Нажми «Повторить» в полосе над документом.";
-  if (!S.token) return "Для записи нужен действующий токен GitHub. Для просмотра достаточно ссылки «Поделиться для просмотра».";
+  if (S.readonlyGate) return "Конфигурация ещё не проверена: локальное редактирование доступно, публикация временно отключена. Нажми «Повторить проверку» в полосе над документом.";
+  if (!S.token) return "Локальное редактирование доступно. Чтобы опубликовать изменения для всех, подключи GitHub с правом записи.";
   return "";
 }
 function canWrite() { return !writeBlockReason(); }
@@ -211,14 +218,17 @@ function sectionHash() {
   if (S.mainTab === "mechanics") return "#mechanics/" + (MECH.some((m) => m.id === S.sub) ? S.sub : MECH[0].id);
   return "#" + (TABS.some((t) => t.id === S.mainTab) ? S.mainTab : "scenario");
 }
-function makeViewLink() {
+function makeSectionLink(mode) {
   // Never copy credentials, access codes, mirror settings or arbitrary query parameters.
-  const url = new URL(location.href);
-  url.username = ""; url.password = ""; url.search = "";
-  url.searchParams.set("open", "1");
-  url.hash = sectionHash();
-  return url.href;
+  const local = ["localhost", "127.0.0.1", ""].includes(location.hostname);
+  const base = location.protocol === "file:" || local ? "https://rewg40.github.io/my-godot-game/" : new URL(location.pathname, location.origin).href;
+  const u = new URL(base);
+  u.searchParams.set(mode, "1");
+  u.hash = sectionHash();
+  return u.href;
 }
+function makeViewLink() { return makeSectionLink("open"); }
+function makeEditLink() { return makeSectionLink("edit"); }
 function ghHeaders(withBody) {
   const h = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
   if (S.token && !S.viewOnly) h.Authorization = "Bearer " + S.token;
@@ -342,6 +352,7 @@ function renderBlock(b, sectIdx, blkIdx) {
       break;
     }
     case "todo": {
+      if (isQuestionBlock(sectIdx)) { inner = renderQuestions(b, sectIdx); break; }
       const items = (b.items || []).map((it, i) =>
         `<li><input type="checkbox" data-act="toggle-todo" data-s="${sectIdx}" data-b="${blkIdx}" data-i="${i}" ${it.done ? "checked" : ""} ${S.viewOnly ? "disabled" : ""}><span>${inline(it.text)}</span></li>`).join("");
       inner = `<ul class="checks">${items}</ul>`;
@@ -362,8 +373,8 @@ function renderBlock(b, sectIdx, blkIdx) {
     default: inner = `<p>${inline(b.text ? (Array.isArray(b.text) ? b.text.join(" ") : b.text) : "")}</p>`;
   }
   const tools = b.type === "h"
-    ? tool("✎", "edit") + tool("＋", "add-after") + tool("✕", "del")
-    : tool("✎", "edit") + tool("↑", "up") + tool("↓", "down") + tool("＋", "add-after") + tool("✕", "del");
+    ? tool("✎ Изменить", "edit") + tool("＋ После", "add-after") + tool("✕ Удалить", "del")
+    : tool("✎ Изменить", "edit") + tool("↑", "up", "Выше") + tool("↓", "down", "Ниже") + tool("＋ После", "add-after") + tool("✕ Удалить", "del");
   return `<section class="sect" data-s="${sectIdx}">${inner}${S.viewOnly ? "" : `<div class="sect-tools">${tools}</div>`}</section>`;
 }
 
@@ -380,7 +391,7 @@ function renderDoc(d) {
       <span class="chip">разделов: ${(d.blocks || []).length}</span>
       <span class="chip">${esc(S.origin.owner + "/" + S.origin.repo)}:${esc(S.origin.branch)}</span>
       <div class="doc-actions">
-        ${S.viewOnly ? "" : '<button class="ghost" id="btn-edit-all">✎ Быстрое редактирование</button><button class="ghost" id="btn-add-sect">＋ Раздел</button>'}
+        ${S.viewOnly ? "" : '<button class="primary" id="btn-compose">＋ Добавить изменения</button><button class="ghost" id="btn-question">？ Открытый вопрос</button><button class="ghost" id="btn-edit-all">✎ Весь текст</button><button class="ghost" id="btn-add-sect">＋ Раздел</button>'}
         <button class="ghost" id="btn-json">${S.viewOnly ? "JSON · просмотр" : "JSON"}</button>
       </div>
     </div>`;
@@ -388,6 +399,8 @@ function renderDoc(d) {
 
   if (d._banner) { const b = el("div", "note", d._banner); host.appendChild(b); }
   if (!S.viewOnly) {
+    $("#btn-compose", host).onclick = () => openTabComposer();
+    $("#btn-question", host).onclick = () => openQuestionEditor();
     $("#btn-edit-all", host).onclick = () => rawEdit();
     $("#btn-add-sect", host).onclick = () => addSection(null);
   }
@@ -425,7 +438,11 @@ function blockToText(b) {
     case "p": return (b.text || []).join("\n\n");
     case "note": return "> " + (b.text || "");
     case "list": return (b.items || []).map((t, i) => (b.ordered ? `${i + 1}. ` : "- ") + t).join("\n");
-    case "todo": return (b.items || []).map((t) => `- [${t.done ? "x" : " "}] ${t.text}`).join("\n");
+    case "todo": return (b.items || []).map((t) => {
+      const answer = String(t.answer || "").trim();
+      const lines = answer ? answer.split("\n").map((line, i) => "  " + (i === 0 ? "Ответ: " : "") + line).join("\n") : "";
+      return `- [${t.done ? "x" : " "}] ${t.text}` + (lines ? "\n" + lines : "");
+    }).join("\n");
     case "kv": return [(b.head || []).join(" | "), (b.head || []).map(() => "---").join(" | "), ...(b.rows || []).map((r) => r.join(" | "))].join("\n");
     case "code": return "```" + (b.lang || "") + "\n" + (b.code || "") + "\n```";
     case "image": return "![" + (b.caption || "") + "](" + (b.src || "") + ")";
@@ -458,7 +475,13 @@ function parseBlocks(text) {
       const items = [];
       while (i < lines.length && /^- \[[ xX]\]/.test(lines[i])) {
         const m = lines[i].match(/^- \[( |x|X)\]\s*(.*)$/);
-        items.push({ text: m[2], done: m[1].toLowerCase() === "x" }); i++;
+        const item = { text: m[2], done: m[1].toLowerCase() === "x" }; i++;
+        const answer = [];
+        while (i < lines.length && /^ {2,}\S/.test(lines[i]) && !/^ {2,}- \[/.test(lines[i])) {
+          answer.push(lines[i].trim().replace(/^Ответ:\s?/i, "")); i++;
+        }
+        if (answer.length) item.answer = answer.join("\n");
+        items.push(item);
       }
       out.push({ type: "todo", items });
       continue;
@@ -515,17 +538,13 @@ function editSection(idx) {
     Пустая строка = новый абзац; <code>- </code> список; <code>1. </code> нумерованный; <code>- [ ]</code> чек-лист;
     <code>|</code> таблица (2-я строка — <code>---</code>); тройной бэкскрип — код; <code>&gt;</code> врезка; <code>![подпись](images/…)</code> картинка.</div>
     <div class="foot-row">
-      <button class="primary" id="ed-ok">Применить</button>
+      <button class="primary" id="ed-ok">Сохранить во вкладке</button>
       <button class="ghost" id="ed-cancel">Отмена</button>
       <span style="flex:1"></span>
       <button class="ghost" id="ed-del">Удалить блок</button>
     </div>`);
   const ta = $("#ed-text", modal);
   ta.value = blockToText(b);
-  $("#ed-type", modal).onchange = (e) => {
-    const t = e.target.value;
-    if (t !== b.type) ta.value = t === "p" ? (b.items || b.rows ? "" : (b.text || b.code || "")) : "";
-  };
   const sel = $("#ed-type", modal);
   sel.onchange = () => {
     const t = sel.value;
@@ -558,13 +577,17 @@ function editSection(idx) {
       blocks = parseBlocks(raw).map((x) => (x.type === "h" && type !== "h" ? { type: "p", text: [x.text] } : x));
       if (!blocks.length) blocks = [{ type, text: raw.trim() }];
     }
+    const previous = d.blocks.slice();
     d.blocks.splice(idx, 1, ...blocks);
-    markDirty(); closeModal(); renderDoc(S.content);
-    toast("Блок обновлён. Не забудь ⤒ Ctrl+S — пока правка только у тебя в браузере.", "ok");
+    if (!markDirty(S.contentFile, d)) { d.blocks = previous; return; }
+    closeModal(); renderActiveDoc(); localSavedToast(true, "Блок");
   };
   $("#ed-del", modal).onclick = () => {
     if (!confirm("Удалить этот блок?")) return;
-    d.blocks.splice(idx, 1); markDirty(); closeModal(); renderDoc(S.content);
+    const previous = d.blocks.slice();
+    d.blocks.splice(idx, 1);
+    if (!markDirty(S.contentFile, d)) { d.blocks = previous; return; }
+    closeModal(); renderActiveDoc(); localSavedToast(true, "Удаление блока");
   };
   $("#ed-cancel", modal).onclick = closeModal;
 }
@@ -581,9 +604,10 @@ function addSection(afterIdx) {
     const ins = [];
     if (title) ins.push({ type: "h", text: title });
     ins.push(...(blocks.length ? blocks : [{ type: "p", text: ["—"] }]));
-    d.blocks.splice(afterIdx == null ? d.blocks.length : afterIdx + 1, 0, ...ins);
-    markDirty(); closeModal(); renderDoc(d);
-    toast("Добавлено.", "ok");
+    const at = afterIdx == null ? d.blocks.length : afterIdx + 1;
+    d.blocks.splice(at, 0, ...ins);
+    if (!markDirty(S.contentFile, d)) { d.blocks.splice(at, ins.length); return; }
+    closeModal(); renderActiveDoc(); localSavedToast(true, "Раздел");
   };
   $("#ns-cancel", modal).onclick = closeModal;
 }
@@ -594,12 +618,15 @@ function moveBlock(idx, dir) {
   [b[idx], b[j]] = [b[j], b[idx]];
   markDirty(); renderDoc(S.content);
 }
-function markDirty() {
-  if (S.viewOnly) return;
-  S.dirty.add(S.contentFile);
-  localStorage.setItem(draftKey(S.contentFile), JSON.stringify(S.content));
-  $("#dirty-bar").hidden = !S.dirty.size;
-  renderSubtabs();
+function markDirty(file = S.contentFile, doc = S.content) {
+  if (!file || !doc) return false;
+  S.dirty.add(file); S.revision++;
+  let saved = true;
+  try { localStorage.setItem(draftKey(file), JSON.stringify(cleanDoc(doc))); S.draftErrors.delete(file); }
+  catch (e) { saved = false; S.draftErrors.add(file); toast("Браузер не сохранил черновик: " + esc(e.message) + ". Скачай JSON или опубликуй, не закрывая страницу.", "bad", 9000); }
+  setPill(saved ? "warn" : "bad", saved ? "черновик в браузере" : "черновик не сохранён");
+  updateFoot(); renderSubtabs();
+  return saved;
 }
 function jsonView() {
   const modal = openModal("JSON раздела (" + S.contentFile + ")", `
@@ -608,11 +635,164 @@ function jsonView() {
   $("#jv", modal).value = JSON.stringify(S.content, null, 2);
   $("#jv", modal).readOnly = S.viewOnly;
   if (!S.viewOnly) $("#jv-ok", modal).onclick = () => {
-    try { S.content = JSON.parse($("#jv", modal).value); markDirty(); renderDoc(S.content); closeModal(); toast("JSON применён", "ok"); }
+    try {
+      const next = JSON.parse($("#jv", modal).value);
+      if (!next || !Array.isArray(next.blocks)) throw new Error("Нужен объект со списком blocks");
+      const previous = S.content; S.content = next;
+      if (!markDirty(S.contentFile, next)) { S.content = previous; return; }
+      renderActiveDoc(); closeModal(); localSavedToast(true, "JSON");
+    }
     catch (e) { toast("Ошибка JSON: " + esc(e.message), "bad", 6000); }
   };
   $("#jv-cc", modal).onclick = () => { copy($("#jv", modal).value); toast("Скопировано", "ok"); };
   $("#jv-x", modal).onclick = closeModal;
+}
+
+/* ----------------------------- прямые правки вкладки ----------------------- */
+function renderActiveDoc() {
+  if (S.mainTab === "preview") loadPreview();
+  else if (S.content) renderDoc(S.content);
+}
+function isQuestionBlock(idx, doc = S.content) {
+  if (!doc || !doc.blocks[idx] || doc.blocks[idx].type !== "todo") return false;
+  for (let i = idx - 1; i >= 0; i--) {
+    if (doc.blocks[i].type === "h") return /вопрос|question/i.test(doc.blocks[i].text || "");
+  }
+  return false;
+}
+function questionBlockIndex(doc = S.content) {
+  return doc ? doc.blocks.findIndex((b, i) => b.type === "todo" && isQuestionBlock(i, doc)) : -1;
+}
+function renderQuestions(b, blockIdx) {
+  const items = (b.items || []).map((it, i) => `
+    <article class="question-item ${it.done ? "resolved" : ""}">
+      <div class="question-top"><span class="question-state">${it.done ? "✓ Решено" : "● Открыт"}</span>
+        ${S.viewOnly ? "" : `<div class="question-actions">
+          <button type="button" class="tiny ghost" data-qact="edit" data-s="${blockIdx}" data-i="${i}">✎ Изменить</button>
+          <button type="button" class="tiny ghost" data-qact="answer" data-s="${blockIdx}" data-i="${i}">Ответить</button>
+          <button type="button" class="tiny ghost" data-qact="toggle" data-s="${blockIdx}" data-i="${i}">${it.done ? "Вернуть" : "Решено"}</button>
+          <button type="button" class="tiny ghost danger" data-qact="delete" data-s="${blockIdx}" data-i="${i}" aria-label="Удалить вопрос">✕</button>
+        </div>`}
+      </div>
+      <div class="question-text">${esc(it.text || "")}</div>
+      ${String(it.answer || "").trim() ? `<div class="question-answer"><b>Ответ / решение</b><div>${esc(it.answer)}</div></div>` : `<div class="question-empty">Ответа пока нет</div>`}
+    </article>`).join("");
+  return `<div class="question-panel" data-qblock="${blockIdx}">
+    <div class="question-list">${items || '<p class="hint">Пока нет вопросов. Добавь первый ниже.</p>'}</div>
+    ${S.viewOnly ? "" : `<form class="question-add" data-qform="${blockIdx}">
+      <div class="question-add-title">Новый открытый вопрос <span>→ эта вкладка · Открытые вопросы</span></div>
+      <label class="f"><span>Вопрос</span><textarea name="question" rows="2" required placeholder="Например: что должно происходить с зомби при потере цели?"></textarea></label>
+      <label class="f"><span>Ответ / решение · необязательно</span><textarea name="answer" rows="2" placeholder="Можно заполнить сейчас или позже кнопкой «Ответить»"></textarea></label>
+      <div class="foot-row"><button class="primary" type="submit">＋ Добавить вопрос</button><span class="hint">Сохранится во вкладке в этом браузере</span></div>
+      <p class="field-status" role="status" aria-live="polite" hidden></p>
+    </form>`}
+  </div>`;
+}
+function localSavedToast(ok, what) {
+  if (ok) toast(what + " сохранено во вкладке в этом браузере. Для всех — «Опубликовать вкладку».", "ok", 5500);
+}
+function openQuestionEditor(blockIndex, itemIndex, focusAnswer) {
+  if (!assertEditable() || !S.docReady) return;
+  const doc = S.content, file = S.contentFile;
+  let bi = Number.isInteger(blockIndex) ? blockIndex : questionBlockIndex(doc);
+  const newBlock = bi < 0;
+  const block = newBlock ? { type: "todo", items: [] } : doc.blocks[bi];
+  const isNew = !Number.isInteger(itemIndex);
+  const old = isNew ? { text: "", answer: "", done: false } : block.items[itemIndex];
+  if (!old) return;
+  const modal = openModal((isNew ? "Новый открытый вопрос" : "Открытый вопрос") + " · " + (doc.title || ""), `
+    <p class="hint">Пиши прямо здесь. Вопрос попадёт в текущую вкладку, а не в очередь агенту. Локальное сохранение не требует GitHub; публикация делает правку общей.</p>
+    <label class="f"><span>Вопрос</span><textarea id="q-text" rows="3" required>${esc(old.text || "")}</textarea></label>
+    <label class="f"><span>Ответ / решение · необязательно</span><textarea id="q-answer" rows="4">${esc(old.answer || "")}</textarea></label>
+    <label class="check-line"><input id="q-done" type="checkbox" ${old.done ? "checked" : ""}> Вопрос решён</label>
+    <p class="hint">Куда: <b>${esc(doc.title || file)}</b> → Открытые вопросы</p>
+    <div class="foot-row"><button class="primary" id="q-save">Сохранить во вкладке</button><button class="ghost" id="q-publish">Сохранить и опубликовать</button><button class="ghost" id="q-cancel">Отмена</button></div>
+    <p id="q-status" class="field-status" role="status" aria-live="polite" hidden></p>`, true);
+  const save = async (publish) => {
+    if (S.content !== doc || S.contentFile !== file) { toast("Вкладка изменилась — открой форму заново.", "warn"); return; }
+    const text = $("#q-text", modal).value.trim();
+    if (!text) { $("#q-status", modal).hidden = false; $("#q-status", modal).textContent = "Напиши текст вопроса."; return; }
+    const item = { ...old, text, answer: $("#q-answer", modal).value.trim(), done: $("#q-done", modal).checked };
+    if (newBlock) { bi = doc.blocks.length; doc.blocks.push({ type: "h", text: "Открытые вопросы" }, block); }
+    if (isNew) block.items.push(item); else block.items[itemIndex] = item;
+    $("#q-save", modal).disabled = true; $("#q-publish", modal).disabled = true;
+    const ok = markDirty(file, doc);
+    if (!ok) { $("#q-status", modal).hidden = false; $("#q-status", modal).textContent = "Черновик не поместился в хранилище браузера. Правка остаётся в форме: скачай JSON или освободи место."; $("#q-save", modal).disabled = false; $("#q-publish", modal).disabled = false; return; }
+    closeModal(); renderActiveDoc(); localSavedToast(true, "Изменение вопроса");
+    if (publish) await pushCurrent();
+  };
+  $("#q-save", modal).onclick = () => save(false);
+  $("#q-publish", modal).onclick = () => save(true);
+  $("#q-cancel", modal).onclick = closeModal;
+  $(focusAnswer ? "#q-answer" : "#q-text", modal).focus();
+}
+function questionAction(button) {
+  if (!assertEditable() || S.publishing) return;
+  const bi = +button.dataset.s, i = +button.dataset.i;
+  const block = S.content && S.content.blocks[bi], item = block && block.items[i];
+  if (!item) return;
+  const act = button.dataset.qact;
+  if (act === "edit" || act === "answer") { openQuestionEditor(bi, i, act === "answer"); return; }
+  if (act === "toggle") {
+    item.done = !item.done;
+    const ok = markDirty(); renderActiveDoc(); localSavedToast(ok, item.done ? "Решение" : "Возврат вопроса");
+  }
+  if (act === "delete" && confirm("Удалить этот вопрос из вкладки?")) {
+    block.items.splice(i, 1);
+    const ok = markDirty(); renderActiveDoc(); localSavedToast(ok, "Удаление вопроса");
+  }
+}
+function submitQuestionForm(form) {
+  if (!assertEditable() || S.publishing) return;
+  const bi = +form.dataset.qform, block = S.content && S.content.blocks[bi];
+  if (!block) return;
+  const text = form.elements.question.value.trim(), answer = form.elements.answer.value.trim();
+  const status = form.querySelector(".field-status");
+  if (!text) { status.hidden = false; status.textContent = "Напиши текст вопроса."; return; }
+  block.items.push({ text, answer, done: false });
+  const ok = markDirty();
+  if (!ok) { block.items.pop(); status.hidden = false; status.textContent = "Браузер не сохранил черновик. Текст остаётся в форме."; return; }
+  renderActiveDoc(); localSavedToast(true, "Вопрос");
+  const next = document.querySelector(`[data-qform="${bi}"] textarea[name="question"]`);
+  if (next) next.focus();
+}
+function sectionEnd(blocks, headingIndex) {
+  for (let i = headingIndex + 1; i < blocks.length; i++) if (blocks[i].type === "h") return i;
+  return blocks.length;
+}
+function openTabComposer() {
+  if (!assertEditable() || !S.docReady || !S.content) return;
+  const doc = S.content, file = S.contentFile;
+  const headings = doc.blocks.map((b, i) => b.type === "h" ? `<option value="${i}">${esc(b.text || "Раздел " + (i + 1))}</option>` : "").join("");
+  const modal = openModal("Изменения во вкладке · " + (doc.title || file), `
+    <p class="hint">Пиши обычным текстом: он появится прямо в этой вкладке, не в очереди агенту. «Сохранить во вкладке» оставляет правку в этом браузере; «Опубликовать» показывает её всем посетителям после обновления GitHub Pages.</p>
+    <label class="f"><span>Что добавить</span><textarea id="tc-text" placeholder="Например: при потере цели зомби возвращается к последней точке патруля. Добавь это как правило поведения и отметь открытый вопрос по поиску пути."></textarea></label>
+    <label class="f"><span>Куда добавить</span><select id="tc-target"><option value="">В конец вкладки</option>${headings}</select></label>
+    <p class="hint">Можно писать абзацы, списки и подзаголовки <code>##</code>. Чтобы изменить существующий текст, нажми «Изменить» у нужного блока или «Весь текст» в шапке документа.</p>
+    <div class="foot-row"><button class="primary" id="tc-save">Сохранить во вкладке</button><button class="ghost" id="tc-publish">Сохранить и опубликовать</button><button class="ghost" id="tc-cancel">Отмена</button></div>
+    <p id="tc-status" class="field-status" role="status" aria-live="polite" hidden></p>`, true);
+  const save = async (publish) => {
+    if (S.content !== doc || S.contentFile !== file) { toast("Вкладка изменилась — открой форму заново.", "warn"); return; }
+    const raw = $("#tc-text", modal).value.trim();
+    const status = $("#tc-status", modal);
+    if (!raw) { status.hidden = false; status.textContent = "Напиши, что добавить во вкладку."; return; }
+    const added = parseBlocks(raw);
+    if (!added.length) { status.hidden = false; status.textContent = "Не удалось разобрать текст."; return; }
+    const target = $("#tc-target", modal).value;
+    const at = target === "" ? doc.blocks.length : sectionEnd(doc.blocks, +target);
+    doc.blocks.splice(at, 0, ...added);
+    $("#tc-save", modal).disabled = true; $("#tc-publish", modal).disabled = true;
+    const ok = markDirty(file, doc);
+    if (!ok) { doc.blocks.splice(at, added.length); status.hidden = false; status.textContent = "Браузер не сохранил черновик. Текст остаётся в форме."; $("#tc-save", modal).disabled = false; $("#tc-publish", modal).disabled = false; return; }
+    closeModal(); renderActiveDoc(); localSavedToast(true, "Изменение");
+    const node = document.querySelector(`.sect[data-s="${at}"]`);
+    if (node && node.scrollIntoView) node.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (publish) await pushCurrent();
+  };
+  $("#tc-save", modal).onclick = () => save(false);
+  $("#tc-publish", modal).onclick = () => save(true);
+  $("#tc-cancel", modal).onclick = closeModal;
+  $("#tc-text", modal).focus();
 }
 
 /* ----------------------------- модалки ------------------------------------- */
@@ -644,12 +824,21 @@ async function loadCurrent(showLoader = true) {
   const file = fileFor(S.mainTab, S.sub);
   if (showLoader) $("#doc").innerHTML = `<div class="loading">Загрузка ${esc(file)}…</div>`;
   try {
-    let text = S.viewOnly ? null : localStorage.getItem(draftKey(file));
-    let fromDraft = !!text;
-    if (!text) text = await loadText("content/" + file);
-    const d = JSON.parse(text);
+    let text = null;
+    try { text = S.viewOnly ? null : localStorage.getItem(draftKey(file)); } catch (e) { /* published copy still works */ }
+    let fromDraft = false;
+    let d = null;
+    if (text) {
+      try { d = JSON.parse(text); fromDraft = true; }
+      catch (e) { toast("Локальный черновик повреждён и не удалён. Загружена опубликованная копия.", "warn", 7000); }
+    }
+    if (!d) d = JSON.parse(await loadText("content/" + file));
+    if (!d || !Array.isArray(d.blocks)) throw new Error("В файле нет списка blocks");
     if (S.mainTab === "mechanics" && d.kind !== "mechanics") d.kind = "mechanics";
-    if (fromDraft) d._banner = "Ты видишь свою черновую правку из этого браузера (не сохранена в GitHub).";
+    if (fromDraft) {
+      S.dirty.add(file);
+      d._banner = "Локальная правка сохранена в этом браузере. Чтобы её увидели все, нажми «Опубликовать вкладку».";
+    }
     S.content = d; S.contentFile = file; S.docReady = true;
     if (MECH.some((m) => m.file === file)) { statusCache[file] = d.status; renderSubtabs(); }
     renderDoc(d);
@@ -671,29 +860,39 @@ async function loadCurrent(showLoader = true) {
 function setPill(kind, text) { const p = $("#sync-pill"); p.className = "pill " + kind; p.textContent = text; }
 function updateFoot() {
   const writable = canWrite();
-  $("#foot-info").textContent = `${S.origin.owner}/${S.origin.repo} · ${S.origin.branch} · ${S.viewOnly ? "гостевой просмотр · запись отключена" : writable ? "запись разрешена" : "только чтение"}`;
+  const localOnly = !S.viewOnly && !S.token;
+  $("#foot-info").textContent = `${S.origin.owner}/${S.origin.repo} · ${S.origin.branch} · ${S.viewOnly ? "гостевой просмотр" : S.publishing ? "публикация…" : writable ? "редактор · публикация в GitHub" : localOnly ? "редактор · локальные черновики" : "редактор · публикация недоступна"}`;
   $("#btn-save").hidden = S.viewOnly;
-  $("#btn-save").disabled = !writable;
+  $("#btn-save").disabled = S.publishing || (!writable && !localOnly);
+  $("#btn-save").textContent = S.publishing ? "Публикация…" : localOnly ? "⤒ Подключить GitHub" : "⤒ Опубликовать вкладку";
+  $("#btn-edit-tab").hidden = S.viewOnly;
+  $("#btn-edit-tab").disabled = !S.docReady || S.publishing;
   $("#lnk-inbox").hidden = S.viewOnly;
-  $("#dirty-bar").hidden = S.viewOnly || !S.dirty.size;
+  const dirty = !S.viewOnly && S.dirty.size > 0;
+  $("#dirty-bar").hidden = !dirty;
+  const failed = S.draftErrors.has(S.contentFile);
+  $("#dirty-text").textContent = failed
+    ? "Правка есть на экране, но браузер не смог сохранить черновик. Не закрывай страницу: скачай JSON или опубликуй правку."
+    : "Изменения сохранены в этом браузере. Для других посетителей они появятся только после публикации.";
+  $("#btn-dirty-save").textContent = localOnly ? "Подключить GitHub" : "Опубликовать вкладку";
+  $("#btn-dirty-save").disabled = S.publishing || (!writable && !localOnly);
+  $("#btn-dirty-reset").disabled = S.publishing;
   document.body.classList.toggle("guest-view", S.viewOnly);
   const bar = $("#readonly-bar");
   bar.hidden = writable;
   if (S.viewOnly) {
-    bar.textContent = "Гостевой просмотр: документ можно читать, изменение и отправка в GitHub отключены. Токен и код доступа не требуются.";
+    bar.innerHTML = 'Гостевой просмотр. <a class="tiny" id="ro-edit-link" href="' + esc(makeEditLink()) + '">Войти для редактирования</a>';
   } else if (S.readonlyGate) {
-    bar.innerHTML = 'Конфигурация не загружена — запись временно отключена. <button class="tiny" id="ro-retry">Повторить проверку</button>';
+    bar.innerHTML = 'Конфигурация не загружена — публикация временно отключена, локальное редактирование доступно. <button class="tiny" id="ro-retry">Повторить проверку</button>';
     $("#ro-retry", bar).onclick = async () => {
       $("#ro-retry", bar).disabled = true;
       await loadConfig().catch(() => {});
       updateFoot();
     };
   } else {
-    bar.innerHTML = 'Токен GitHub не задан — читать можно, писать нельзя. <button class="tiny" id="btn-token-now">Настройки GitHub</button>';
+    bar.innerHTML = 'Редактирование включено: правки сохраняются в этом браузере. Чтобы изменения видели все, подключи GitHub. <button class="tiny" id="btn-token-now">Подключить GitHub</button>';
     $("#btn-token-now", bar).onclick = () => openSettings("github");
   }
-  const tokenButton = $("#btn-token-now", bar);
-  if (tokenButton) tokenButton.hidden = S.viewOnly || S.readonlyGate;
 }
 
 /* ----------------------------- навигация ----------------------------------- */
@@ -738,7 +937,8 @@ function buildSubtabs() {
 const statusCache = {};
 function statusOf(m) {
   const key = m.file;
-  const dr = JSON.parse(localStorage.getItem(draftKey("content/" + key)) || "null");
+  let dr = null;
+  try { dr = JSON.parse(localStorage.getItem(draftKey(key)) || "null"); } catch (e) { /* ignore bad draft */ }
   if (dr && dr.status) return dr.status;
   return statusCache[key] || "draft";
 }
@@ -765,32 +965,45 @@ function readHash() {
 
 /* ----------------------------- депозит: правки в GitHub -------------------- */
 async function pushCurrent(silent) {
+  if (S.publishing) return false;
   if (!canWrite()) {
     toast(writeBlockReason(), "warn", 6500);
     if (!S.token && !S.viewOnly && !S.readonlyGate) openSettings("github");
-    return;
+    return false;
   }
-  const file = S.contentFile, d = S.content;
-  if (!file) return;
-  setPill("", "отправка…");
+  const file = S.contentFile, d = S.content, revision = S.revision;
+  if (!file || !d) return false;
+  S.publishing = true; updateFoot();
+  setPill("", "публикация…");
   try {
-    d.updated = nowIso();
+    const published = cleanDoc(d);
+    published.updated = nowIso();
     const path = `${S.config.contentPath}/${file}`;
-    await ghPutText(path, JSON.stringify(d, null, 2) + "\n", `docs(${file.replace(/\.json$/, "")}): правка через сайт`);
-    localStorage.removeItem(draftKey(file));
-    S.dirty.delete(file);
-    $("#dirty-bar").hidden = !!S.dirty.size;
-    setPill("ok", "сохранено");
-    if (!silent) toast("Закоммичено в " + S.origin.branch + ". Через ~1 минуту обновится на GitHub Pages.", "ok");
-    renderDoc(d);
+    await ghPutText(path, JSON.stringify(published, null, 2) + "\n", `docs(${file.replace(/\.json$/, "")}): правка через сайт`);
+    // Do not erase a newer edit made while the network request was in flight.
+    if (S.contentFile !== file || S.revision === revision) {
+      try { localStorage.removeItem(draftKey(file)); } catch (e) { /* remote save succeeded */ }
+      S.dirty.delete(file); S.draftErrors.delete(file);
+      if (S.contentFile === file) { d.updated = published.updated; delete d._banner; renderActiveDoc(); }
+    }
+    setPill("ok", "опубликовано");
+    if (!silent) toast("Вкладка опубликована в " + S.origin.branch + ". GitHub Pages обновится примерно через минуту.", "ok", 6500);
+    updateFoot();
+    return true;
   } catch (e) {
-    setPill("bad", "ошибка записи");
-    toast("GitHub: " + esc(e.message), "bad", 8000);
-  }
+    setPill("bad", S.draftErrors.has(file) ? "не опубликовано · скачай JSON" : "не опубликовано · черновик сохранён");
+    toast("Публикация не выполнена: " + esc(e.hint || e.message) + (S.draftErrors.has(file) ? " Скачай JSON: браузер не смог сохранить черновик." : " Локальная правка остаётся во вкладке."), "bad", 9000);
+    if (e.status === 401 && !S.viewOnly) openSettings("github");
+    updateFoot();
+    return false;
+  } finally { S.publishing = false; updateFoot(); }
 }
 async function pullCurrent() {
+  if (S.publishing) return;
+  if (!confirm("Отменить локальные правки этой вкладки и загрузить опубликованную версию?")) return;
   const file = S.contentFile;
-  localStorage.removeItem(draftKey(file));
+  try { localStorage.removeItem(draftKey(file)); } catch (e) { /* continue */ }
+  S.draftErrors.delete(file);
   S.dirty.delete(file);
   $("#dirty-bar").hidden = !!S.dirty.size;
   await loadCurrent();
@@ -806,6 +1019,7 @@ async function refreshAll() {
 function openSettings(tab) {
   const advanced = S.admin && canWrite();
   const viewLink = makeViewLink();
+  const editLink = makeEditLink();
   const modal = openModal("Настройки сайта · просмотр, доступ, синхронизация", `
     <div class="tabs-mini">
       ${S.viewOnly ? "" : '<button data-m="github">GitHub</button>'}
@@ -813,7 +1027,7 @@ function openSettings(tab) {
       <button data-m="sync">Синхронизация</button>
     </div>
     <div id="st-github" hidden>
-      <p class="hint">Подключение GitHub нужно только для записи. Другому человеку для просмотра отправь ссылку из раздела «Доступ» — не передавай токен.</p>
+      <p class="hint">Локальные правки уже доступны без токена. Подключение GitHub нужно, чтобы опубликовать их для всех посетителей. Токен не передавай другим людям.</p>
       <label class="f"><span>Владелец</span><input id="st-owner" value="${esc(S.origin.owner)}"></label>
       <label class="f"><span>Репозиторий</span><input id="st-repo" value="${esc(S.origin.repo)}"></label>
       <label class="f"><span>Ветка (куда пишем / откуда читаем)</span><input id="st-branch" value="${esc(S.origin.branch)}"></label>
@@ -825,11 +1039,17 @@ function openSettings(tab) {
       <p id="st-gh-status" class="field-status" role="status" aria-live="polite" hidden></p>
     </div>
     <div id="st-access" hidden>
+      ${S.viewOnly ? "" : `<section class="share-panel editor-link-panel" aria-labelledby="edit-link-heading">
+        <h4 id="edit-link-heading">Рабочая ссылка · редактирование</h4>
+        <p>Открывает редактор текущей вкладки. Код владельца проверяется отдельно и в ссылку не попадает. Правки можно сохранять в браузере без токена; для общей публикации нужен GitHub владельца.</p>
+        <label class="f"><span>Ссылка для редактирования</span><input id="st-edit-link" readonly value="${esc(editLink)}"></label>
+        <div class="foot-row"><button class="primary" id="st-copy-edit">Скопировать рабочую ссылку</button><a class="ghost" id="st-open-edit" href="${esc(editLink)}">Открыть редактор</a></div>
+      </section>`}
       <section class="share-panel" aria-labelledby="share-heading">
-        <h4 id="share-heading">Поделиться для просмотра</h4>
+        <h4 id="share-heading">Гостевой просмотр · только чтение</h4>
         <p>Отправь эту ссылку другому человеку. GitHub, токен и отправка config.json не нужны. Ссылка откроет текущий раздел; кнопки редактирования и записи будут отключены.</p>
         <label class="f"><span>Гостевая ссылка · без токена и кода доступа</span><input id="st-view-link" readonly value="${esc(viewLink)}"></label>
-        <div class="foot-row"><button class="primary" id="st-copy-view">Скопировать ссылку</button>
+        <div class="foot-row"><button class="ghost" id="st-copy-view">Скопировать гостевую ссылку</button>
           <a class="ghost" id="st-open-view" href="${esc(viewLink)}" target="_blank" rel="noopener">Открыть как гость</a></div>
         <p class="hint">Это режим интерфейса, не защита данных: репозиторий и GitHub Pages публичные. Не помещай сюда секретные материалы.</p>
       </section>
@@ -868,6 +1088,10 @@ function openSettings(tab) {
   };
   $("#st-view-link", modal).onclick = (e) => e.target.select();
   $("#st-copy-view", modal).onclick = () => copyText(viewLink);
+  if (!S.viewOnly) {
+    $("#st-edit-link", modal).onclick = (e) => e.target.select();
+    $("#st-copy-edit", modal).onclick = () => copyText(editLink);
+  }
   if (!S.viewOnly) {
     $("#st-save-gh", modal).onclick = async () => {
       const button = $("#st-save-gh", modal);
@@ -1448,8 +1672,17 @@ function md(src) {
 }
 
 /* ----------------------------- события документа --------------------------- */
+let docWired = false;
 function wireDoc() {
+  if (docWired) return; docWired = true;
+  $("#doc").addEventListener("submit", (e) => {
+    const form = e.target.closest("[data-qform]");
+    if (!form) return;
+    e.preventDefault(); submitQuestionForm(form);
+  });
   $("#doc").addEventListener("click", (e) => {
+    const q = e.target.closest("[data-qact]");
+    if (q) { questionAction(q); return; }
     const b = e.target.closest("[data-act]");
     if (!b) return;
     if (!assertEditable()) return;
@@ -1466,13 +1699,12 @@ function wireDoc() {
     const s = findBlockIndex(+b.dataset.s);
     const it = S.content.blocks[s].items[+b.dataset.i];
     it.done = e.target.checked;
-    if (!e.target.closest(".sect") && !S.token) { localStorage.setItem(draftKey(S.contentFile), JSON.stringify(S.content)); return; }
-    markDirty(); renderDoc(S.content);
-    if (S.token) pushCurrent(true);
+    markDirty(); renderDoc(S.content); // publication is always an explicit action
   });
   // (кнопки шапки навешаны в renderDoc)
   // «Быстрое редактирование» = raw-режим всего раздела
   $("#doc").addEventListener("dblclick", (e) => {
+    if (e.target.closest("button,input,textarea,select,a,form,.question-panel")) return;
     const sec = e.target.closest(".sect");
     if (sec && assertEditable()) editSection(findBlockIndex(+sec.dataset.s));
   });
@@ -1499,27 +1731,33 @@ function rawEdit() {
     <code>\`\`\`код\`\`\`</code>, таблица строками с <code>|</code> (вторая строка — <code>| --- |</code>),
     <code>![подпись](images/…)</code>. Кнопка «Применить» пересобирает блоки раздела.</p>
     <label class="f"><textarea id="rx" style="min-height:56vh"></textarea></label>
-    <div class="foot-row"><button class="primary" id="rx-ok">Применить</button>
+    <div class="foot-row"><button class="primary" id="rx-ok">Сохранить во вкладке</button><button class="ghost" id="rx-publish">Сохранить и опубликовать</button>
     <button class="ghost" id="rx-cancel">Отмена</button>
     <span style="flex:1"></span><button class="ghost" id="rx-dl">Скачать .md</button></div>`);
   const ta = $("#rx", modal);
   ta.value = serializeDoc(d);
-  $("#rx-ok", modal).onclick = () => {
-    const blocks = parseBlocks(ta.value);
-    d.blocks = blocks;
-    markDirty(); closeModal(); renderDoc(d);
-    toast("Раздел пересобран из текста. Ctrl+S — отправить в репозиторий.", "ok", 5000);
+  const applyRaw = async (publish) => {
+    const previous = d.blocks;
+    d.blocks = parseBlocks(ta.value);
+    if (!markDirty(S.contentFile, d)) { d.blocks = previous; return; }
+    closeModal(); renderActiveDoc(); localSavedToast(true, "Текст вкладки");
+    if (publish) await pushCurrent();
   };
+  $("#rx-ok", modal).onclick = () => applyRaw(false);
+  $("#rx-publish", modal).onclick = () => applyRaw(true);
   $("#rx-cancel", modal).onclick = closeModal;
   $("#rx-dl", modal).onclick = () => download((S.contentFile || "doc").replace(/\.json$/, "") + ".md", ta.value, "text/markdown");
   ta.focus(); ta.setSelectionRange(0, 0);
 }
 
 /* ----------------------------- boot ---------------------------------------- */
+let chromeWired = false;
 function wireChrome() {
-  $("#btn-refresh").onclick = () => { if (!S.viewOnly) localStorage.removeItem(draftKey(S.contentFile)); refreshAll(); };
+  if (chromeWired) return; chromeWired = true;
+  $("#btn-refresh").onclick = () => refreshAll(); // refresh must never silently discard a local draft
   $("#btn-share").onclick = () => openSettings("access");
   $("#btn-save").onclick = () => pushCurrent();
+  $("#btn-edit-tab").onclick = () => openTabComposer();
   $("#btn-settings").onclick = () => openSettings();
   if ($("#btn-token-now")) $("#btn-token-now").onclick = () => openSettings("github");
   $("#btn-dirty-save").onclick = () => pushCurrent();

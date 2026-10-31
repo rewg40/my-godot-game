@@ -134,7 +134,8 @@
       try { history.replaceState(null, "", location.pathname); } catch (e) {}   // убираем ?reset=1 из адреса, не перезагружаясь
       q = "";
     }
-    var view = /[?&]open=1(?:&|$)/.test(q) || /[#&]open=1(?:&|$)/.test(hash);
+    var edit = /[?&]edit=1(?:&|$)/.test(q) || /[#&]edit=1(?:&|$)/.test(hash);
+    var view = !edit && (/[?&]open=1(?:&|$)/.test(q) || /[#&]open=1(?:&|$)/.test(hash));
     if (view) { set(LS.ro, "1"); passGate("гостевая ссылка", false, true); wire(); return; }
     var saved = get(LS.tk);
     if (saved && saved === OWNER_HASH) { passGate("этот браузер", true, false); wire(); return; }
