@@ -145,7 +145,7 @@ st.push("зеркала: " + srcList().join(" ; "));
     if (!t) return;
     window.__ZOMBI_CLICKS__++;
     window.__ZOMBI_LASTTAB__ = (t.getAttribute("data-tab") || t.textContent || "").replace(/\s+/g, " ").trim().slice(0, 24);
-    var ld = document.getElementById("gate-loader");
+    var ld = document.getElementById("site-loader");
     if (ld) ld.textContent = "клик #" + window.__ZOMBI_CLICKS__ + " · " + window.__ZOMBI_LASTTAB__;
   }, true);
 
@@ -157,7 +157,7 @@ st.push("зеркала: " + srcList().join(" ; "));
     if (isRes) {
       window.__ZOMBI_RES_FAIL__ = (window.__ZOMBI_RES_FAIL__ || 0) + 1;
       var tag = tgt.tagName, nm = (tgt.src || tgt.href || "").split("/").pop().split("?")[0];
-      var ld = document.getElementById("gate-loader");
+      var ld = document.getElementById("site-loader");
       if (ld) ld.textContent = "не доехали файлы: " + window.__ZOMBI_RES_FAIL__ + " (последний: " + tag + " " + nm + ")";
       if (tag === "SCRIPT" && !window.__ZOMBI_APP__) {
         setTimeout(function () {

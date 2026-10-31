@@ -4,9 +4,9 @@
    1) app.js синтаксически валиден и шапка IIFE цела;
    2) нет вызовов функций, которые нигде не определены (ловит класс багов «patch съел определение»);
    3) все id из app.js есть в index.html (или создаются самим app.js);
-   4) sha256Pure совпадает с эталоном на 8 кейсах;
+   4) код доступа удалён, ссылка открывает редактор;
    5) все content/*.json парсятся. */
-const fs = require("fs"), path = require("path"), vm = require("vm"), crypto = require("crypto");
+const fs = require("fs"), path = require("path"), vm = require("vm");
 const SRC = process.env.SITE_DIR || path.join(__dirname, "..", "src");
 const rd = (f) => fs.readFileSync(path.join(SRC, f), "utf8");
 let fail = 0;
@@ -41,18 +41,9 @@ const absent = [...jsIds].filter((i) => !htmlIds.has(i) && !madeInJs.has(i) && !
 ok(absent.length === 0, "id из app.js существуют в index.html", absent.slice(0, 8).join(", "));
 
 /* 4 */
-const i = app.indexOf("function sha256Pure"), j = app.indexOf("async function sha256Hex");
-let hashOk = false, note = "не найдены якоря";
-if (i >= 0 && j > i) {
-  const ctx = {}; vm.createContext(ctx);
-  try {
-    vm.runInContext(app.slice(i, j) + "\nthis.f = sha256Pure;", ctx);
-    const cases = ["", "abc", "ZOMBI-2026", "Привет, мир · 🧟", "a".repeat(55), "b".repeat(64), "c".repeat(119), "d".repeat(10000)];
-    hashOk = cases.every((t) => ctx.f(t) === crypto.createHash("sha256").update(Buffer.from(t, "utf8")).digest("hex"));
-    note = hashOk ? "8/8 кейсов" : "расхождение с эталоном";
-  } catch (e) { note = e.message; }
-}
-ok(hashOk, "sha256Pure == эталон", note);
+ok(!/INLINE-GATE|OWNER_HASH|FALLBACK_OWNER_HASH|tryUnlock|wireGate|gate-code|gate-form/.test(app + html), "код доступа удалён из app.js и index.html");
+ok(!/id="gate"/.test(html) && /id="app" class="app"/.test(html), "index.html: редактор виден без экрана кода");
+ok(/function canEdit\(\) \{ return true; \}/.test(app) && /function normalizeEditorLink/.test(app), "app.js: ссылка открывает полный редактор");
 
 /* 5 */
 const dir = path.join(SRC, "content");
@@ -63,21 +54,15 @@ else for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".json"))) {
 }
 ok(badjson.length === 0, "content/*.json парсятся", badjson.join(", "));
 
-let cfg = { gate: {} }; try { cfg = JSON.parse(rd("config.json")); } catch (e) {}
-const owner = crypto.createHash("sha256").update("ZOMBI-2026", "utf8").digest("hex");
-ok(cfg.gate.ownerCode === owner, "config: ownerCode == sha256(ZOMBI-2026)");
-ok(app.includes('FALLBACK_OWNER_HASH') && /h === FALLBACK_OWNER_HASH/.test(app), "вход не зависит от config.json (есть синхронная сверка)");
-ok(/nc=/.test(html) && /gate-fallback/.test(html), "index.html: анти-кэш загрузчик на месте");
-ok(/INLINE-GATE:START/.test(html) && /OWNER_HASH/.test(html) && /function sha256Pure/.test(html), "index.html: встроенный замок собран (свой sha256Pure + ownerCode)");
-ok(/<!-- INLINE-GATE:START -->[\s\S]*OWNER_HASH = "([0-9a-f]{64})"/.test(html) && RegExp.$1 === owner, "index.html: ownerCode встроенного замка == sha256(ZOMBI-2026)");
-ok(html.lastIndexOf("INLINE-GATE:START") < html.lastIndexOf("INLINE-GATE:END"), "index.html: разметка inline-замка не размножилась");
+let cfg = {}; try { cfg = JSON.parse(rd("config.json")); } catch (e) {}
+ok(!cfg.gate && !cfg.token && !cfg.githubToken, "config.json: нет gate/токенов");
+ok(/nc=/.test(html) && /site-loader/.test(html), "index.html: анти-кэш загрузчик на месте");
 const mBuild = html.match(/<html[^>]*data-build="([^"]*)"/);
 const mJs = app.match(/const SITE_BUILD = "([^"]*)"/);
 ok(!!mBuild && !!mJs && mBuild[1].replace(/&quot;/g, '"') === mJs[1], "index.html: штамп data-build == SITE_BUILD в app.js",
    (mBuild ? mBuild[1] : "нет data-build") + " vs " + (mJs ? mJs[1] : "нет SITE_BUILD"));
 
-/* 6. [hidden] должен побеждать display из классов: без этого .gate/.modal-root оставались
-   полупрозрачным слоем поверх страницы — «экран затемнён, вход есть, но не активен». */
+/* 6. [hidden] должен побеждать display из классов. */
 let css = "";
 try { css = fs.readFileSync(path.join(SRC, "app.css"), "utf8"); } catch (e) {}
 if (css) {
@@ -105,9 +90,7 @@ if (css) {
      hiddenWins ? "конфликты " + risky.size + " шт. закрыты правилом [hidden]{…!important}" : [...risky].slice(0, 6).join(", "));
 } else { console.log("  skip  app.css не найден (SITE_DIR без стилей)"); }
 
-/* 7. самодостаточные блоки в index.html: замок в <head> и сторож кликов перед </body>.
-      Они обязаны пережить старый/незагруженный app.js — иначе «вкладки не реагируют»
-      и человек не получает никакого объяснения. */
+/* 7. сторож кликов перед </body> переживает старый/незагруженный app.js. */
 {
   const vm = require("vm");
   const block = (startMark, endMark) => {
@@ -118,12 +101,9 @@ if (css) {
     return html.slice(s0 + 8, e1);
   };
   const N = (x) => (html.match(new RegExp(x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
-  ok(N("<!-- INLINE-GATE:START -->") === 1 && N("<!-- INLINE-GATE:END -->") === 1, "index.html: замок встроен ровно один раз");
   ok(N("<!-- ZOMBI-WATCHDOG:START -->") === 1 && N("<!-- ZOMBI-WATCHDOG:END -->") === 1, "index.html: сторож встроен ровно один раз");
-  const gateCode = block("<!-- INLINE-GATE:START -->", "<!-- INLINE-GATE:END -->");
   const wdCode = block("<!-- ZOMBI-WATCHDOG:START -->", "<!-- ZOMBI-WATCHDOG:END -->");
   for (const [name, code, must] of [
-    ["замок", gateCode, /OWNER_HASH = "[0-9a-f]{64}"/],
     ["сторож", wdCode, /__ZOMBI_CLICKS__|__ZOMBI_DIAG__/],
   ]) {
     if (code === null) { ok(false, name + ": между маркерами нет <script>", "сгенерируй: node game-docs/tools/build-inline-gate.js"); continue; }

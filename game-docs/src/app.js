@@ -1,7 +1,7 @@
 /* ============================================================================
    ZOMBI · Библия проекта — одностраничный сайт-документация
    Хранение: GitHub Contents API (репозиторий rewg40/my-godot-game)
-   Просмотр: ссылка ?open=1 без GitHub-токена. Запись: только у владельца с действующим токеном.
+   Доступ: рабочая ссылка сразу открывает редактор. Публикация в GitHub: только с действующим токеном.
    Автор:   редактирует в браузере; агент правит те же JSON в репозитории.
    ========================================================================== */
 (() => {
@@ -10,9 +10,6 @@
 /* ----------------------------- константы ---------------------------------- */
 const API = "https://api.github.com";
 const REPO_DEFAULT = { owner: "rewg40", repo: "my-godot-game", branch: "arena/d4678daa-my-godot-game" };
-/* Запас, если config.json не читается (CORS/прокси/офлайн-кэш): вход обязан остаться возможным. */
-const FALLBACK_HASHES = ["db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e"];  // запасной список
-const FALLBACK_OWNER_HASH = FALLBACK_HASHES[0];        // владелец: синхронная сверка, сеть не нужна
 const MIRRORS = [
   (o) => `https://rewg40.github.io/my-godot-game/${o}`,
   (o) => `https://github.com/rewg40/my-godot-game/raw/gh-pages/${SRC_PREFIX}/${o}`,   // когда github.io вырезан
@@ -29,8 +26,7 @@ const SRC_PREFIX = "game-docs/src";
 const USER_BASE = (typeof window !== "undefined" && window.__ZOMBI_BASE__) || "";
 const MAX_IMG = 1_400_000;      // байт после сжатия
 const MAX_MODEL = 24_000_000;  // байт (GitHub limit ~25 МБ на файл)
-const LS = { draft: "zombi-docs:draft:", origin: "zombi-docs:origin", token: "zombi-docs:token",
-             unlocked: "zombi-docs:unlocked", admin: "zombi-docs:admin", refresh: "zombi-docs:refresh" };
+const LS = { draft: "zombi-docs:draft:", origin: "zombi-docs:origin", token: "zombi-docs:token", refresh: "zombi-docs:refresh" };
 
 const TABS = [
   { id: "scenario",  label: "Сценарий",           file: "scenario.json" },
@@ -93,69 +89,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.13 · отправка правок ИИ";
-/* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
-   старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
-function sha256Pure(text) {
-  const isP = (n) => { for (let i = 2; i * i <= n; i++) if (!(n % i)) return false; return n > 1; };
-  const K = (() => { const o = []; for (let i = 2, c = 0; c < 64; i++) if (isP(i)) { o.push(((Math.pow(i, 1 / 3) % 1) * 4294967296) | 0); c++; } return o; })();
-  const H0 = (() => { const o = []; for (let i = 2, c = 0; c < 8; i++) if (isP(i)) { o.push(((Math.pow(i, 1 / 2) % 1) * 4294967296) | 0); c++; } return o; })();
-  const H = H0.slice();
-  const rotr = (x, n) => (x >>> n) | (x << (32 - n));
-  const bytes = [];
-  for (let i = 0; i < text.length; i++) {
-    let c = text.charCodeAt(i);
-    if (c < 0x80) bytes.push(c);
-    else if (c < 0x800) bytes.push(0xc0 | (c >> 6), 0x80 | (c & 0x3f));
-    else if (c >= 0xd800 && c < 0xdc00 && i + 1 < text.length) {
-      const cp = 0x10000 + (((c & 0x3ff) << 10) | (text.charCodeAt(i + 1) & 0x3ff));
-      bytes.push(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3f), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f));
-      i++;
-    } else bytes.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
-  }
-  const bitLen = bytes.length * 8;
-  bytes.push(0x80);
-  const target = (Math.floor((bytes.length - 1) / 64) + 1) * 64 - 8;
-  while (bytes.length < target) bytes.push(0);
-  const hi = Math.floor(bitLen / 4294967296), lo = bitLen >>> 0;
-  bytes.push((hi >>> 24) & 255, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255,
-             (lo >>> 24) & 255, (lo >>> 16) & 255, (lo >>> 8) & 255, lo & 255);
-  const w = new Int32Array(64);
-  for (let off = 0; off < bytes.length; off += 64) {
-    for (let i = 0; i < 16; i++) {
-      const j = off + i * 4;
-      w[i] = ((bytes[j] << 24) | (bytes[j + 1] << 16) | (bytes[j + 2] << 8) | bytes[j + 3]) | 0;
-    }
-    for (let i = 16; i < 64; i++) {
-      const x = w[i - 15], y = w[i - 2];
-      const s0 = (rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3)) | 0;
-      const s1 = (rotr(y, 17) ^ rotr(y, 19) ^ (y >>> 10)) | 0;
-      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
-    }
-    let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
-    for (let i = 0; i < 64; i++) {
-      const S1 = (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) | 0;
-      const ch = ((e & f) ^ (~e & g)) | 0;
-      const t1 = (h + S1 + ch + K[i] + w[i]) | 0;
-      const S0 = (rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) | 0;
-      const mj = ((a & b) ^ (a & c) ^ (b & c)) | 0;
-      const t2 = (S0 + mj) | 0;
-      h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
-    }
-    H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
-    H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
-  }
-  return H.map((x) => (x >>> 0).toString(16).padStart(8, "0")).join("");
-}
-async function sha256Hex(str) {
-  try {
-    if (globalThis.crypto && crypto.subtle && crypto.subtle.digest) {
-      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-      return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
-    }
-  } catch (e) { /* ниже — JS-фолбэк */ }
-  return sha256Pure(str);
-}
+const SITE_BUILD = "2026-10-31.14 · полный доступ по ссылке";
 function b64FromBytes(bytes) {
   let bin = "";
   for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
@@ -174,9 +108,9 @@ const utf8 = {
 
 /* ----------------------------- состояние ----------------------------------- */
 const S = {
-  config: { gate: { enabled: true, ownerCode: "", allowed: [] }, contentPath: SRC_PREFIX + "/content", imagesPath: SRC_PREFIX + "/content/images", modelsPath: SRC_PREFIX + "/content/models", inboxPath: SRC_PREFIX + "/content/agent-inbox", origin: { ...REPO_DEFAULT } },
+  config: { contentPath: SRC_PREFIX + "/content", imagesPath: SRC_PREFIX + "/content/images", modelsPath: SRC_PREFIX + "/content/models", inboxPath: SRC_PREFIX + "/content/agent-inbox", origin: { ...REPO_DEFAULT } },
   origin: { ...REPO_DEFAULT },
-  token: "", viewOnly: isViewLink(), admin: false, cfgLoaded: false, cfgOk: false, cfgFailed: false, inside: false, mirror: null, base: (typeof window !== "undefined" && window.__ZOMBI_BASE__) || "", readonlyGate: false, docReady: false, lastErr: "",
+  token: "", cfgLoaded: false, cfgOk: false, cfgFailed: false, inside: false, mirror: null, base: (typeof window !== "undefined" && window.__ZOMBI_BASE__) || "", readonlyGate: false, docReady: false, lastErr: "",
   mainTab: "scenario", mechIndex: MECH.map((m) => m.id), sub: "character",
   content: null, contentFile: null, contentSha: null, contentName: "",
   images: null, models: null, dirty: new Set(), draftErrors: new Set(), publishing: false, revision: 0,
@@ -186,19 +120,21 @@ const hasDraft = (file) => { try { return !!localStorage.getItem(draftKey(file))
 function cleanDoc(d) { const copy = { ...d }; delete copy._banner; return copy; }
 
 /* ----------------------------- GitHub API ---------------------------------- */
-function isEditLink() {
-  const query = new URLSearchParams(location.search);
-  const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
-  return query.get("edit") === "1" || hash.get("edit") === "1";
-}
-function isViewLink() {
-  if (isEditLink()) return false; // an explicit editor link wins over an old ?open=1 bookmark
-  const query = new URLSearchParams(location.search);
-  const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
-  return query.get("open") === "1" || hash.get("open") === "1";
+function normalizeEditorLink() {
+  const u = new URL(location.href);
+  let changed = false;
+  for (const key of ["open", "code", "token"]) {
+    if (u.searchParams.has(key)) { u.searchParams.delete(key); changed = true; }
+  }
+  if (/(^#|&)code=/.test(u.hash)) {
+    const parts = u.hash.replace(/^#/, "").split("&").filter((x) => x && !x.startsWith("code="));
+    u.hash = parts.length ? "#" + parts.join("&") : "";
+    changed = true;
+  }
+  if (!u.searchParams.has("edit")) { u.searchParams.set("edit", "1"); changed = true; }
+  if (changed) history.replaceState(null, "", u.href);
 }
 function writeBlockReason() {
-  if (S.viewOnly) return "Это ссылка для просмотра: запись отключена, токен владельца не используется.";
   if (S.readonlyGate) return "Конфигурация ещё не проверена: локальное редактирование доступно, публикация временно отключена. Нажми «Повторить проверку» в полосе над документом.";
   if (!S.token) return "Локальное редактирование доступно. Чтобы опубликовать изменения для всех, подключи GitHub с правом записи.";
   return "";
@@ -208,12 +144,8 @@ function assertWriteAccess() {
   const reason = writeBlockReason();
   if (reason) { const err = new Error(reason); err.code = "READ_ONLY"; throw err; }
 }
-function canEdit() { return !S.viewOnly; }
-function assertEditable() {
-  if (canEdit()) return true;
-  toast("Эта ссылка открыта только для просмотра.", "warn");
-  return false;
-}
+function canEdit() { return true; }
+function assertEditable() { return true; }
 function sectionHash() {
   if (S.mainTab === "mechanics") return "#mechanics/" + (MECH.some((m) => m.id === S.sub) ? S.sub : MECH[0].id);
   return "#" + (TABS.some((t) => t.id === S.mainTab) ? S.mainTab : "scenario");
@@ -227,11 +159,10 @@ function makeSectionLink(mode) {
   u.hash = sectionHash();
   return u.href;
 }
-function makeViewLink() { return makeSectionLink("open"); }
 function makeEditLink() { return makeSectionLink("edit"); }
 function ghHeaders(withBody) {
   const h = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
-  if (S.token && !S.viewOnly) h.Authorization = "Bearer " + S.token;
+  if (S.token) h.Authorization = "Bearer " + S.token;
   if (withBody) h["Content-Type"] = "application/json";
   return h;
 }
@@ -245,8 +176,8 @@ async function ghFetch(path, opts = {}) {
     try { detail = (await res.json()).message || ""; } catch (e) { /* ignore */ }
     const err = new Error(`GitHub ${res.status}: ${detail || res.statusText}`);
     err.status = res.status;
-    if (res.status === 401) err.hint = "GitHub 401: токен не принят — он отсутствует, истёк или отозван. Для просмотра токен не нужен — скопируй ссылку в разделе «Доступ». Для изменения кодов нужен новый токен с Contents: Read and write.";
-    if (res.status === 403) err.hint = "GitHub запретил запись. У токена должны быть доступ к этому репозиторию и Contents: Read and write. Для просмотра используй гостевую ссылку.";
+    if (res.status === 401) err.hint = "GitHub 401: токен не принят — он отсутствует, истёк или отозван. Для локального редактирования токен не нужен. Для публикации нужен новый токен с Contents: Read and write.";
+    if (res.status === 403) err.hint = "GitHub запретил запись. У токена должны быть доступ к этому репозиторию и Contents: Read and write. Локальное редактирование доступно без токена.";
     throw err;
   }
   if (res.status === 204) return null;
@@ -313,7 +244,7 @@ async function loadText(sitePath) {
     if (i === S.mirror) continue;
     try { const t = await fetchText(list[i](sitePath), "cors", 3500); S.mirror = i; return t; } catch (e) { /* следующее */ }
   }
-  if (S.origin.owner && !S.viewOnly) return (await ghGetFile(`${SRC_PREFIX}/${sitePath}`)).text;
+  if (S.origin.owner) return (await ghGetFile(`${SRC_PREFIX}/${sitePath}`)).text;
   throw new Error("файл недоступен ни локально, ни через репозиторий");
 }
 
@@ -354,7 +285,7 @@ function renderBlock(b, sectIdx, blkIdx) {
     case "todo": {
       if (isQuestionBlock(sectIdx)) { inner = renderQuestions(b, sectIdx); break; }
       const items = (b.items || []).map((it, i) =>
-        `<li><input type="checkbox" data-act="toggle-todo" data-s="${sectIdx}" data-b="${blkIdx}" data-i="${i}" ${it.done ? "checked" : ""} ${S.viewOnly ? "disabled" : ""}><span>${inline(it.text)}</span></li>`).join("");
+        `<li><input type="checkbox" data-act="toggle-todo" data-s="${sectIdx}" data-b="${blkIdx}" data-i="${i}" ${it.done ? "checked" : ""} ${""}><span>${inline(it.text)}</span></li>`).join("");
       inner = `<ul class="checks">${items}</ul>`;
       break;
     }
@@ -375,7 +306,7 @@ function renderBlock(b, sectIdx, blkIdx) {
   const tools = b.type === "h"
     ? tool("✎ Изменить", "edit") + tool("＋ После", "add-after") + tool("✕ Удалить", "del")
     : tool("✎ Изменить", "edit") + tool("↑", "up", "Выше") + tool("↓", "down", "Ниже") + tool("＋ После", "add-after") + tool("✕ Удалить", "del");
-  return `<section class="sect" data-s="${sectIdx}">${inner}${S.viewOnly ? "" : `<div class="sect-tools">${tools}</div>`}</section>`;
+  return `<section class="sect" data-s="${sectIdx}">${inner}${`<div class="sect-tools">${tools}</div>`}</section>`;
 }
 
 function renderDoc(d) {
@@ -391,14 +322,14 @@ function renderDoc(d) {
       <span class="chip">разделов: ${(d.blocks || []).length}</span>
       <span class="chip">${esc(S.origin.owner + "/" + S.origin.repo)}:${esc(S.origin.branch)}</span>
       <div class="doc-actions">
-        ${S.viewOnly ? "" : '<button class="primary" id="btn-compose">＋ Добавить изменения</button><button class="ghost" id="btn-question">？ Открытый вопрос</button><button class="ghost" id="btn-edit-all">✎ Весь текст</button><button class="ghost" id="btn-add-sect">＋ Раздел</button>'}
-        <button class="ghost" id="btn-json">${S.viewOnly ? "JSON · просмотр" : "JSON"}</button>
+        ${'<button class="primary" id="btn-compose">＋ Добавить изменения</button><button class="ghost" id="btn-question">？ Открытый вопрос</button><button class="ghost" id="btn-edit-all">✎ Весь текст</button><button class="ghost" id="btn-add-sect">＋ Раздел</button>'}
+        <button class="ghost" id="btn-json">${"JSON"}</button>
       </div>
     </div>`;
   host.appendChild(head);
 
   if (d._banner) { const b = el("div", "note", d._banner); host.appendChild(b); }
-  if (!S.viewOnly) {
+  {
     $("#btn-compose", host).onclick = () => openTabComposer();
     $("#btn-question", host).onclick = () => openQuestionEditor();
     $("#btn-edit-all", host).onclick = () => rawEdit();
@@ -631,10 +562,10 @@ function markDirty(file = S.contentFile, doc = S.content) {
 function jsonView() {
   const modal = openModal("JSON раздела (" + S.contentFile + ")", `
     <label class="f"><textarea id="jv" style="min-height:420px"></textarea></label>
-    <div class="foot-row">${S.viewOnly ? "" : '<button class="primary" id="jv-ok">Применить</button>'}<button class="ghost" id="jv-cc">Скопировать</button><button class="ghost" id="jv-x">Закрыть</button></div>`);
+    <div class="foot-row">${'<button class="primary" id="jv-ok">Применить</button>'}<button class="ghost" id="jv-cc">Скопировать</button><button class="ghost" id="jv-x">Закрыть</button></div>`);
   $("#jv", modal).value = JSON.stringify(S.content, null, 2);
-  $("#jv", modal).readOnly = S.viewOnly;
-  if (!S.viewOnly) $("#jv-ok", modal).onclick = () => {
+  $("#jv", modal).readOnly = false;
+  $("#jv-ok", modal).onclick = () => {
     try {
       const next = JSON.parse($("#jv", modal).value);
       if (!next || !Array.isArray(next.blocks)) throw new Error("Нужен объект со списком blocks");
@@ -667,7 +598,7 @@ function renderQuestions(b, blockIdx) {
   const items = (b.items || []).map((it, i) => `
     <article class="question-item ${it.done ? "resolved" : ""}">
       <div class="question-top"><span class="question-state">${it.done ? "✓ Решено" : "● Открыт"}</span>
-        ${S.viewOnly ? "" : `<div class="question-actions">
+        ${`<div class="question-actions">
           <button type="button" class="tiny ghost" data-qact="edit" data-s="${blockIdx}" data-i="${i}">✎ Изменить</button>
           <button type="button" class="tiny ghost" data-qact="answer" data-s="${blockIdx}" data-i="${i}">Ответить</button>
           <button type="button" class="tiny ghost" data-qact="toggle" data-s="${blockIdx}" data-i="${i}">${it.done ? "Вернуть" : "Решено"}</button>
@@ -679,7 +610,7 @@ function renderQuestions(b, blockIdx) {
     </article>`).join("");
   return `<div class="question-panel" data-qblock="${blockIdx}">
     <div class="question-list">${items || '<p class="hint">Пока нет вопросов. Добавь первый ниже.</p>'}</div>
-    ${S.viewOnly ? "" : `<form class="question-add" data-qform="${blockIdx}">
+    ${`<form class="question-add" data-qform="${blockIdx}">
       <div class="question-add-title">Новый открытый вопрос <span>→ эта вкладка · Открытые вопросы</span></div>
       <label class="f"><span>Вопрос</span><textarea name="question" rows="2" required placeholder="Например: что должно происходить с зомби при потере цели?"></textarea></label>
       <label class="f"><span>Ответ / решение · необязательно</span><textarea name="answer" rows="2" placeholder="Можно заполнить сейчас или позже кнопкой «Ответить»"></textarea></label>
@@ -836,7 +767,7 @@ async function loadCurrent(showLoader = true) {
   if (showLoader) $("#doc").innerHTML = `<div class="loading">Загрузка ${esc(file)}…</div>`;
   try {
     let text = null;
-    try { text = S.viewOnly ? null : localStorage.getItem(draftKey(file)); } catch (e) { /* published copy still works */ }
+    try { text = localStorage.getItem(draftKey(file)); } catch (e) { /* published copy still works */ }
     let fromDraft = false;
     let d = null;
     if (text) {
@@ -864,22 +795,19 @@ async function loadCurrent(showLoader = true) {
         <button class="tiny ghost" id="ec-copy">Скопировать диагностику</button>
       </div></div>`;
     const f = $("#ec-fresh"); if (f) f.onclick = () => { const u = new URL(location.href); u.searchParams.set("fresh", "1"); location.replace(u.href); };
-    const cp = $("#ec-copy"); if (cp) cp.onclick = () => copyText(gateStatus() + "\nlast err: " + e.message);
+    const cp = $("#ec-copy"); if (cp) cp.onclick = () => copyText(siteStatus() + "\nlast err: " + e.message);
     setPill("bad", "ошибка загрузки");
   }
 }
 function setPill(kind, text) { const p = $("#sync-pill"); p.className = "pill " + kind; p.textContent = text; }
 function updateFoot() {
   const writable = canWrite();
-  const localOnly = !S.viewOnly && !S.token;
-  $("#foot-info").textContent = `${S.origin.owner}/${S.origin.repo} · ${S.origin.branch} · ${S.viewOnly ? "гостевой просмотр" : S.publishing ? "публикация…" : writable ? "редактор · публикация в GitHub" : localOnly ? "редактор · локальные черновики" : "редактор · публикация недоступна"}`;
-  $("#btn-save").hidden = S.viewOnly;
+  const localOnly = !S.token;
+  $("#foot-info").textContent = `${S.origin.owner}/${S.origin.repo} · ${S.origin.branch} · ${S.publishing ? "публикация…" : writable ? "редактор · публикация в GitHub" : localOnly ? "редактор · локальные черновики" : "редактор · публикация недоступна"}`;
   $("#btn-save").disabled = S.publishing || (!writable && !localOnly);
   $("#btn-save").textContent = S.publishing ? "Публикация…" : localOnly ? "⤒ Подключить GitHub" : "⤒ Опубликовать вкладку";
-  $("#btn-edit-tab").hidden = S.viewOnly;
   $("#btn-edit-tab").disabled = !S.docReady || S.publishing;
-  $("#lnk-inbox").hidden = S.viewOnly;
-  const dirty = !S.viewOnly && S.dirty.size > 0;
+  const dirty = S.dirty.size > 0;
   $("#dirty-bar").hidden = !dirty;
   const failed = S.draftErrors.has(S.contentFile);
   $("#dirty-text").textContent = failed
@@ -888,12 +816,9 @@ function updateFoot() {
   $("#btn-dirty-save").textContent = localOnly ? "Подключить GitHub" : "Опубликовать вкладку";
   $("#btn-dirty-save").disabled = S.publishing || (!writable && !localOnly);
   $("#btn-dirty-reset").disabled = S.publishing;
-  document.body.classList.toggle("guest-view", S.viewOnly);
   const bar = $("#readonly-bar");
   bar.hidden = writable;
-  if (S.viewOnly) {
-    bar.innerHTML = 'Гостевой просмотр. <a class="tiny" id="ro-edit-link" href="' + esc(makeEditLink()) + '">Войти для редактирования</a>';
-  } else if (S.readonlyGate) {
+  if (S.readonlyGate) {
     bar.innerHTML = 'Конфигурация не загружена — публикация временно отключена, локальное редактирование доступно. <button class="tiny" id="ro-retry">Повторить проверку</button>';
     $("#ro-retry", bar).onclick = async () => {
       $("#ro-retry", bar).disabled = true;
@@ -965,7 +890,9 @@ async function primeStatuses() {
 function renderSubtabs() { if (S.mainTab === "mechanics") buildSubtabs(); }
 function syncHash() {
   const h = S.mainTab === "mechanics" ? `#mechanics/${S.sub}` : `#${S.mainTab}`;
-  history.replaceState(null, "", h);
+  const u = new URL(location.href);
+  u.hash = h;
+  history.replaceState(null, "", u.href);
 }
 function readHash() {
   const h = location.hash.replace(/^#/, "");
@@ -979,7 +906,7 @@ async function pushCurrent(silent) {
   if (S.publishing) return false;
   if (!canWrite()) {
     toast(writeBlockReason(), "warn", 6500);
-    if (!S.token && !S.viewOnly && !S.readonlyGate) openSettings("github");
+    if (!S.token && !S.readonlyGate) openSettings("github");
     return false;
   }
   const file = S.contentFile, d = S.content, revision = S.revision;
@@ -1004,7 +931,7 @@ async function pushCurrent(silent) {
   } catch (e) {
     setPill("bad", S.draftErrors.has(file) ? "не опубликовано · скачай JSON" : "не опубликовано · черновик сохранён");
     toast("Публикация не выполнена: " + esc(e.hint || e.message) + (S.draftErrors.has(file) ? " Скачай JSON: браузер не смог сохранить черновик." : " Локальная правка остаётся во вкладке."), "bad", 9000);
-    if (e.status === 401 && !S.viewOnly) openSettings("github");
+    if (e.status === 401) openSettings("github");
     updateFoot();
     return false;
   } finally { S.publishing = false; updateFoot(); }
@@ -1028,150 +955,76 @@ async function refreshAll() {
 
 /* ----------------------------- настройки / доступ -------------------------- */
 function openSettings(tab) {
-  const advanced = S.admin && canWrite();
-  const viewLink = makeViewLink();
   const editLink = makeEditLink();
-  const modal = openModal("Настройки сайта · просмотр, доступ, синхронизация", `
+  const modal = openModal("Настройки сайта · ссылка и GitHub", `
     <div class="tabs-mini">
-      ${S.viewOnly ? "" : '<button data-m="github">GitHub</button>'}
-      <button data-m="access">Доступ</button>
+      <button data-m="github">GitHub</button>
+      <button data-m="access">Ссылка</button>
       <button data-m="sync">Синхронизация</button>
     </div>
     <div id="st-github" hidden>
-      <p class="hint">Локальные правки уже доступны без токена. Подключение GitHub нужно, чтобы опубликовать их для всех посетителей. Токен не передавай другим людям.</p>
+      <p class="hint">Редактор открыт без кода. Локальные правки сохраняются в этом браузере. Подключение GitHub нужно только для публикации изменений для всех посетителей.</p>
       <label class="f"><span>Владелец</span><input id="st-owner" value="${esc(S.origin.owner)}"></label>
       <label class="f"><span>Репозиторий</span><input id="st-repo" value="${esc(S.origin.repo)}"></label>
       <label class="f"><span>Ветка (куда пишем / откуда читаем)</span><input id="st-branch" value="${esc(S.origin.branch)}"></label>
       <label class="f"><span>Токен GitHub (fine-grained: Contents Read and write)</span>
         <input id="st-token" type="password" autocomplete="off" placeholder="Вставить токен только в этом браузере" value="${esc(S.token)}"></label>
-      <p class="hint">Токен хранится в этом браузере и отправляется только на api.github.com. Не добавляй его в config.json, ссылку или файлы репозитория.</p>
+      <p class="hint">Токен хранится в этом браузере и отправляется только на api.github.com. Не добавляй его в ссылку или файлы репозитория.</p>
       <div class="foot-row"><button class="primary" id="st-save-gh">Сохранить и проверить доступ</button>
       <a class="ghost" style="text-decoration:none" target="_blank" rel="noopener" href="https://github.com/settings/personal-access-tokens/new">Создать fine-grained токен</a></div>
       <p id="st-gh-status" class="field-status" role="status" aria-live="polite" hidden></p>
     </div>
     <div id="st-access" hidden>
-      ${S.viewOnly ? "" : `<section class="share-panel editor-link-panel" aria-labelledby="edit-link-heading">
-        <h4 id="edit-link-heading">Рабочая ссылка · редактирование</h4>
-        <p>Открывает редактор текущей вкладки. Код владельца проверяется отдельно и в ссылку не попадает. Правки можно сохранять в браузере без токена; для общей публикации нужен GitHub владельца.</p>
+      <section class="share-panel editor-link-panel" aria-labelledby="edit-link-heading">
+        <h4 id="edit-link-heading">Рабочая ссылка · полный редактор</h4>
+        <p>Ссылка сразу открывает редактор без кода доступа и без режима «только чтение». Правки можно сохранять в браузере; для общей публикации нужен GitHub владельца.</p>
         <label class="f"><span>Ссылка для редактирования</span><input id="st-edit-link" readonly value="${esc(editLink)}"></label>
         <div class="foot-row"><button class="primary" id="st-copy-edit">Скопировать рабочую ссылку</button><a class="ghost" id="st-open-edit" href="${esc(editLink)}">Открыть редактор</a></div>
-      </section>`}
-      <section class="share-panel" aria-labelledby="share-heading">
-        <h4 id="share-heading">Гостевой просмотр · только чтение</h4>
-        <p>Отправь эту ссылку другому человеку. GitHub, токен и отправка config.json не нужны. Ссылка откроет текущий раздел; кнопки редактирования и записи будут отключены.</p>
-        <label class="f"><span>Гостевая ссылка · без токена и кода доступа</span><input id="st-view-link" readonly value="${esc(viewLink)}"></label>
-        <div class="foot-row"><button class="ghost" id="st-copy-view">Скопировать гостевую ссылку</button>
-          <a class="ghost" id="st-open-view" href="${esc(viewLink)}" target="_blank" rel="noopener">Открыть как гость</a></div>
-        <p class="hint">Это режим интерфейса, не защита данных: репозиторий и GitHub Pages публичные. Не помещай сюда секретные материалы.</p>
       </section>
-      ${S.viewOnly ? "" : `<details class="access-advanced" id="st-advanced">
-        <summary>Коды доступа · дополнительные настройки владельца</summary>
-        <p class="hint">Этот способ меняет config.json в репозитории и требует действующий GitHub-токен с правом записи. Ошибка 401 не мешает гостевой ссылке выше.</p>
-        ${advanced ? "" : '<p class="field-status">Для изменения кодов войди по коду владельца, дождись загрузки конфигурации и подключи GitHub с правом записи. Скачивание JSON само по себе доступ не выдаёт.</p>'}
-        <fieldset id="st-access-fields" ${advanced ? "" : "disabled"}>
-          <label class="f"><input type="checkbox" id="st-gate" ${S.config.gate.enabled ? "checked" : ""}> Требуется код доступа</label>
-          <label class="f"><span>Сгенерировать новый код</span>
-            <div style="display:flex;gap:8px"><input id="st-newcode" readonly placeholder="Нажми «Сгенерировать»"><button class="ghost" id="st-gen" type="button" ${advanced ? "" : "disabled"}>Сгенерировать</button></div></label>
-          <label class="f"><span>Разрешённые коды (SHA-256, по одному в строке)</span>
-            <textarea id="st-allowed" spellcheck="false">${esc((S.config.gate.allowed || []).join("\n"))}</textarea></label>
-          <label class="f"><span>Код владельца (SHA-256)</span><input id="st-ownercode" value="${esc(S.config.gate.ownerCode || "")}"></label>
-          <div class="foot-row"><button class="primary" id="st-save-access" type="button" ${advanced ? "" : "disabled"}>Сохранить коды в GitHub</button>
-            <button class="ghost" id="st-dl" type="button" ${advanced ? "" : "disabled"}>Скачать config.json</button></div>
-        </fieldset>
-        <p class="hint">Проверка кода в браузере не ограничивает доступ к публичному репозиторию и не заменяет авторизацию GitHub.</p>
-        <p id="st-access-status" class="field-status" role="status" aria-live="polite" hidden></p>
-      </details>`}
+      <p class="hint">Ссылка не содержит токен и не даёт права записи в GitHub. Не помещай в публичный сайт секретные материалы.</p>
     </div>
     <div id="st-sync" hidden>
       <label class="f"><input type="checkbox" id="st-auto" ${localStorage.getItem(LS.refresh) === "1" ? "checked" : ""}> Автообновление каждые 90 с (когда нет несохранённых правок)</label>
       <div class="foot-row"><button class="ghost" id="st-pull-now">Подтянуть всё сейчас</button></div>
-      <p class="hint">После записи в ветку <code>${esc(S.origin.branch)}</code> GitHub Actions обновляет Pages. Гостевой просмотр не требует подключения к GitHub API.</p>
+      <p class="hint">После записи в ветку <code>${esc(S.origin.branch)}</code> GitHub Actions обновляет Pages.</p>
     </div>`);
   const show = (t) => {
     ["github", "access", "sync"].forEach((k) => { $("#st-" + k, modal).hidden = k !== t; });
     $$(".tabs-mini button", modal).forEach((b) => b.classList.toggle("on", b.dataset.m === t));
   };
   $$(".tabs-mini button", modal).forEach((b) => b.onclick = () => show(b.dataset.m));
-  show(tab === "github" && !S.viewOnly ? "github" : tab === "sync" ? "sync" : "access");
-  const report = (id, text, bad) => {
-    const node = $(id, modal); node.hidden = !text; node.textContent = text;
-    node.classList.toggle("bad", !!bad);
+  show(tab === "github" ? "github" : tab === "sync" ? "sync" : "access");
+  const report = (sel, text, bad) => { const n = $(sel, modal); if (!n) return; n.textContent = text; n.hidden = false; n.style.color = bad ? "var(--red)" : "var(--tx2)"; };
+  $("#st-save-gh", modal).onclick = async () => {
+    const owner = $("#st-owner", modal).value.trim(), repo = $("#st-repo", modal).value.trim();
+    const branch = $("#st-branch", modal).value.trim() || "main", token = $("#st-token", modal).value.trim();
+    if (!owner || !repo || !token) { report("#st-gh-status", "Заполни владельца, репозиторий и токен.", true); return; }
+    report("#st-gh-status", "Проверяю токен…", false);
+    try {
+      const r = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers: ghHeaders(token), cache: "no-store" });
+      if (!r.ok) throw new Error("GitHub HTTP " + r.status);
+      const meta = await r.json();
+      if (meta.permissions && meta.permissions.push === false) throw new Error("Токен не имеет права записи в этот репозиторий");
+      S.origin = { owner, repo, branch }; S.token = token;
+      localStorage.setItem(LS.origin, JSON.stringify(S.origin)); localStorage.setItem(LS.token, token);
+      S.readonlyGate = false; updateFoot();
+      report("#st-gh-status", "GitHub подключён. Теперь можно публиковать вкладки.", false);
+      toast("GitHub подключён", "ok");
+    } catch (e) {
+      if (/401/.test(e.message)) {
+        S.token = "";
+        try { localStorage.removeItem(LS.token); } catch (err) { /* ignore */ }
+        $("#st-token", modal).value = "";
+        updateFoot();
+      }
+      report("#st-gh-status", "Не подключилось: " + e.message, true);
+    }
   };
-  $("#st-view-link", modal).onclick = (e) => e.target.select();
-  $("#st-copy-view", modal).onclick = () => copyText(viewLink);
-  if (!S.viewOnly) {
-    $("#st-edit-link", modal).onclick = (e) => e.target.select();
-    $("#st-copy-edit", modal).onclick = () => copyText(editLink);
-  }
-  if (!S.viewOnly) {
-    $("#st-save-gh", modal).onclick = async () => {
-      const button = $("#st-save-gh", modal);
-      const previous = { origin: { ...S.origin }, token: S.token };
-      S.origin = { owner: $("#st-owner", modal).value.trim(), repo: $("#st-repo", modal).value.trim(), branch: $("#st-branch", modal).value.trim() };
-      S.token = $("#st-token", modal).value.trim();
-      button.disabled = true; report("#st-gh-status", "Проверяю репозиторий и право записи…", false);
-      try {
-        if (!S.origin.owner || !S.origin.repo || !S.origin.branch) throw new Error("Заполни владельца, репозиторий и ветку.");
-        const repo = await ghFetch("");
-        if (!repo.permissions || !repo.permissions.push) {
-          const err = new Error("Токен позволяет читать репозиторий, но не разрешает запись."); err.status = 403; throw err;
-        }
-        await ghFetch("/branches/" + encodeURIComponent(S.origin.branch));
-        localStorage.setItem(LS.origin, JSON.stringify(S.origin));
-        localStorage.setItem(LS.token, S.token);
-        S.readonlyGate = !S.cfgOk;
-        report("#st-gh-status", "Токен принят, репозиторий и ветка доступны. Окончательная проверка права записи — при сохранении. Токен не включается в гостевые ссылки.", false);
-        setPill("ok", "github ok");
-      } catch (e) {
-        S.origin = previous.origin; S.token = previous.token;
-        if (e.status === 401) { S.token = ""; localStorage.removeItem(LS.token); $("#st-token", modal).value = ""; }
-        report("#st-gh-status", (e.hint || e.message) + " Для просмотра открой «Доступ» → «Скопировать ссылку».", true);
-      } finally { button.disabled = false; updateFoot(); }
-    };
-    $("#st-gen", modal).onclick = async () => {
-      if (!canWrite() || !S.admin) return;
-      const bytes = new Uint8Array(12); crypto.getRandomValues(bytes);
-      const raw = "ZOMBI-" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-      $("#st-newcode", modal).value = raw;
-      const hash = await sha256Hex(raw);
-      $("#st-allowed", modal).value = ($("#st-allowed", modal).value.trim() + "\n" + hash).trim();
-      const copied = await copy(raw);
-      report("#st-access-status", "Код " + (copied ? "скопирован" : "создан — скопируй его вручную") + ". Он заработает только после успешного сохранения в GitHub и обновления Pages.", false);
-    };
-    const accessConfig = () => ({ ...S.config, gate: { ...S.config.gate,
-      enabled: $("#st-gate", modal).checked,
-      ownerCode: $("#st-ownercode", modal).value.trim().toLowerCase(),
-      allowed: $("#st-allowed", modal).value.split("\n").map((x) => x.trim().toLowerCase()).filter(Boolean)
-    } });
-    $("#st-save-access", modal).onclick = async () => {
-      if (!S.admin || !canWrite() || !S.cfgOk) { report("#st-access-status", writeBlockReason() || "Нужен режим владельца и загруженный config.json.", true); return; }
-      const button = $("#st-save-access", modal); button.disabled = true;
-      report("#st-access-status", "Сохраняю коды в GitHub…", false);
-      try {
-        const cfg = accessConfig();
-        if (![cfg.gate.ownerCode, ...cfg.gate.allowed].every((h) => /^[0-9a-f]{64}$/.test(h))) throw new Error("Каждый код должен быть SHA-256: 64 символа 0–9 / a–f.");
-        await ghPutText(`${SRC_PREFIX}/config.json`, JSON.stringify(cfg, null, 2) + "\n", "docs(gate): обновление кодов доступа");
-        S.config = cfg;
-        report("#st-access-status", "Коды сохранены. GitHub Pages обновится после публикации.", false);
-      } catch (e) { report("#st-access-status", e.hint || ("Не вышло: " + e.message), true); }
-      finally { button.disabled = false; }
-    };
-    $("#st-dl", modal).onclick = () => {
-      if (!S.admin) return;
-      download("config.json", JSON.stringify(accessConfig(), null, 2), "application/json");
-      report("#st-access-status", "Файл скачан, но доступ не изменён: его ещё нужно сохранить в исходной ветке и опубликовать.", false);
-    };
-  }
+  $("#st-copy-edit", modal).onclick = () => copyText(editLink).then(() => toast("Рабочая ссылка скопирована", "ok"));
   $("#st-auto", modal).onchange = (e) => localStorage.setItem(LS.refresh, e.target.checked ? "1" : "0");
-  $("#st-pull-now", modal).onclick = () => { closeModal(); refreshAll(); };
+  $("#st-pull-now", modal).onclick = async () => { await loadConfig(); await loadCurrent(true); toast("Подтянуто из GitHub", "ok"); };
 }
 
-function download(name, text, mime) {
-  const a = el("a"); a.href = URL.createObjectURL(new Blob([text], { type: mime || "text/plain" })); a.download = name; a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-}
-
-/* ----------------------------- доступ (замок) ------------------------------ */
 async function loadConfig() {
   let raw = null;
   try { raw = await loadText("config.json"); S.cfgOk = true; S.cfgFailed = false; }
@@ -1180,11 +1033,11 @@ async function loadConfig() {
     try {
       const loaded = JSON.parse(raw);
       delete loaded.token; delete loaded.githubToken; // Public configuration must never become a credential store.
-      S.config = { ...S.config, ...loaded, gate: { ...S.config.gate, ...(loaded.gate || {}) } };
+      S.config = { ...S.config, ...loaded };
     } catch (e) { S.cfgOk = false; S.cfgFailed = true; }
   }
   S.cfgLoaded = true;
-  S.readonlyGate = S.viewOnly || !S.cfgOk;
+  S.readonlyGate = !S.cfgOk;
   const host = location.hostname || "";
   if (host.endsWith(".github.io")) {
     const owner = host.split(".")[0];
@@ -1194,88 +1047,11 @@ async function loadConfig() {
     }
   }
 }
-/* Проверка кода НЕ должна ничего качать: сеть в России у github.io живёт своей жизнью.
-   Шаги: (1) синхронно сверяем хеш с константой в app.js → пуск; (2) если есть config.json —
-   сверяемся с ним (это право записи); (3) если config не прочитан — пускаем на чтение. */
-async function tryUnlock(raw, quiet) {
-  const code = String(raw == null ? "" : raw).trim().normalize("NFC");
-  if (!code) { gateMsg("Пусто. Введи код доступа (регистр важен, пробелы можно убрать).", true); return false; }
-  let h = "";
-  try { h = String(await sha256Hex(code)).toLowerCase(); }
-  catch (e) { gateMsg("Хеш не вычисляется: " + ((e && e.message) || e) + " — обнови страницу по https:// (Ctrl+F5).", true); return false; }
-  if (h.length !== 64) { gateMsg("Хеш неполный (" + h.length + " симв.) — скрипт устарел, обнови Ctrl+F5.", true); return false; }
-  const g = S.config.gate || {};
-  const owner = String(g.ownerCode || "").toLowerCase();
-  const cfgList = (g.allowed || []).map((x) => String(x).toLowerCase()).filter(Boolean);
-  const inside = (admin) => {
-    try { localStorage.setItem(LS.unlocked, h); localStorage.setItem(LS.admin, admin ? "1" : "0"); } catch (e) { /* private mode */ }
-    S.admin = admin; gateMsg("", false);
-  };
-  if (h === FALLBACK_OWNER_HASH) {                       // владелец — всегда, даже без сети
-    inside(true);
-    if (owner && owner !== h) gateMsg("Код владельца в config.json отличается от встроенного — обнови конфиг.", false);
-    S.readonlyGate = !S.cfgOk;
-    return true;
-  }
-  if (S.cfgOk) {                                          // конфиг прочитан: решают списки из него
-    if (owner && h === owner) { inside(true); return true; }
-    if (cfgList.includes(h)) { inside(false); return true; }
-    if (!quiet) gateMsg("Код не подходит. Хеш введённого: " + h.slice(0, 12)
-      + "… — такой строки нет в config.json (владелец + " + cfgList.length + " гостевых).", true);
-    return false;
-  }
-  S.readonlyGate = true;                                  // сети нет — только чтение, но вход есть
-  gateMsg("config.json сейчас не читается — пускаю на чтение. Для записи дождись сети и нажми «⟳ Перепроверить конфиг».", false);
-  return true;
+function download(name, text, mime) {
+  const a = el("a"); a.href = URL.createObjectURL(new Blob([text], { type: mime || "text/plain" })); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
-function gateStatus() {
-  const g = S.config.gate || {};
-  return [
-    "site " + SITE_BUILD,
-    "href " + location.href.slice(0, 120),
-    "config " + (S.cfgOk ? "ok (владелец + " + ((g.allowed || []).length) + " гостей)" : "не загружен"),
-    "mirror " + (S.mirror == null ? "нет" : S.mirror),
-    "origin " + S.origin.owner + "/" + S.origin.repo + "@" + S.origin.branch,
-    "token " + (S.token ? "есть" : "нет"),
-    "inside " + (S.inside ? "да" : "нет") + ", admin " + (S.admin ? "да" : "нет"),
-    "webcrypto " + (window.crypto && crypto.subtle ? "да" : "нет (использую JS-хеш)"),
-    "storage " + (() => { try { localStorage.setItem("zombi-probe", "1"); localStorage.removeItem("zombi-probe"); return "работает"; } catch (e) { return "заблокирован"; } })(),
-  ].join("\n");
-}
-function gateMsg(text, isError) {
-  const m = document.getElementById("gate-msg");
-  if (!m) return;
-  m.textContent = text || "";
-  m.hidden = !text;
-  m.style.color = isError ? "var(--bad)" : "var(--tx3)";
-  m.title = "Нажми, чтобы открыть диагностику для агента";
-  m.onclick = showGateStatus;
-}
-function showGateStatus() {
-  const txt = gateStatus();
-  openModal("Диагностика замка", `<p class="muted">Скопируй это и отправь агенту — по этим строкам причина ясна за 10 секунд.</p>
-    <textarea id="dg-out" readonly style="width:100%;min-height:190px;font-family:var(--mono);font-size:12px">${esc(txt)}</textarea>
-    <div style="display:flex;gap:8px;margin-top:8px"><button id="dg-copy">Скопировать</button><button class="ghost" id="dg-reload">Перезагрузить страницу</button></div>`, true);
-  $("#dg-copy").onclick = () => {
-    const ta = $("#dg-out"); ta.select(); ta.focus();
-    let ok = false; try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
-    if (!ok && navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast("Скопировано", "ok", 2000), () => toast("Скопируй вручную: Ctrl+C", "warn", 5000));
-    else toast(ok ? "Скопировано" : "Скопируй вручную: Ctrl+C", ok ? "ok" : "warn", 3500);
-  };
-  $("#dg-reload").onclick = () => location.reload();
-}
-function openSite() {
-  const g = document.getElementById("gate"), a = document.getElementById("app");
-  if (g) { g.hidden = true; g.style.display = "none"; }
-  if (a) { a.hidden = false; a.style.display = "flex"; }
-  S.inside = true;
-  const ld = document.getElementById("gate-loader");
-  if (ld) ld.textContent = "app.js живой · " + SITE_BUILD;
-  return true;
-}
-window.zombiOpenSite = openSite;   // встроенный в index.html замок пользуется этим, чтобы не пло логику
-/* Если браузер притащил app.js другой версии (кэш провайдера / Pages max-age=600) —
-   один раз принудительно перезагружаемся с ?fresh=1, чтобы вытащить свежий файл. */
+
 function dismissWatchdog() {
   // приложение поднялось и работает: убираем «преждевременную» карточку сторожа
   try { if (typeof window.__ZOMBI_DISMISS__ === "function") window.__ZOMBI_DISMISS__(); } catch (e) { /* не критично */ }
@@ -1287,7 +1063,7 @@ function guardStaleBuild() {
   try { prev = localStorage.getItem(LS_BUILD); } catch (e) { return false; }
   try { localStorage.setItem(LS_BUILD, SITE_BUILD); } catch (e) {}
   const htmlStamp = document.documentElement.getAttribute("data-build") || "";
-  const realPrev = prev && prev !== "inline" ? prev : "";          // "inline" пишет HTML-замок, это не версия JS
+  const realPrev = prev && prev !== "inline" ? prev : "";
   const mismatch = (!!realPrev && realPrev !== SITE_BUILD) || (!!htmlStamp && htmlStamp !== SITE_BUILD);
   if (mismatch && !location.search.includes("fresh=1")) {
     try {
@@ -1300,61 +1076,30 @@ function guardStaleBuild() {
   }
   return false;
 }
-function wireGate() {
-  const g = S.config.gate || {};
-  // замок включаем по умолчанию только если конфиг реально не удалось прочитать;
-  // «ещё не дочитался» — не повод светить контент
-  const fb = document.getElementById("gate-fallback");
-  if (fb) fb.innerHTML = "код принят · код проверяется в браузере, сеть для входа не нужна · «Сбросить кэш» перезакачает app.js/app.css";
-  const gateOn = S.cfgFailed ? true : (g.enabled !== false);
-  const badge = document.getElementById("gate-build");
-  if (badge) { badge.textContent = "site " + SITE_BUILD + " · " + (S.cfgOk
-    ? ("config: " + ((g.allowed || []).length ? g.allowed.length + " доп. код(ов) + владелец" : "только код владельца"))
-    : "config не загружен (сеть) — вход по встроенному коду владельца, только чтение");
-    badge.onclick = showGateStatus; badge.style.cursor = "pointer"; badge.title = "Показать диагностику"; }
-  const local = ["localhost", "127.0.0.1", ""].includes(location.hostname);
-  const forceOpen = isViewLink();
-  if (forceOpen) { S.viewOnly = true; S.readonlyGate = true; S.admin = false; S.token = ""; }
-  if (forceOpen || !gateOn || localStorage.getItem("zombi-docs:demomode") === "1") { return openSite(); }
-  let saved = null;
-  try { saved = localStorage.getItem(LS.unlocked); } catch (e) { /* ignore */ }
-  const all = [...(g.allowed || []), g.ownerCode || "", ...FALLBACK_HASHES].map((x) => String(x).toLowerCase()).filter(Boolean);
-  if (saved && all.includes(saved)) { S.admin = localStorage.getItem(LS.admin) === "1"; return openSite(); }
-  $("#gate").hidden = false; $("#app").hidden = true;
-  const dm = document.getElementById("gate-demo");
-  if (dm) {
-    dm.hidden = !local;                                   // «демо» показываем только на локальном предпросмотре
-    dm.onclick = () => { try { localStorage.setItem("zombi-docs:demomode", "1"); } catch (e) {}
-      openSite(); boot2(); toast("Демо-режим: замок отключён только в этом браузере.", "warn", 5000); };
-  }
-  const eye = document.getElementById("gate-eye");
-  if (eye) eye.onclick = () => { const i = $("#gate-code"); i.type = i.type === "password" ? "text" : "password"; eye.textContent = i.type === "password" ? "👁" : "🙈"; };
-  $("#gate-form").onsubmit = async (e) => {
-    e.preventDefault();
-    if (window.__ZOMBI_INLINE_GATE__) return;   // пока config не прочитан, решает встроенный замок (он умеет фолбэк)
-    const btn = e.target.querySelector("button[type=submit]");
-    if (btn) btn.disabled = true;
-    gateMsg("Проверяю…", false);
-    let ok = false;
-    try { ok = await tryUnlock($("#gate-code").value); }
-    catch (err) { gateMsg("Ошибка проверки кода: " + err.message, true); }
-    if (btn) btn.disabled = false;
-    if (ok) { openSite(); boot2(); }
-  };
-  const auto = (location.hash.match(/[#&]code=([^&]+)/) || [])[1];
-  if (auto) { $("#gate-code").value = decodeURIComponent(auto); setTimeout(() => { const f = $("#gate-form"); if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); }, 250); }
-  const retry = document.getElementById("gate-retry");
-  if (retry) retry.onclick = async () => {
-    retry.disabled = true; gateMsg("Перечитываю config.json…", false);
-    S.cfgOk = false;
-    try { await loadConfig(); } catch (e) { /* ignore */ }
-    retry.disabled = false;
-    wireGate();
-    if (!S.cfgOk) gateMsg("Конфиг всё ещё недоступен. Вход по запасному коду владельца работает; гостевые коды — когда появится сеть до github.com.", true);
-  };
-  if (!S.cfgOk) setTimeout(() => { const f = $("#gate-form"); if (!$("#gate").hidden && f && f.checkValidity()) { const i = $("#gate-code"); if (i && !i.value) i.focus(); } }, 8000);
-  setTimeout(() => { const i = $("#gate-code"); if (i) i.focus(); }, 150);
+
+function siteStatus() {
+  return [
+    "ZOMBI docs site " + SITE_BUILD,
+    "url " + location.href,
+    "origin " + S.origin.owner + "/" + S.origin.repo + "@" + S.origin.branch,
+    "config " + (S.cfgOk ? "ok" : S.cfgFailed ? "failed" : "loading"),
+    "token " + (S.token ? "yes" : "no"),
+    "inside " + (S.inside ? "yes" : "no"),
+    "last err " + (S.lastErr || "—"),
+  ].join("\n");
 }
+function showSiteStatus() {
+  const txt = siteStatus();
+  openModal("Диагностика сайта", `<pre class="diag">${esc(txt)}</pre><div class="foot-row"><button class="primary" id="diag-copy">Скопировать</button></div>`, false);
+  $("#diag-copy").onclick = () => copyText(txt);
+}
+function openSite() {
+  S.inside = true;
+  const app = $("#app"); if (app) { app.hidden = false; app.style.display = "flex"; }
+  const ld = document.getElementById("site-loader");
+  if (ld) ld.textContent = "редактор открыт · жду app.js…";
+}
+window.zombiOpenSite = openSite;
 
 /* ----------------------------- картинки ------------------------------------ */
 function dataUrlBytes(dataUrl) {
@@ -1383,7 +1128,6 @@ function slug(s) {
   return String(s).toLowerCase().split("").map((c) => (c in map ? map[c] : /[a-z0-9\-_.]/.test(c) ? c : "")).join("").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "image";
 }
 async function addImageUI() {
-  if (S.viewOnly) { toast("В гостевой ссылке добавление файлов отключено.", "warn"); return; }
   if (!S.token) { addImageByURL(); return; }
   const modal = openModal("Новая картинка → репозиторий", `
     <div class="drop" id="dr">Перетащи файл сюда или <label style="color:var(--acc2);cursor:pointer">выбери<input id="im-file" type="file" accept="image/*" hidden></label></div>
@@ -1535,8 +1279,8 @@ async function view3D(file, name) {
 
 /* ----------------------------- вкладка превью ------------------------------ */
 async function loadManifests() {
-  const fallback = (k, p) => { if (S.viewOnly) return null; try { return JSON.parse(localStorage.getItem("zombi-docs:" + k)); } catch (e) { return null; } void p; };
-  saveManifests = () => { if (S.viewOnly) return; localStorage.setItem("zombi-docs:images", JSON.stringify(S.images)); localStorage.setItem("zombi-docs:models", JSON.stringify(S.models)); };
+  const fallback = (k, p) => { try { return JSON.parse(localStorage.getItem("zombi-docs:" + k)); } catch (e) { return null; } void p; };
+  saveManifests = () => { localStorage.setItem("zombi-docs:images", JSON.stringify(S.images)); localStorage.setItem("zombi-docs:models", JSON.stringify(S.models)); };
   try { S.images = JSON.parse(await loadText("content/images.json")); } catch (e) { S.images = fallback("images") || { items: [] }; }
   try { S.models = JSON.parse(await loadText("content/models.json")); } catch (e) { S.models = fallback("models") || { items: [] }; }
   const lI = fallback("images"), lM = fallback("models");
@@ -1549,20 +1293,20 @@ async function loadPreview() {
   const host = $("#doc");
   const box = el("div");
   box.innerHTML = `<div class="h3row"><h2>Картинки · ${S.images.items.length}</h2><span class="spacer"></span>
-      ${S.viewOnly ? "" : '<button class="primary" id="p-add-img">＋ Картинка</button>'}</div>`;
+      ${'<button class="primary" id="p-add-img">＋ Картинка</button>'}</div>`;
   const grid = el("div", "prev-grid");
   S.images.items.forEach((it, i) => grid.appendChild(imgCard(it, i)));
-  if (!S.viewOnly) {
+  {
     const add = el("button", "card add-card", "＋ добавить картинку"); add.onclick = () => addImageUI();
     grid.appendChild(add);
   }
   box.appendChild(grid);
 
   box.insertAdjacentHTML("beforeend", `<div class="h3row"><h2>3D-модели · ${S.models.items.length}</h2><span class="spacer"></span>
-      ${S.viewOnly ? "" : '<button class="primary" id="p-add-md">＋ 3D-модель</button>'}</div>`);
+      ${'<button class="primary" id="p-add-md">＋ 3D-модель</button>'}</div>`);
   const g2 = el("div", "prev-grid");
   S.models.items.forEach((it, i) => g2.appendChild(modelCard(it, i)));
-  if (!S.viewOnly) {
+  {
     g2.appendChild(el("button", "card add-card", "＋ добавить модель"));
     g2.lastChild.onclick = () => addModelUI();
   }
@@ -1571,7 +1315,7 @@ async function loadPreview() {
   box.insertAdjacentHTML("beforeend", `<div class="h3row"><h2>Куда смотреть дальше</h2></div>
     <div class="note">Архивы в корне репозитория (<code>ZOMBI.7z.*</code>, <code>остров 1.7z.*</code>, <code>персонаж 1.7z.*</code>) — это, судя по всему, исходники проекта. Скажи агенту: «распакуй и разложи превью по вкладке „Картинки / превью“» — он распакует, отрежет превьюшки, зальёт в <code>game-docs/src/content/images/</code> и обновит реестр.</div>`);
   host.appendChild(box);
-  if (!S.viewOnly) {
+  {
     $("#p-add-img", host).onclick = () => addImageUI();
     $("#p-add-md", host).onclick = () => addModelUI();
   }
@@ -1583,8 +1327,8 @@ function imgCard(it, i) {
     <div class="body"><b>${esc(it.name)}</b><p>${esc(it.caption || "")}</p>
     <div class="tags">${(it.tags || []).map((t) => `<span>${esc(t)}</span>`).join("")}${it.tab ? `<span>→ ${esc(it.tab)}</span>` : ""}</div>
     <div class="row"><a class="tiny" style="text-decoration:none" target="_blank" href="${esc(src)}">открыть</a>
-    ${S.viewOnly ? "" : `<button class="tiny" data-x="${i}" data-kind="img">в реестр ✕</button>`}</div></div>`;
-  if (!S.viewOnly) $("[data-x]", c).onclick = () => { S.images.items.splice(i, 1); localStorage.setItem("zombi-docs:images", JSON.stringify(S.images)); loadPreview(); toast("Убрано из списка (файл в репозитории остался)", "warn", 5000); };
+    ${`<button class="tiny" data-x="${i}" data-kind="img">в реестр ✕</button>`}</div></div>`;
+  $("[data-x]", c).onclick = () => { S.images.items.splice(i, 1); localStorage.setItem("zombi-docs:images", JSON.stringify(S.images)); loadPreview(); toast("Убрано из списка (файл в репозитории остался)", "warn", 5000); };
   return c;
 }
 function modelCard(it, i) {
@@ -1595,9 +1339,9 @@ function modelCard(it, i) {
     <div class="tags"><code style="font-size:11px">${esc(it.file || "")}</code>${it.size_mb ? `<span>${it.size_mb} МБ</span>` : ""}${it.tab ? `<span>→ ${esc(it.tab)}</span>` : ""}</div>
     <div class="row"><button class="tiny" data-view>👁 превью</button>
     <a class="tiny" style="text-decoration:none" target="_blank" href="${esc(resolveAsset(it.file))}">скачать</a>
-    ${S.viewOnly ? "" : '<button class="tiny" data-x>убрать ✕</button>'}</div></div>`;
+    ${'<button class="tiny" data-x>убрать ✕</button>'}</div></div>`;
   $("[data-view]", c).onclick = () => view3D(it.file, it.name);
-  if (!S.viewOnly) $("[data-x]", c).onclick = () => { S.models.items.splice(i, 1); localStorage.setItem("zombi-docs:models", JSON.stringify(S.models)); loadPreview(); };
+  $("[data-x]", c).onclick = () => { S.models.items.splice(i, 1); localStorage.setItem("zombi-docs:models", JSON.stringify(S.models)); loadPreview(); };
   return c;
 }
 
@@ -1680,13 +1424,12 @@ function openAgentTaskPreview(task, error) {
   const modal = openModal("Задача для ИИ · " + task.name, `
     <p class="hint">${error ? "Отправка в GitHub не выполнена: " + esc(error) + ". " : ""}Правка сохранена во вкладке. Задачу можно скопировать в чат агенту или подключить GitHub и отправить в agent-inbox.</p>
     <label class="f"><span>Текст задачи</span><textarea id="ai-task-body" readonly style="min-height:45vh">${esc(task.body)}</textarea></label>
-    <div class="foot-row"><button class="primary" id="ai-task-copy">Скопировать задачу</button>${S.viewOnly ? "" : '<button class="ghost" id="ai-task-gh">Подключить GitHub</button>'}<button class="ghost" id="ai-task-close">Закрыть</button></div>`, false);
+    <div class="foot-row"><button class="primary" id="ai-task-copy">Скопировать задачу</button>${'<button class="ghost" id="ai-task-gh">Подключить GitHub</button>'}<button class="ghost" id="ai-task-close">Закрыть</button></div>`, false);
   $("#ai-task-copy", modal).onclick = () => copyText(task.body);
   $("#ai-task-close", modal).onclick = closeModal;
-  if (!S.viewOnly) $("#ai-task-gh", modal).onclick = () => openSettings("github");
+  $("#ai-task-gh", modal).onclick = () => openSettings("github");
 }
 async function queueAgentTask(task) {
-  if (S.viewOnly) { toast("Гостевая ссылка не отправляет задачи ИИ.", "warn"); return false; }
   if (!canWrite()) { openAgentTaskPreview(task); return false; }
   try {
     setPill("", "отправка задачи ИИ…");
@@ -1703,7 +1446,6 @@ async function queueAgentTask(task) {
 
 /* ----------------------------- запросы агенту ------------------------------ */
 async function openInbox() {
-  if (S.viewOnly) { toast("Отправка запросов доступна владельцу, не в гостевой ссылке.", "warn"); return; }
   const files = S.token || S.origin.owner ? await ghListDir(S.config.inboxPath).catch(() => []) : [];
   const list = files.filter((f) => !/README/.test(f.name)).sort((a, b) => b.name.localeCompare(a.name)).slice(0, 25);
   const modal = openModal("Очередь агенту · " + S.config.inboxPath, `
@@ -1898,37 +1640,23 @@ function earlyBoot() {
 }
 async function boot() {
   earlyBoot();
+  normalizeEditorLink();
   try { wireChrome(); buildMainTabs(); wireDoc(); } catch (e) { /* уже сделано */ }
-  // страж кэша уже сработал в earlyBoot() (до навески обработчиков)
-  const ig = window.__ZOMBI_GATE__;        // замок уже прошёл встроенный скрипт в index.html
-  S.viewOnly = isViewLink();
-  if (ig && ig.unlockedBy) { S.admin = !S.viewOnly && !!ig.admin; S.readonlyGate = S.viewOnly || !!ig.readonly; }
   try {
     const o = JSON.parse(localStorage.getItem(LS.origin) || "null"); if (o) S.origin = { ...S.origin, ...o };
-    S.token = S.viewOnly ? "" : (localStorage.getItem(LS.token) || "");
-    S.readonlyGate = S.viewOnly || !S.cfgOk;
+    S.token = localStorage.getItem(LS.token) || "";
   } catch (e) { /* ignore */ }
-  readHash(); buildMainTabs(); updateFoot();   // хеш/активная вкладка — уже после замка-решения
+  readHash(); buildMainTabs(); updateFoot();
   if (S.base) setTimeout(() => toast("Файлы сайта читаются с зеркала: " + S.base + " (github.io недоступен)", "warn", 9000), 400);
   dismissWatchdog();
-  wireGate();                        // замок сразу: проверка кода не зависит от сети
-  const cfgP = loadConfig().catch(() => {});
-  if (S.viewOnly) S.token = "";
-  const cfg = S.config.origin;
-  if (cfg && cfg.repo && !localStorage.getItem(LS.origin)) S.origin = { ...S.origin, owner: cfg.owner || S.origin.owner, repo: cfg.repo, branch: cfg.branch || S.origin.branch };
-  if (S.config.token || S.config.githubToken) { delete S.config.token; delete S.config.githubToken; }  // на всякий случай: токены в репо не хранятся
-  primeStatuses();
-  if (ig && ig.unlockedBy) { openSite(); boot2(); return; }   // не держим замок, который уже открыт
-  const open = !!S.inside;                  // решение замка, а не состояние DOM
-  cfgP.then(async () => {
+  openSite();
+  loadConfig().then(() => {
+    const cfg = S.config.origin;
+    if (cfg && cfg.repo && !localStorage.getItem(LS.origin)) S.origin = { ...S.origin, owner: cfg.owner || S.origin.owner, repo: cfg.repo, branch: cfg.branch || S.origin.branch };
+    if (S.config.token || S.config.githubToken) { delete S.config.token; delete S.config.githubToken; }
     updateFoot();
-    if (S.inside) return;                            // уже внутри — не мешаем
-    const v = $("#gate-code") ? String($("#gate-code").value).trim() : "";
-    if (!v) { wireGate(); return; }                       // сам не вмешиваемся, пока поля пустые
-    if (await tryUnlock(v, true)) { openSite(); boot2(); }
-    else wireGate();
-  });
-  if (!open) return;   // ждём код
+  }).catch(() => {});
+  primeStatuses();
   boot2();
 }
 let booted = false;
@@ -1939,7 +1667,7 @@ async function boot2() {
     if (S.docReady) return;
     const d = $("#doc");
     if (!d || d.querySelector(".end-card")) return;
-    d.innerHTML = `<div class="end-card">Замок пройден, но документ не загрузился: <code>content/${esc(fileFor(S.mainTab, S.sub))}</code> не отвечает ни рядом с сайтом, ни через GitHub API.<br>
+    d.innerHTML = `<div class="end-card">Редактор открыт, но документ не загрузился: <code>content/${esc(fileFor(S.mainTab, S.sub))}</code> не отвечает ни рядом с сайтом, ни через GitHub API.<br>
       Частая причина — браузер держит старый <code>app.js</code> (кэш провайдера) или Pages ещё не пересобрался.
       <div class="end-actions">
         <button class="tiny" id="ec-fresh">Перезагрузить начисто</button>
@@ -1948,7 +1676,7 @@ async function boot2() {
       </div></div>`;
     const f = $("#ec-fresh"); if (f) f.onclick = () => { const u = new URL(location.href); u.searchParams.set("fresh", "1"); location.replace(u.href); };
     const r = $("#ec-retry"); if (r) r.onclick = () => { S.cfgOk = false; S.cfgFailed = false; loadConfig().then(() => goTab()); };
-    const cp = $("#ec-copy"); if (cp) cp.onclick = () => copyText(gateStatus() + "\nlast err: " + (S.lastErr || "—"));
+    const cp = $("#ec-copy"); if (cp) cp.onclick = () => copyText(siteStatus() + "\nlast err: " + (S.lastErr || "—"));
   }, 6000);
   if (S.mainTab === "preview") await loadPreview(); else await loadCurrent();
   if (localStorage.getItem(LS.refresh) === "1") {

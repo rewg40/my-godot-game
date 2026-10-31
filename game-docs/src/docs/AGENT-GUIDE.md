@@ -12,7 +12,7 @@
 | Путь | Что это | Можно ли править |
 | --- | --- | --- |
 | `game-docs/src/index.html`, `app.css`, `app.js` | сам сайт (SPA без сборки, без npm) | только по явной просьбе |
-| `game-docs/src/config.json` | доступы, пути, ветка-источник | да, при смене кодов/ветки |
+| `game-docs/src/config.json` | пути, ветка-источник, рабочая ссылка | да, при смене ветки/путей |
 | `game-docs/src/content/scenario.json` | вкладка «Сценарий» | **да, это основная рабочая зона** |
 | `game-docs/src/content/mechanics.json` | индекс подвкладок «Механика» | только при добавлении/удалении подвкладки |
 | `game-docs/src/content/mech_*.json` | 15 разделов механики (в т. ч. `mech_physics.json`, `mech_research.json`, `mech_multiplayer.json`) | **да** |
@@ -120,18 +120,18 @@ for f in game-docs/src/content/*.json; do python3 -c "import json,sys; json.load
 
 ### А.7. Доступ и безопасность
 
-- `config.json → gate.allowed` — массив SHA-256 кодов. Новый гость: `python3 -c "import hashlib;print(hashlib.sha256('КОД'.encode()).hexdigest())"` → добавить в `allowed` → коммит.
-- Коды — одноразовые, не из личных данных, не совпадающие с паролем от GitHub.
+- Код доступа удалён. Рабочая ссылка `?edit=1#...` сразу открывает полный редактор; старые `?open=1` и `#code=...` нормализуются в редактор.
+- Локальные правки живут в localStorage браузера. Общая публикация требует GitHub-токен владельца с `Contents: Read and write`; токен нельзя класть в ссылки, `config.json` или репозиторий.
 - **Никогда** не коммитить токены, приватные ссылки, «секретные» пути. Токен пользователя живёт только в его localStorage.
-- Замок — «от любопытных», а не от атакующего: в статичном сайте обходимо. Для реальных секретов — не в этом репозитории.
+- Статичный публичный сайт не защищает секреты. Для реальных секретов — не в этом репозитории.
 
 ---
 
 ### А.8. Интерактив сайта (почему «вкладки не реагируют» — и как это не сломать)
 
 Три вкладки и 15 подвкладок работают всегда, даже когда `app.js` не докачался или устарел:
-в `index.html` вшиты замок (`tools/inline-gate.js`) и сторож (`tools/inline-watchdog.js`),
-которые генерируются `node game-docs/tools/build-inline-gate.js`.
+в `index.html` вшит сторож (`tools/inline-watchdog.js`), который генерируется
+`node game-docs/tools/build-inline-gate.js`. Экран кода доступа удалён.
 
 - Клик по вкладке обрабатывается в первых строках `boot()` — до загрузки конфига и до стража
   кэша. Не переноси `wireChrome() / buildMainTabs() / wireDoc()` вниз `boot()`.
@@ -139,8 +139,8 @@ for f in game-docs/src/content/*.json; do python3 -c "import json,sys; json.load
   кнопкой «Перезагрузить начисто»; «Скопировать» отдаёт полную диагностику (`__ZOMBI_DIAG__`).
   Если автор присылает этот текст — начинай разбор с него, там уже есть версия `app.js`,
   версия HTML и последняя ошибка.
-- После ЛЮБОЙ правки `src/app.js` (строка `SITE_BUILD`), `src/config.json` (`gate`) или
-  `tools/inline-*.js` перегенерируй инлайн-блоки и прогони самопроверку:
+- После ЛЮБОЙ правки `src/app.js` (строка `SITE_BUILD`) или `tools/inline-watchdog.js`
+  перегенерируй инлайн-сторож и прогони самопроверку:
 
   ```bash
   node game-docs/tools/build-inline-gate.js && node game-docs/tools/check-site.js
@@ -327,8 +327,8 @@ for f in game-docs/src/content/*.json; do python3 -c "import json,sys; json.load
 # локальный предпросмотр сайта (из папки src!)
 cd game-docs/src && python3 -m http.server 8081
 
-# добавить гостю доступ
-python3 -c "import hashlib;print(hashlib.sha256('ZOMBI-GUEST-01'.encode()).hexdigest())"   # → config.json: gate.allowed
+# скопировать рабочую ссылку редактора
+# https://rewg40.github.io/my-godot-game/?edit=1#mechanics/character
 
 # вручную пересобрать Pages
 gh workflow run "Deploy docs site (ZOMBI bible)" --ref arena/d4678daa-my-godot-game
