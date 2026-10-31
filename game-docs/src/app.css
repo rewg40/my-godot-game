@@ -192,3 +192,6 @@ table.editable td:focus{outline:1px solid var(--acc2);background:#0f1a24}
 .gate-box .muted,.muted{color:var(--tx3);font-size:12.5px;line-height:1.5}
 #gate-msg{cursor:pointer}
 #gate-build:hover{color:var(--tx2)}
+
+.end-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.end-actions a{text-decoration:none}

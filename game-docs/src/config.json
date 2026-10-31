@@ -17,5 +17,22 @@
     "ownerCode": "db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e",
     "allowed": []
   },
-  "updated": "2026-10-30T21:20:00Z"
+  "updated": "2026-10-31T07:30:00Z",
+  "site": {
+    "url": "https://rewg40.github.io/my-godot-game/",
+    "quickLogin": "https://rewg40.github.io/my-godot-game/#code=…",
+    "readOnlyBypass": "…/?open=1",
+    "note": "Агенту адрес сайта для правки не нужен: сайт читает JSON из этого репозитория. Протокол — README.md в корне и game-docs/src/docs/AGENT-GUIDE.md",
+    "storage": "game-docs/src/content/",
+    "deploy": "push в origin.branch → GitHub Actions → Pages, 10–60 с",
+    "check": "node game-docs/tools/check-site.js"
+  },
+  "routes": {
+    "scenario": "game-docs/src/content/scenario.json",
+    "mechanics.<character|craft|weather|npc|quests|locations|destruction|physics|zombies|combat|inventory|assets|production>": "game-docs/src/content/mech_<id>.json",
+    "preview": "game-docs/src/content/preview.json",
+    "images": "game-docs/src/content/images.json + game-docs/src/content/images/",
+    "models3d": "game-docs/src/content/models.json + game-docs/src/content/models/",
+    "agent-inbox": "game-docs/src/content/agent-inbox/NNNN-slug.md → после выполнения agent-inbox/done/"
+  }
 }
