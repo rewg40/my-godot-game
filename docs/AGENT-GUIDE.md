@@ -21,6 +21,11 @@
 | `game-docs/src/content/models.json` | реестр 3D-моделей | да (при добавлении файлов) |
 | `game-docs/src/content/images/**` | сами картинки (≤ 1,5 МБ, WebP/JPG) | да |
 | `game-docs/src/content/models/**` | превью-модели GLB/GLTF (≤ 24 МБ) | да |
+| `game-docs/src/content/video/*.mp4` | веб-копии заставок, их играет сайт (≤ 1,5 МБ на файл) | только перегенерацией |
+| `media/splash/` | мастера заставок для движка (`.mp4` + `.ogv`) и `boot_splash.png` — на Pages не публикуется | только `make-splash.sh` |
+| `game-docs/archive/` | снятое с витрины и с игры (старый сценарий, островной мудборд, плейсхолдеры) | читать, на сайт не возвращать |
+| `game-docs/tools/author_gallery.py` | генератор всей вкладки «Картинки / превью» + `images.json` | **да, это правится руками** |
+| `game-docs/tools/make-splash.sh` | генератор ключевых кадров, двух заставок и webp-петель | **да, это правится руками** |
 | `game-docs/src/content/agent-inbox/*.md` | входящие запросы от автора | читать; после выполнения — в `agent-inbox/done/` |
 | `game-docs/src/docs/` | текстовые инструкции (этот файл, USAGE.md) | да |
 | `.github/workflows/deploy-docs-site.yml` | публикация на GitHub Pages | не трогать без нужды |
@@ -52,10 +57,12 @@
     { "type": "h",    "text": "Заголовок подраздела" },
     { "type": "p",    "text": ["абзац 1", "абзац 2"] },
     { "type": "list", "ordered": false, "items": ["пункт", "пункт"] },
-    { "type": "todo", "items": [{ "text": "открытый вопрос", "done": false, "answer": "необязательный ответ автора" }] },
+    { "type": "todo", "items": [{ "text": "открытый вопрос", "done": false }] },
     { "type": "kv",   "head": ["Колонка", "Значение"], "rows": [["a", "b"], ["c", "d"]] },
     { "type": "code", "lang": "gdscript", "code": "func x() -> void:\n\tpass" },
-    { "type": "image", "src": "images/preview/concept.png", "caption": "что на картинке" }
+    { "type": "image", "src": "images/preview/concept.png", "caption": "что на картинке" },
+    { "type": "video", "src": "video/splash-intro.mp4", "poster": "images/preview/splash-title-card.webp",
+      "caption": "что это и чем отличается мастер от веб-версии" }
   ],
   "glossary": [["термин", "определение"]]   // необязательно
 }
@@ -65,7 +72,9 @@
 - В строках доступен `**жирный**`, `*курсив*`, `` `код` `` и обычные URL. Никакого HTML.
 - В таблицах (`kv`) число ячеек в строке = числу колонок в `head`. Короткие ячейки, длинные мысли — в `list`/`p`.
 - Заголовок раздела — отдельный блок `h`; всё, что между `h`, относится к предыдущему заголовку.
-- Путь к картинке — относительно `content/` (`images/...`) или полный URL `https://raw.githubusercontent.com/...`.
+- Путь к картинке и к видео — относительно `content/` (`images/...`, `video/...`) или полный URL `https://github.com/rewg40/my-godot-game/raw/gh-pages/game-docs/src/content/...`.
+- `video` показывает `<video controls playsinline preload="metadata">` с постером. Постер обязателен: если видео не доехало (блок github.io, медленная сеть), человек видит кадр и подпись, а не чёрный квадрат. Веб-копии в `content/video/` держим ≤ 1,5 МБ (960 px, `crf 33`); мастер для движка — в `media/splash/`, на Pages он не публикуется.
+- В браузере тип `video` правится одной строкой `путь | постер | подпись`; перевод типа в «абзацы» файл не удаляет, но блок упрощает — не переводи.
 - После правки — обновить `updated` (UTC, ISO) и не менять `id`.
 
 Проверка перед коммитом (обязательна):
@@ -84,7 +93,7 @@ for f in game-docs/src/content/*.json; do python3 -c "import json,sys; json.load
 5. **Связи** — список «ломает / зависит от»: например, крафт зависит от света (Погода) и веса (Инвентарь).
 6. **Реализация на Godot** — блок `code` с конкретными классами/нодами/настройками (Node3D, CharacterBody3D, Resource; имена сигналов и комментарии — на русском).
 7. **Бюджет и ограничения** — FPS/память/лимиты (сколько активных объектов, размер LOD).
-8. **Открытые вопросы** — `todo`-список под заголовком с «вопросы». Сайт даёт автору форму добавления/изменения, поле `answer`, отметку `done` и локальное сохранение; общая публикация идёт через GitHub. Не удаляй `answer` при пересборке блока.
+8. **Открытые вопросы** — `todo`-список, чтобы автор ответил.
 9. **MVP vs v1** — что делаем в первую очередь.
 
 Запрещено: «система крафта будет интересной», «нужно проработать», «добавить реализма». Всегда: что именно, сколько, чем измеряется, что будет, если игрок захочет это обмануть.
@@ -114,7 +123,36 @@ for f in game-docs/src/content/*.json; do python3 -c "import json,sys; json.load
 4. `file` — путь относительно `content/` (`images/preview/xxx.webp`);
 5. упомянуть файл в нужном разделе блоком `image`, чтобы картинка была в контексте, а не «в галерее где-то».
 
+Галерея целиком (`preview.json` + `images.json`) собирается генератором `game-docs/tools/author_gallery.py`:
+ключевые кадры, «что кадр обещает игроку», заставки, плейлист, наследие, реестр моделей. Правь генератор,
+а не JSON, — иначе следующая перегенерация затрёт правку.
+
+**Заставки и видео.** Один источник правды — `game-docs/tools/make-splash.sh`:
+
+```bash
+python3 game-docs/tools/author_gallery.py            # превью-страница + реестр картинок
+./game-docs/tools/make-splash.sh                     # key-art → webp, 2 заставки, веб-копии, петли
+./game-docs/tools/make-splash.sh --stills            # только картинки галереи
+SRC_ART=/path/to/png ./game-docs/tools/make-splash.sh   # другие исходники кадров
+```
+
+- Исходники-концепты: PNG, длинная сторона ≥ 1280 px; в git не кладутся, берутся из `$SRC_ART`.
+- Находы: `content/images/preview/*.webp` (≤1400 px, ≤1,4 МБ), `content/video/*.mp4` (веб-копии для сайта),
+  `media/splash/*.{mp4,ogv}` (мастера; `.ogv` = Theora — единственный видеоформат, который Godot 4
+  играет без плагинов) и `media/splash/boot_splash.png` для `application/boot_splash`.
+- Текст в видео накладывается НЕ `drawtext` (в static-сборках ffmpeg его нет): плашки рисует
+  `convert -annotate` (DejaVu, кириллица и «ё» работают), `overlay` ставит их на кадр, `fade=alpha=1`
+  делает появление. Если текст в mp4 «не тот» — правь вызовы `card`/`card-multi` в скрипте, не файл.
+- Тайминги заставки живут в переменных скрипта (`D0`, `DL`, `D6`, `D7`, `XFADE`), а не в монтажном листе.
+- `ffmpeg` ищется в PATH, иначе берётся из `pip install imageio-ffmpeg`.
+
 Модели: не класть в git больше 24 МБ на файл; для «тяжёлых» — ссылка на релиз/архив + запись с `size_mb: null` и примечанием. Если файл больше или это исходник (`.blend`, `.fbx` с текстурами) — писать путь в репозитории, а не дублировать.
+
+**Что куда попадает.** На Pages публикуется только `game-docs/src/`: workflow копирует `index.html`, `app.css`,
+`app.js`, `config.json`, `content/` и `docs/`. `game-docs/archive/`, `game-docs/tools/` и `media/splash/`
+на сайт не попадают — их можно хранить сколько угодно тяжёлыми. Отсюда два правила: (1) после правки любого
+`content/*.json` перегенерируй читалку — `python3 game-docs/tools/build_offline_reader.py`, иначе «выпуск»
+отстанет от сайта; (2) zip-выпуск (`make_handoff_archive.sh`) в git не класть, он производный и весит ~16 МБ.
 
 ### А.7. Доступ и безопасность
 
@@ -328,6 +366,12 @@ cd game-docs/src && python3 -m http.server 8081
 # добавить гостю доступ
 python3 -c "import hashlib;print(hashlib.sha256('ZOMBI-GUEST-01'.encode()).hexdigest())"   # → config.json: gate.allowed
 
+# офлайн-читалка (вся библия одним HTML) — перегенерировать после любой правки content/*.json
+python3 game-docs/tools/build_offline_reader.py      # → game-docs/archive/zombi-chitalka.html
+
+# «выпуск» в руки владельцу: читалка + документация + мастера заставок одним zip
+bash game-docs/tools/make_handoff_archive.sh         # в git этот zip не кладут — он пересобирается
+
 # вручную пересобрать Pages
-gh workflow run "Deploy docs site (ZOMBI bible)" --ref arena/d4678daa-my-godot-game
+gh workflow run "Deploy docs site (ZOMBI bible)" --ref arena/73c7370f-my-godot-game
 ```
