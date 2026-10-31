@@ -32,12 +32,12 @@ ${START}
     window.__ZOMBI_GATE__ = { unlockedBy: unlockedBy, admin: !!admin, readonly: !!readonly };
     set(LS.stamp, "inline");
     var g = document.getElementById("gate"), a = document.getElementById("app");
-    if (g) g.hidden = true;
-    if (a) a.hidden = false;
+    if (g) { g.hidden = true; g.style.display = "none"; }        // скрытие и атрибутом, и стилем: .gate имеет display:grid
+    if (a) { a.hidden = false; a.style.display = "flex"; }
     var ld = document.getElementById("gate-loader");
     if (ld) ld.textContent = "замок пройден (" + unlockedBy + ")" + (readonly ? " · только чтение: сеть до репозитория недоступна" : " · жду app.js…");
-    // сам документ открываем сразу: app.js может быть старым/не загрузиться — не держим человека на замке
-    setTimeout(function () { try { if (window.zombiOpenSite) { window.zombiOpenSite(); return; } } catch (e) {} }, 0);
+    /* app.js подхватит window.__ZOMBI_GATE__ и сам отрисует содержимое; здесь важнее
+       не плодить переходы по таймеру (они и давали «затемнённый, но неактивный» экран). */
     return true;
   }
   function stampLine(text, warn) {
@@ -98,13 +98,17 @@ ${START}
   }
   function boot() {
     var q = (location.search || ""), hash = (location.hash || "");
-    if (q.indexOf("reset=1") >= 0) { set(LS.tk, null); set(LS.ro, null); set(LS.stamp, null); try { localStorage.clear(); } catch (e) {} location.replace(location.pathname); return; }
+    if (q.indexOf("reset=1") >= 0) {
+      set(LS.tk, null); set(LS.ro, null); set(LS.stamp, null); try { localStorage.clear(); } catch (e) {}
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}   // убираем ?reset=1 из адреса, не перезагружаясь
+      q = "";
+    }
     var saved = get(LS.tk);
     if (saved && saved === OWNER_HASH) { passGate("этот браузер", true, get(LS.ro) === "1"); wire(); return; }
     if (q.indexOf("open=1") >= 0) { set(LS.ro, "1"); passGate("?open=1", false, true); wire(); return; }
     var m = hash.match(/[#&]code=([^&]+)/);
     var g = document.getElementById("gate");
-    if (g) g.hidden = false;
+    if (g) { g.hidden = false; g.style.display = ""; }
     stampLine("сайт открылся · код проверяется здесь, без app.js и без сети");
     if (m) { var code = decodeURIComponent(m[1]); var el = document.getElementById("gate-code"); if (el) el.value = code; tryCode(code, false); wire(); return; }
     wire();

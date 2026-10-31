@@ -72,5 +72,34 @@ ok(/INLINE-GATE:START/.test(html) && /OWNER_HASH/.test(html) && /function sha256
 ok(/<!-- INLINE-GATE:START -->[\s\S]*OWNER_HASH = "([0-9a-f]{64})"/.test(html) && RegExp.$1 === owner, "index.html: ownerCode встроенного замка == sha256(ZOMBI-2026)");
 ok(html.lastIndexOf("INLINE-GATE:START") < html.lastIndexOf("INLINE-GATE:END"), "index.html: разметка inline-замка не размножилась");
 
+/* 6. [hidden] должен побеждать display из классов: без этого .gate/.modal-root оставались
+   полупрозрачным слоем поверх страницы — «экран затемнён, вход есть, но не активен». */
+let css = "";
+try { css = fs.readFileSync(path.join(SRC, "app.css"), "utf8"); } catch (e) {}
+if (css) {
+  ok(/\[hidden\]\s*\{\s*display:\s*none\s*!important\s*;?\s*\}/.test(css), "app.css: [hidden]{display:none !important} есть");
+  const toggled = new Set([
+    ...[...html.matchAll(/id="([\w-]+)"[^>]*\bhidden\b/g)].map((m) => m[1]),
+    ...[...app.matchAll(/\$\("#([\w-]+)"\)\.hidden\s*=/g)].map((m) => m[1]),
+  ]);
+  const hiddenWins = /\[hidden\]\s*\{\s*display:\s*none\s*!important/.test(css);
+  const risky = new Set();
+  for (const m of css.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+    const body = m[2];
+    if (!/display:\s*(grid|flex|block|inline-flex|inline-block)/.test(body)) continue;
+    for (const one of m[1].split(",")) {
+      const t = one.trim().match(/^#([\w-]+)$/);
+      if (t && toggled.has(t[1])) risky.add("#" + t[1]);
+      const c = one.trim().match(/^\.([\w-]+)$/);
+      if (c) for (const id of toggled) {
+        const el = html.match(new RegExp('id="' + id + '"[^>]*class="([^"]*)"'));
+        if (el && el[1].split(/\s+/).includes(c[1])) risky.add("." + c[1] + " ↔ #" + id);
+      }
+    }
+  }
+  ok(hiddenWins || risky.size === 0, "app.css: скрытые слоем элементы реально display:none",
+     hiddenWins ? "конфликты " + risky.size + " шт. закрыты правилом [hidden]{…!important}" : [...risky].slice(0, 6).join(", "));
+} else { console.log("  skip  app.css не найден (SITE_DIR без стилей)"); }
+
 console.log(fail ? "\nПРОВАЛ: " + fail + " проверок" : "\nвсе проверки пройдены");
 process.exit(fail ? 1 : 0);
