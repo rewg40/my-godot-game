@@ -147,5 +147,7 @@ for (const [name, startMark, endMark] of [["замок", "<!-- INLINE-GATE:START
   const want = name === "замок" ? gate : watchdog;
   if (body.trim() !== want.trim()) { console.error(name + ": в index.html попала другая версия (длина " + body.length + " против " + want.length + ")"); process.exit(1); }
 }
+// идемпотентность: повторный запуск не должен оставлять пустые строки между маркерами
+html = html.replace(/\n{3,}/g, "\n\n");
 fs.writeFileSync(p, html);
 console.log("inline-gate " + gate.length + " B + сторож " + watchdog.length + " B встроены; build " + SITE_BUILD);

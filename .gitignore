@@ -40,3 +40,6 @@ desktop.ini
 # ---- сайт-библия: собранный статичный билд (публикуется в gh-pages)
 _site/
 /game-docs/src/_site/
+
+# python-байткод генераторов контента
+__pycache__/

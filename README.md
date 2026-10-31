@@ -54,6 +54,7 @@ git pull --rebase                                                              #
 # сценарий и новые механики не латай наивными заменами — перегенери:
 #   python3 game-docs/tools/author_scenario.py      # -> content/scenario.json
 #   python3 game-docs/tools/author_mech_new.py      # -> mech_research.json + mech_multiplayer.json
+#   python3 game-docs/tools/relore_mech.py --check  # старая островная лексика в 13 mech-файлах (0 = чисто)
 node game-docs/tools/build-inline-gate.js                                     # если трогал app.js/config.json/inline-*.js
 node game-docs/tools/check-site.js                                             # валидация JSON, схем, доступа, инлайн-блоков
 git add -A && git commit -m "docs(<раздел>): <что добавлено>" && git push
