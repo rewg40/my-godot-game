@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ZOMBI · Библия проекта — сценарий, механика, превью</title>
 <meta name="description" content="Внутренний сайт-документация зомби-выживача: сценарий, 13 разделов механики (включая физику), картинки и 3D-модели. Хранение — GitHub, доступ — по коду.">
-<link rel="stylesheet" href="app.css">
+<noscript><link rel="stylesheet" href="app.css"></noscript>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🧟</text></svg>">
 <script type="importmap">
 {
@@ -38,6 +38,7 @@
       <button id="gate-demo" class="ghost" type="button" hidden>🔓 Демо-режим (без замка, только в этом браузере)</button>
     </div>
     <div id="gate-build" class="gate-build"></div>
+    <div id="gate-fallback" class="gate-build">замок: ZOMBI-2026 · код проверяется прямо в браузере, сеть для входа не нужна · <a href="https://github.com/rewg40/my-godot-game/blob/main/game-docs/src/docs/USAGE.md">что делать, если не пускает</a></div>
   </div>
 </div>
 
@@ -93,6 +94,30 @@
 <div id="modal-root" class="modal-root" hidden></div>
 <div id="toast-root" class="toast-root"></div>
 
-<script src="app.js"></script>
+<script>
+/* Анти-кэш загрузчик: браузер может держать старый app.js/app.css (кэш провайдера или
+   GitHub Pages max-age=600). Поэтому файлы всегда грузятся с уникальным параметром, а
+   если версия не совпала с прошлым заходом — один раз принудительно перезагружаем страницу. */
+(function () {
+  var P = "zombi-docs:loader";
+  function bust() {
+    var v = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    var l = document.createElement("link");
+    l.rel = "stylesheet"; l.href = "app.css?nc=" + v; document.head.appendChild(l);
+    var st = document.createElement("script");
+    st.src = "app.js?nc=" + v;
+    st.onerror = function () {
+      var s2 = document.createElement("script"); s2.src = "app.js"; document.body.appendChild(s2);
+    };
+    document.body.appendChild(st);
+  }
+  var seen = null;
+  try { seen = localStorage.getItem(P); } catch (e) {}
+  var stamp = location.search.indexOf("nostamp=1") >= 0 ? "" : (seen || "");
+  window.__ZOMBI_STALE__ = stamp;                       // app.js сверится с ним
+  try { localStorage.setItem(P, "z"); } catch (e) {}
+  bust();
+})();
+</script>
 </body>
 </html>

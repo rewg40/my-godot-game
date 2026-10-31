@@ -66,7 +66,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.4 · offline login + remember";
+const SITE_BUILD = "2026-10-31.5 · anti-cache loader";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -832,10 +832,36 @@ function showGateStatus() {
   };
   $("#dg-reload").onclick = () => location.reload();
 }
+function openSite() {
+  const g = document.getElementById("gate"), a = document.getElementById("app");
+  if (g) g.hidden = true;
+  if (a) a.hidden = false;
+  S.inside = true;
+  return true;
+}
+/* Если браузер притащил app.js другой версии (кэш провайдера / Pages max-age=600) —
+   один раз принудительно перезагружаемся с ?fresh=1, чтобы вытащить свежий файл. */
+function guardStaleBuild() {
+  const LS_BUILD = "zombi-docs:build";
+  let prev = null;
+  try { prev = localStorage.getItem(LS_BUILD); } catch (e) { return false; }
+  try { localStorage.setItem(LS_BUILD, SITE_BUILD); } catch (e) {}
+  if (prev && prev !== SITE_BUILD && !location.search.includes("fresh=1")) {
+    try {
+      const u = new URL(location.href);
+      u.searchParams.set("fresh", "1");
+      location.replace(u.href);
+      return true;
+    } catch (e) { return false; }
+  }
+  return false;
+}
 function wireGate() {
   const g = S.config.gate || {};
   // замок включаем по умолчанию только если конфиг реально не удалось прочитать;
   // «ещё не дочитался» — не повод светить контент
+  const fb = document.getElementById("gate-fallback");
+  if (fb) fb.innerHTML = "сайт живой · код проверяется в браузере · сеть для входа не нужна";
   const gateOn = S.cfgFailed ? true : (g.enabled !== false);
   const badge = document.getElementById("gate-build");
   if (badge) { badge.textContent = "site " + SITE_BUILD + " · " + (S.cfgOk
@@ -1287,6 +1313,7 @@ function wireChrome() {
   addEventListener("hashchange", () => { readHash(); buildMainTabs(); buildSubtabs(); goTab(); });
 }
 async function boot() {
+  if (guardStaleBuild()) return;      //DOM не трогаем — сейчас перезагрузка
   try {
     const o = JSON.parse(localStorage.getItem(LS.origin) || "null"); if (o) S.origin = { ...S.origin, ...o };
     S.token = localStorage.getItem(LS.token) || "";
