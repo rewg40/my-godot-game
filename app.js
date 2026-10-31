@@ -66,7 +66,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.7 · inline gate + guest check";
+const SITE_BUILD = "2026-10-31.8 · un-dim overlay fix";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -528,7 +528,7 @@ let modalStack = [];
 let saveManifests = () => {};
 function openModal(title, html, narrow) {
   const root = $("#modal-root");
-  root.hidden = false;
+  root.hidden = false; root.style.display = "grid";
   const m = el("div", "modal" + (narrow ? " narrow" : ""));
   m.innerHTML = `<header><h3>${esc(title)}</h3><button class="ghost" data-close>✕</button></header><div class="content">${html}</div>`;
   root.innerHTML = "";
@@ -539,7 +539,7 @@ function openModal(title, html, narrow) {
   document.onkeydown = (e) => { if (e.key === "Escape" && !root.hidden) closeModal(); };
   return m;
 }
-function closeModal() { $("#modal-root").hidden = true; $("#modal-root").innerHTML = ""; }
+function closeModal() { const r = $("#modal-root"); r.hidden = true; r.style.display = "none"; r.innerHTML = ""; }
 
 /* ----------------------------- загрузка контента --------------------------- */
 function fileFor(tabId, sub) {
@@ -834,8 +834,8 @@ function showGateStatus() {
 }
 function openSite() {
   const g = document.getElementById("gate"), a = document.getElementById("app");
-  if (g) g.hidden = true;
-  if (a) a.hidden = false;
+  if (g) { g.hidden = true; g.style.display = "none"; }
+  if (a) { a.hidden = false; a.style.display = "flex"; }
   S.inside = true;
   const ld = document.getElementById("gate-loader");
   if (ld) ld.textContent = "app.js живой · " + SITE_BUILD;
