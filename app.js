@@ -21,8 +21,11 @@ function userMirror() {                  // адрес, который авто�
   try { const m = localStorage.getItem("zombi-docs:mirror"); return m ? (m.replace(/\/$/, "") + "/") : ""; } catch (e) { return ""; }
 }
 const MIRRORS_USER = [userMirror()].filter(Boolean).map((b) => (o) => b + o);
-const ALL_MIRRORS = [...MIRRORS_USER, ...MIRRORS];   // пользовательское зеркало пробуем первым
+const ALL_MIRRORS = [...MIRRORS_USER, ...MIRRORS].concat((typeof window !== "undefined" && window.__ZOMBI_BASE__) ? [(o) => window.__ZOMBI_BASE__ + o] : []);   // зеркало + то, откуда приехал сам app.js
 const SRC_PREFIX = "game-docs/src";
+// загрузчик в index.html уже нашёл рабочий адрес (github.io может быть вырезан) —
+// читаем контент оттуда же. Присваивание ДО boot(): иначе первые запросы уходят в origin и висят.
+const USER_BASE = (typeof window !== "undefined" && window.__ZOMBI_BASE__) || "";
 const MAX_IMG = 1_400_000;      // байт после сжатия
 const MAX_MODEL = 24_000_000;  // байт (GitHub limit ~25 МБ на файл)
 const LS = { draft: "zombi-docs:draft:", origin: "zombi-docs:origin", token: "zombi-docs:token",
@@ -87,7 +90,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-11-01.6 · mirrors, boot fix, quiet watchdog";
+const SITE_BUILD = "2026-11-01.7 · mirror-aware loadText";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -170,7 +173,7 @@ const utf8 = {
 const S = {
   config: { gate: { enabled: true, ownerCode: "", allowed: [] }, contentPath: SRC_PREFIX + "/content", imagesPath: SRC_PREFIX + "/content/images", modelsPath: SRC_PREFIX + "/content/models", inboxPath: SRC_PREFIX + "/content/agent-inbox", origin: { ...REPO_DEFAULT } },
   origin: { ...REPO_DEFAULT },
-  token: "", admin: false, cfgLoaded: false, cfgOk: false, cfgFailed: false, inside: false, mirror: null, base: "", readonlyGate: false, docReady: false, lastErr: "",
+  token: "", admin: false, cfgLoaded: false, cfgOk: false, cfgFailed: false, inside: false, mirror: null, base: (typeof window !== "undefined" && window.__ZOMBI_BASE__) || "", readonlyGate: false, docReady: false, lastErr: "",
   mainTab: "scenario", mechIndex: MECH.map((m) => m.id), sub: "character",
   content: null, contentFile: null, contentSha: null, contentName: "",
   images: null, models: null, dirty: new Set(),
@@ -242,9 +245,11 @@ async function fetchText(url, mode, ms) {
 /* Ищем файл: рядом с сайтом → Pages → jsDelivr → GitHub API (с токеном).
    Первый successful источник запоминается, чтобы не дёргать все подряд на каждый раздел. */
 async function loadText(sitePath) {
-  // загрузчик в index.html уже нашёл рабочий адрес (github.io может быть недоступен)
-  if (S.base) {
-    try { return await fetchText(S.base + encodeURI(sitePath) + "?v=" + Date.now(), "cors", 4000); } catch (e) { /* пробуем дальше */ }
+  // Порядок: 1) адрес зеркала, с которого приехал интерфейс (загрузчик в index.html нашёл рабочий);
+  // 2) рядом со страницей; 3) список зеркал; 4) GitHub API с токеном.
+  const base = S.base || USER_BASE;
+  if (base) {
+    try { return await fetchText(base + encodeURI(sitePath) + "?v=" + Date.now(), "cors", 4000); } catch (e) { /* дальше */ }
   }
   if (location.protocol === "http:" || location.protocol === "https:") {
     try { return await fetchText(encodeURI(sitePath) + "?v=" + Date.now(), "same-origin", 4000); } catch (e) { /* следующее зеркало */ }
@@ -260,6 +265,7 @@ async function loadText(sitePath) {
   if (S.origin.owner) return (await ghGetFile(`${SRC_PREFIX}/${sitePath}`)).text;
   throw new Error("файл недоступен ни локально, ни через репозиторий");
 }
+
 
 /* ----------------------------- блок: рендер -------------------------------- */
 function inline(text) {
@@ -1397,7 +1403,7 @@ async function boot() {
   // (страж кэша) или загрузка конфига зависнет, клики по вкладкам уже живые
   window.__ZOMBI_STAMP__ = SITE_BUILD;
   window.__ZOMBI_APP__ = SITE_BUILD;
-  S.base = window.__ZOMBI_BASE__ || "";   // app.js приехал с зеркала — контент берём оттуда же
+  S.base = USER_BASE;   // адрес зеркала читается ещё до boot()
   wireChrome(); buildMainTabs(); wireDoc();
   // страж кэша работает ВСЕГДА, в т.ч. для уже вошедших: иначе «залетевший» старый
   // app.js не обновлялся бы никогда (а встроенный в HTML замок пишет штамп "inline").
