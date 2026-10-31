@@ -82,7 +82,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.9 · agent handoff";
+const SITE_BUILD = "2026-10-31.11 · stale guard for all";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -165,7 +165,7 @@ const utf8 = {
 const S = {
   config: { gate: { enabled: true, ownerCode: "", allowed: [] }, contentPath: SRC_PREFIX + "/content", imagesPath: SRC_PREFIX + "/content/images", modelsPath: SRC_PREFIX + "/content/models", inboxPath: SRC_PREFIX + "/content/agent-inbox", origin: { ...REPO_DEFAULT } },
   origin: { ...REPO_DEFAULT },
-  token: "", admin: false, cfgLoaded: false, cfgOk: false, cfgFailed: false, inside: false, mirror: null, readonlyGate: false,
+  token: "", admin: false, cfgLoaded: false, cfgOk: false, cfgFailed: false, inside: false, mirror: null, readonlyGate: false, docReady: false, lastErr: "",
   mainTab: "scenario", mechIndex: MECH.map((m) => m.id), sub: "character",
   content: null, contentFile: null, contentSha: null, contentName: "",
   images: null, models: null, dirty: new Set(),
@@ -587,14 +587,21 @@ async function loadCurrent(showLoader = true) {
     const d = JSON.parse(text);
     if (S.mainTab === "mechanics" && d.kind !== "mechanics") d.kind = "mechanics";
     if (fromDraft) d._banner = "Ты видишь свою черновую правку из этого браузера (не сохранена в GitHub).";
-    S.content = d; S.contentFile = file;
+    S.content = d; S.contentFile = file; S.docReady = true;
     if (MECH.some((m) => m.file === file)) { statusCache[file] = d.status; renderSubtabs(); }
     renderDoc(d);
     setPill(fromDraft ? "warn" : "ok", fromDraft ? "черновик в браузере" : "из репозитория");
     updateFoot();
   } catch (e) {
-    $("#doc").innerHTML = `<div class="end-card">Не удалось загрузить <code>${esc(file)}</code>: ${esc(e.message)}<br>
-      Проверь <b>⚙ Настройки</b> (репозиторий/ветка/токен) или открой сайт из папки <code>game-docs/src/</code> локальным сервером.</div>`;
+    S.docReady = false; S.lastErr = e.message;
+    $("#doc").innerHTML = `<div class="end-card">Не удалось загрузить <code>content/${esc(file)}</code>: ${esc(e.message)}<br>
+      Проверь <b>⚙ Настройки</b> (репозиторий/ветка/токен). Если файлы в порядке — браузер держит старый <code>app.js</code> или Pages не пересобрался.
+      <div class="end-actions">
+        <button class="tiny" id="ec-fresh">Перезагрузить начисто</button>
+        <button class="tiny ghost" id="ec-copy">Скопировать диагностику</button>
+      </div></div>`;
+    const f = $("#ec-fresh"); if (f) f.onclick = () => { const u = new URL(location.href); u.searchParams.set("fresh", "1"); location.replace(u.href); };
+    const cp = $("#ec-copy"); if (cp) cp.onclick = () => copyText(gateStatus() + "\nlast err: " + e.message);
     setPill("bad", "ошибка загрузки");
   }
 }
@@ -615,7 +622,13 @@ function updateFoot() {
 function buildMainTabs() {
   $$("#main-tabs .tab-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.tab === S.mainTab);
-    b.onclick = () => { S.mainTab = b.dataset.tab; $("#subtabs").hidden = S.mainTab !== "mechanics"; buildMainTabs(); buildSubtabs(); syncHash(); goTab(); };
+    b.onclick = () => {
+      S.mainTab = b.dataset.tab;
+      $("#subtabs").hidden = S.mainTab !== "mechanics";
+      buildMainTabs(); buildSubtabs(); syncHash();
+      S.docReady = false; S.content = null;            // повторный клик по активной вкладке тоже грузит
+      if (!S.inside) { openSite(); boot2(); } else goTab();
+    };
   });
 }
 function buildSubtabs() {
@@ -878,10 +891,14 @@ function guardStaleBuild() {
   let prev = null;
   try { prev = localStorage.getItem(LS_BUILD); } catch (e) { return false; }
   try { localStorage.setItem(LS_BUILD, SITE_BUILD); } catch (e) {}
-  if (prev && prev !== SITE_BUILD && !location.search.includes("fresh=1")) {
+  const htmlStamp = document.documentElement.getAttribute("data-build") || "";
+  const realPrev = prev && prev !== "inline" ? prev : "";          // "inline" пишет HTML-замок, это не версия JS
+  const mismatch = (!!realPrev && realPrev !== SITE_BUILD) || (!!htmlStamp && htmlStamp !== SITE_BUILD);
+  if (mismatch && !location.search.includes("fresh=1")) {
     try {
       const u = new URL(location.href);
       u.searchParams.set("fresh", "1");
+      window.__ZOMBI_RELOAD__ = u.href;    // видно в консоли/диагностике, что сработал страж кэша
       location.replace(u.href);
       return true;
     } catch (e) { return false; }
@@ -1347,9 +1364,11 @@ function wireChrome() {
 }
 async function boot() {
   window.__ZOMBI_BOOTED__ = 1;
+  // страж кэша работает ВСЕГДА, в т.ч. для уже вошедших: иначе «залетевший» старый
+  // app.js не обновлялся бы никогда (а встроенный в HTML замок пишет штамп "inline").
+  if (guardStaleBuild()) return;           // устаревший кэш — перезагружаемся (один раз, ?fresh=1)
   const ig = window.__ZOMBI_GATE__;        // замок уже прошёл встроенный скрипт в index.html
   if (ig && ig.unlockedBy) { S.admin = !!ig.admin; S.readonlyGate = !!ig.readonly; }
-  if (!(ig && ig.unlockedBy) && guardStaleBuild()) return;   // устаревший кэш — перезагрузимся
   try {
     const o = JSON.parse(localStorage.getItem(LS.origin) || "null"); if (o) S.origin = { ...S.origin, ...o };
     S.token = localStorage.getItem(LS.token) || "";
@@ -1382,6 +1401,21 @@ let booted = false;
 async function boot2() {
   if (booted) return; booted = true;
   buildSubtabs();
+  setTimeout(() => {
+    if (S.docReady) return;
+    const d = $("#doc");
+    if (!d || d.querySelector(".end-card")) return;
+    d.innerHTML = `<div class="end-card">Замок пройден, но документ не загрузился: <code>content/${esc(fileFor(S.mainTab, S.sub))}</code> не отвечает ни рядом с сайтом, ни через GitHub API.<br>
+      Частая причина — браузер держит старый <code>app.js</code> (кэш провайдера) или Pages ещё не пересобрался.
+      <div class="end-actions">
+        <button class="tiny" id="ec-fresh">Перезагрузить начисто</button>
+        <button class="tiny ghost" id="ec-retry">Повторить</button>
+        <button class="tiny ghost" id="ec-copy">Скопировать диагностику</button>
+      </div></div>`;
+    const f = $("#ec-fresh"); if (f) f.onclick = () => { const u = new URL(location.href); u.searchParams.set("fresh", "1"); location.replace(u.href); };
+    const r = $("#ec-retry"); if (r) r.onclick = () => { S.cfgOk = false; S.cfgFailed = false; loadConfig().then(() => goTab()); };
+    const cp = $("#ec-copy"); if (cp) cp.onclick = () => copyText(gateStatus() + "\nlast err: " + (S.lastErr || "—"));
+  }, 6000);
   if (S.mainTab === "preview") await loadPreview(); else await loadCurrent();
   if (localStorage.getItem(LS.refresh) === "1") {
     setInterval(() => { if (!S.dirty.size) loadCurrent(false).catch(() => {}); }, 90000);
