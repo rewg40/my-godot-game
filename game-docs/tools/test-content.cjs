@@ -190,3 +190,88 @@ test("craft is gated by colony tech level (UT)", () => {
   assert.ok(prod.includes("плашка УТ"));
   assert.ok(char.includes("уровень технологий колонии"));
 });
+
+test("infected break doors, they never open them", () => {
+  const z = read("mech_zombies.json");
+  const loc = textOf(read("mech_locations.json"));
+  const craft = textOf(read("mech_craft.json"));
+
+  const headings = z.blocks.filter((b) => b.type === "h").map((b) => b.text);
+  assert.ok(headings.includes("Преграды: не открывают, а выбивают"));
+  const doors = z.blocks.find((b) => b.type === "kv" && b.head[0] === "Преграда");
+  assert.ok(doors.rows.length >= 5);
+  assert.ok(doors.rows.some((r) => r[1] === "60 HP"), "жилая дверь = 60 HP");
+  assert.ok(doors.rows.some((r) => r[0].includes("Баррикада")), "баррикада как слой");
+
+  const zt = textOf(z);
+  assert.ok(zt.includes("нет ни «взять ручку»"), "дверь как понятие недоступна");
+  assert.ok(zt.includes("6 HP за удар") && zt.includes("≈ 12 с"), "жилая дверь держит 12 с");
+  assert.ok(zt.includes("BREAK_MUL"), "множители поломки в коде");
+  const todo = z.blocks.find((b) => b.type === "todo").items;
+  const q = todo.find((i) => i.text.startsWith("Умеют ли зомби открывать двери"));
+  assert.ok(q && q.done && q.answer.includes("выбить"), "вопрос про двери закрыт");
+  assert.ok(todo.filter((i) => !i.done).length >= 3, "остались новые точные вопросы");
+
+  // стык: баррикада есть и в локациях, и в крафте
+  assert.ok(loc.includes("+40 HP двери") && loc.includes("≈ 53 с"));
+  assert.ok(craft.includes("Баррикада (1 слой, макс. 3)"));
+});
+
+test("runners stay rare for the whole game", () => {
+  const z = read("mech_zombies.json");
+  const types = z.blocks.find((b) => b.type === "kv" && b.head[0] === "Тип");
+  const runner = types.rows.find((r) => r[0].startsWith("Бегун"));
+  assert.ok(runner[0].includes("Искры, 1–3 ч"), "бегун = свежая стадия");
+  assert.ok(runner[3].includes("1 на 12"), "редкий: не чаще одного на двенадцать");
+  assert.ok(runner[4].includes("переждать"), "контра — переждать рывок");
+
+  const headings = z.blocks.filter((b) => b.type === "h").map((b) => b.text);
+  assert.ok(headings.includes("Стадии → типы: во что превращается заражённый"));
+  const stages = z.blocks.find((b) => b.type === "kv" && b.head[0] === "Стадия (часы)");
+  assert.equal(stages.rows.length, 4);
+  for (const st of ["Искры", "Тень", "Порог", "Стужа"]) {
+    assert.ok(stages.rows.some((r) => r[0].startsWith(st)), st);
+  }
+  const todo = z.blocks.find((b) => b.type === "todo").items;
+  const q = todo.find((i) => i.text.startsWith("Бегуны: оставить на всю игру"));
+  assert.ok(q && q.done && q.answer.startsWith("Да"), "вопрос про бегунов закрыт");
+  assert.ok(textOf(z).includes("12 с на 7.2"), "окно рывка зафиксировано");
+});
+
+test("pheromone craft diverts the horde", () => {
+  const z = read("mech_zombies.json");
+  const craft = read("mech_craft.json");
+  const research = textOf(read("mech_research.json"));
+  const quests = textOf(read("mech_quests.json"));
+  const combat = read("mech_combat.json");
+  const inv = textOf(read("mech_inventory.json"));
+  const mp = textOf(read("mech_multiplayer.json"));
+
+  const headings = z.blocks.filter((b) => b.type === "h").map((b) => b.text);
+  assert.ok(headings.includes("Запах как управление: привада и отвод"));
+  const tools = z.blocks.find((b) => b.type === "kv" && b.head[0] === "Средство");
+  assert.equal(tools.rows.length, 3);
+  assert.ok(tools.rows.some((r) => r[0].includes("Грубая привада")));
+  assert.ok(tools.rows.some((r) => r[0].includes("Отвод")));
+  const zt = textOf(z);
+  assert.ok(zt.includes("хим-стол T3, УТ2"), "феромон требует химии и УТ2");
+  assert.ok(zt.includes("дождь −70 %"), "погода важнее рецепта");
+  assert.ok(zt.includes("На Тень и волну «Стужа» не действует"), "трофейную охоту не упрощает");
+  const todo = z.blocks.find((b) => b.type === "todo").items;
+  const q = todo.find((i) => i.text.startsWith("Нужен ли «феромон»-крафт"));
+  assert.ok(q && q.done && q.answer.startsWith("Нужен"), "вопрос про феромон закрыт");
+
+  // крафт: рецепты запаха
+  const ch = craft.blocks.filter((b) => b.type === "h").map((b) => b.text);
+  assert.ok(ch.includes("Запах как инструмент (стык с ИИ монстров)"));
+  const recipes = craft.blocks.find((b) => b.type === "kv" && b.head[0] === "Рецепт");
+  assert.equal(recipes.rows.length, 4);
+  // стык с остальными вкладками
+  assert.ok(research.includes("Феромонный синтез"));
+  assert.ok(quests.includes("q2_lure"));
+  const toolsTable = combat.blocks.find((b) => b.type === "kv" && b.head[0] === "Инструмент");
+  assert.ok(toolsTable.rows.some((r) => r[0].includes("привада")));
+  assert.ok(toolsTable.rows.some((r) => r[0].includes("отвод")));
+  assert.ok(inv.includes("привада") && inv.includes("0.4 кг"));
+  assert.ok(mp.includes("Привада — серверный объект"));
+});
