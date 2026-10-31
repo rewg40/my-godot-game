@@ -4,7 +4,7 @@
   "title": "Исследование",
   "subtitle": "дерево технологий, нулевые образцы, прорывы с ценой — второй двигатель после крафта",
   "status": "wip",
-  "updated": "2026-10-31T12:44:36Z",
+  "updated": "2026-10-31T12:10:54Z",
   "blocks": [
     {
       "type": "note",
@@ -298,7 +298,7 @@
     {
       "type": "code",
       "lang": "gdscript",
-      "code": "class_name ResearchService extends Node\n## Единая точка входа: нахождение -> расшифровка -> эксперимент -> опытный -> серия.\nsignal tech_promoted(branch_id: StringName, node_id: StringName, by_squad: int)\nsignal debt_event(kind: StringName, zone: Vector2i, hours_to_threshold: float)\n\n@export var tree_path: String = \"res://data/tech_tree.json\"\n@export var max_concurrent_per_zone: int = 2\n\nvar _tree := TechTree.new()          # узлы, связи, цена, теги риска\nvar _world: WorldTechState            # чей узел, на какой ступени, какие долги\n\nfunc try_start(node_id: StringName, squad_id: int, dirty: bool) -> Error:\n    var node := _tree.get_node(node_id)\n    if node == null or not _world.carrier_found(node):\n        return ERR_UNAVAILABLE          # сначала носитель знания, потом кнопки\n    if _world.queue_full(node.zone):\n        return ERR_LOCKED\n    _world.begin(node_id, squad_id, dirty)\n    if dirty:\n        debt_event.emit(node.risk_kind, node.zone, node.risk_hours)\n    return OK"
+      "code": "class_name ResearchService extends Node\\n## Единая точка входа: нахождение -> расшифровка -> эксперимент -> опытный -> серия.\\nsignal tech_promoted(branch_id: StringName, node_id: StringName, by_squad: int)\\nsignal debt_event(kind: StringName, zone: Vector2i, hours_to_threshold: float)\\n\\n@export var tree_path: String = \"res://data/tech_tree.json\"\\n@export var max_concurrent_per_zone: int = 2\\n\\nvar _tree := TechTree.new()          # узлы, связи, цена, теги риска\\nvar _world: WorldTechState            # чей узел, на какой ступени, какие долги\\n\\nfunc try_start(node_id: StringName, squad_id: int, dirty: bool) -> Error:\\n    var node := _tree.get_node(node_id)\\n    if node == null or not _world.carrier_found(node):\\n        return ERR_UNAVAILABLE          # сначала носитель знания, потом кнопки\\n    if _world.queue_full(node.zone):\\n        return ERR_LOCKED\\n    _world.begin(node_id, squad_id, dirty)\\n    if dirty:\\n        debt_event.emit(node.risk_kind, node.zone, node.risk_hours)\\n    return OK"
     },
     {
       "type": "h",

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" data-build="2026-11-01.11 · галерея «Пепел и Звёзды», заставки, видео-блоки">
+<html lang="ru" data-build="2026-10-31.12 · редактор вкладок и вопросов">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -86,7 +86,7 @@
     if (g) { g.hidden = true; g.style.display = "none"; }        // скрытие и атрибутом, и стилем: .gate имеет display:grid
     if (a) { a.hidden = false; a.style.display = "flex"; }
     var ld = document.getElementById("gate-loader");
-    if (ld) ld.textContent = "замок пройден (" + unlockedBy + ")" + (readonly ? " · только чтение: сеть до репозитория недоступна" : " · жду app.js…");
+    if (ld) ld.textContent = "замок пройден (" + unlockedBy + ")" + (readonly ? (unlockedBy === "гостевая ссылка" ? " · только чтение, без GitHub-токена" : " · только чтение: конфигурация недоступна") : " · жду app.js…");
     // app.js подхватит window.__ZOMBI_GATE__ и сам отрисует содержимое;
     // здесь важнее не плодить переходы по таймеру (они и давали «затемнённый, но неактивный» экран).
     return true;
@@ -154,9 +154,11 @@
       try { history.replaceState(null, "", location.pathname); } catch (e) {}   // убираем ?reset=1 из адреса, не перезагружаясь
       q = "";
     }
+    var edit = /[?&]edit=1(?:&|$)/.test(q) || /[#&]edit=1(?:&|$)/.test(hash);
+    var view = !edit && (/[?&]open=1(?:&|$)/.test(q) || /[#&]open=1(?:&|$)/.test(hash));
+    if (view) { set(LS.ro, "1"); passGate("гостевая ссылка", false, true); wire(); return; }
     var saved = get(LS.tk);
-    if (saved && saved === OWNER_HASH) { passGate("этот браузер", true, get(LS.ro) === "1"); wire(); return; }
-    if (q.indexOf("open=1") >= 0) { set(LS.ro, "1"); passGate("?open=1", false, true); wire(); return; }
+    if (saved && saved === OWNER_HASH) { passGate("этот браузер", true, false); wire(); return; }
     var m = hash.match(/[#&]code=([^&]+)/);
     var g = document.getElementById("gate");
     if (g) { g.hidden = false; g.style.display = ""; }
@@ -186,7 +188,7 @@
       <button type="submit">Войти</button>
     </form>
     <div id="gate-msg" class="gate-msg" hidden></div>
-    <p class="gate-hint">Коды хранятся в репозитории: <code>game-docs/src/config.json</code> (в виде SHA-256).<br>
+    <p class="gate-hint">Для просмотра без кода владелец может отправить ссылку «Поделиться». Коды хранятся в <code>game-docs/src/config.json</code> (SHA-256).<br>
       Если код потерялся — владелец добавляет новый в «Настройках → Доступ».<br>
       Можно войти по ссылке: <code>#code=ВАШ-КОД</code> (код подставится автоматически).<br>
       Если сеть до репозитория не работает — открой <code>?open=1</code>: просмотр доступен, сохранение нет.</p>
@@ -196,7 +198,7 @@
     </div>
     <div id="gate-build" class="gate-build"></div>
     <div id="gate-loader" class="gate-build" style="opacity:.75"></div>
-    <div id="gate-fallback" class="gate-build">замок: ZOMBI-2026 · код проверяется прямо в браузере, сеть для входа не нужна · <a href="https://github.com/rewg40/my-godot-game/blob/main/game-docs/src/docs/USAGE.md">что делать, если не пускает</a></div>
+    <div id="gate-fallback" class="gate-build">код проверяется прямо в браузере · для гостя есть ссылка «Поделиться» · <a href="https://github.com/rewg40/my-godot-game/blob/main/game-docs/src/docs/USAGE.md">что делать, если не пускает</a></div>
   </div>
 </div>
 
@@ -219,7 +221,9 @@
     <div class="topbar-actions">
       <span id="sync-pill" class="pill" title="Состояние синхронизации с GitHub">—</span>
       <button id="btn-refresh" class="ghost" title="Подтянуть свежие файлы из репозитория (F5-кэш bypass)">↻ Обновить</button>
-      <button id="btn-save" class="primary" title="Отправить изменения в репозиторий (Ctrl+S)">⤒ Сохранить в GitHub</button>
+      <button id="btn-edit-tab" class="primary" title="Добавить изменения прямо в текущую вкладку">✎ Редактировать вкладку</button>
+      <button id="btn-share" class="ghost" title="Ссылки для редактирования и просмотра">Поделиться</button>
+      <button id="btn-save" class="ghost" title="Опубликовать текущую вкладку для всех посетителей (Ctrl+S)">⤒ Опубликовать вкладку</button>
       <button id="btn-settings" class="ghost" title="Настройки доступа и репозитория">⚙</button>
     </div>
   </header>
@@ -227,13 +231,13 @@
   <div class="subtabs" id="subtabs" hidden></div>
 
   <div id="dirty-bar" class="dirty-bar" hidden>
-    ⚠ Есть несохранённые правки (они лежат в этом браузере).
-    <button id="btn-dirty-save" class="tiny">Сохранить в репозиторий</button>
+    <span id="dirty-text">Изменения сохранены в этом браузере. Для других посетителей нужна публикация.</span>
+    <button id="btn-dirty-save" class="tiny">Опубликовать вкладку</button>
     <button id="btn-dirty-reset" class="tiny ghost">Отменить правки</button>
   </div>
   <div id="readonly-bar" class="readonly-bar" hidden>
-    Токен GitHub не задан — читать можно, писать нельзя.
-    <button id="btn-token-now" class="tiny">Задать токен</button>
+    Редактирование доступно локально. Для публикации подключи GitHub.
+    <button id="btn-token-now" class="tiny">Подключить GitHub</button>
   </div>
 
   <main class="doc" id="doc"><div class="loading">Загрузка документа…</div></main>
