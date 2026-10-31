@@ -182,6 +182,7 @@ table.editable td:focus{outline:1px solid var(--acc2);background:#0f1a24}
 .foot{border-top:1px solid var(--line);padding:12px 18px;font-size:12.5px;color:var(--tx3);display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2)}
 .foot a{color:var(--tx2);text-decoration:none;border-bottom:1px dotted var(--line2)}
 .foot .foot-sep{opacity:.5}
+.foot-note{color:var(--tx3);max-width:100%;flex:1 1 100%;line-height:1.45;white-space:pre-wrap}
 @media (max-width:780px){
   .topbar{gap:10px}.tabs{order:3;width:100%}.brand{min-width:0}.topbar-actions{margin-left:0}
   .subtabs{top:auto;position:static}
