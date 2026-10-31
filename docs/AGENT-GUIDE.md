@@ -15,7 +15,7 @@
 | `game-docs/src/config.json` | доступы, пути, ветка-источник | да, при смене кодов/ветки |
 | `game-docs/src/content/scenario.json` | вкладка «Сценарий» | **да, это основная рабочая зона** |
 | `game-docs/src/content/mechanics.json` | индекс подвкладок «Механика» | только при добавлении/удалении подвкладки |
-| `game-docs/src/content/mech_*.json` | 13 разделов механики (в т. ч. `mech_physics.json`) | **да** |
+| `game-docs/src/content/mech_*.json` | 15 разделов механики (в т. ч. `mech_physics.json`, `mech_research.json`, `mech_multiplayer.json`) | **да** |
 | `game-docs/src/content/preview.json` | вкладка «Картинки / превью» | да |
 | `game-docs/src/content/images.json` | реестр картинок | да (при добавлении файлов) |
 | `game-docs/src/content/models.json` | реестр 3D-моделей | да (при добавлении файлов) |
@@ -90,6 +90,10 @@ for f in game-docs/src/content/*.json; do python3 -c "import json,sys; json.load
 Запрещено: «система крафта будет интересной», «нужно проработать», «добавить реализма». Всегда: что именно, сколько, чем измеряется, что будет, если игрок захочет это обмануть.
 
 ### А.5. Сценарий: как писать
+- Крупная переделка сценария или новой механики — не латать JSON заменами, а править генератор и перегенерировать:
+  `python3 game-docs/tools/author_scenario.py` → `content/scenario.json`,
+  `python3 game-docs/tools/author_mech_new.py` → `mech_research.json` + `mech_multiplayer.json`.
+  Генератор держит русский текст в переносимых строках: ручная вставка кавычки ломает файл, а проверка это ловит.
 
 - Сцены — таблицей: `N | место | время | что видно | реплика/действие | механика | флаг мира`. Флаг мира обязателен: каждая значимая сцена меняет состояние (`set school_mercy=1`).
 - Диалоги — реплики ≤ 120 знаков, ключи вида `act1/q1_radio/line_03`; никаких «длинных простыней».
@@ -120,7 +124,7 @@ for f in game-docs/src/content/*.json; do python3 -c "import json,sys; json.load
 
 ### А.8. Интерактив сайта (почему «вкладки не реагируют» — и как это не сломать)
 
-Три вкладки и 13 подвкладок работают всегда, даже когда `app.js` не докачался или устарел:
+Три вкладки и 15 подвкладок работают всегда, даже когда `app.js` не докачался или устарел:
 в `index.html` вшиты замок (`tools/inline-gate.js`) и сторож (`tools/inline-watchdog.js`),
 которые генерируются `node game-docs/tools/build-inline-gate.js`.
 

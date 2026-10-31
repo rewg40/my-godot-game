@@ -40,6 +40,7 @@ const TABS = [
 const MECH = [
   { id: "character",   label: "Персонаж",            file: "mech_character.json" },
   { id: "craft",       label: "Крафт",               file: "mech_craft.json" },
+  { id: "research",    label: "Исследование",         file: "mech_research.json" },
   { id: "weather",     label: "Погода",              file: "mech_weather.json" },
   { id: "npc",         label: "NPC и фракции",       file: "mech_npc.json" },
   { id: "quests",      label: "Квесты",              file: "mech_quests.json" },
@@ -51,6 +52,7 @@ const MECH = [
   { id: "inventory",   label: "Инвентарь и лут",     file: "mech_inventory.json" },
   { id: "assets",      label: "3D-модели и ассеты",  file: "mech_assets.json" },
   { id: "production",  label: "Аудио, UI, проект",   file: "mech_production.json" },
+  { id: "multiplayer", label: "Сетевая игра",         file: "mech_multiplayer.json" },
 ];
 const STATUS = { draft: "черновик", wip: "в работе", done: "готово", idea: "идея" };
 
@@ -91,7 +93,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-11-01.9 · mirrors, early boot, offline copy";
+const SITE_BUILD = "2026-11-01.10 · новый сценарий, исследование, сеть";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -672,7 +674,7 @@ function buildSubtabs() {
     b.onclick = () => { S.sub = m.id; buildSubtabs(); syncHash(); loadCurrent(); };
     host.appendChild(b);
   });
-  host.insertAdjacentHTML("beforeend", `<span class="subtab-note">${MECH.length} разделов: 10 из твоего списка + «Физика» + 2 технических (3D-ассеты, аудио/UI/структура)</span>`);
+  host.insertAdjacentHTML("beforeend", `<span class="subtab-note">${MECH.length} разделов: три опоры (крафт · исследование · выживание), сеть и PvP, плюс техника (бой, физика, ассеты, аудио/UI)</span>`);
 }
 const statusCache = {};
 function statusOf(m) {
