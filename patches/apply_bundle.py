@@ -123,6 +123,7 @@ def apply_ops(doc, ops, notes):
             return s
 
         doc["blocks"] = walk_strings(doc["blocks"], repl)
+        blocks = doc["blocks"]  # walk_strings возвращает новую структуру: обновляем ссылку
         if hits[0]:
             notes.append("заменено вхождений: %d — «%s…»" % (hits[0], item["find"][:48]))
             changed = True
@@ -257,6 +258,7 @@ def apply_ops(doc, ops, notes):
             notes.append("пункты раздела «%s» уже на месте" % target_heading)
 
     # 8. Открытые вопросы: удалить решённые, добавить новые
+    blocks = doc["blocks"]  # на случай, если выше блоки подменялись
     todo = ops.get("todo")
     requires = ops.get("todo_requires")
     if todo and requires:
