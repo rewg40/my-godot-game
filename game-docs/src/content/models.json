@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "updated": "2026-10-30T21:39:05Z",
+  "items": [
+    {
+      "id": "lib-01_terrain_ground",
+      "name": "terrain ground · образец",
+      "file": "https://raw.githubusercontent.com/rewg40/my-godot-game/arena/7731914f-my-godot-game/модели/01_terrain_ground/gen_hex_tiles.glb",
+      "description": "Местность: грунт, трава, песок, склоны, дороги и тропы — «пол» уровня",
+      "tags": [
+        "cc0",
+        "glb",
+        "library"
+      ],
+      "tab": "mechanics/assets",
+      "repo_path": "модели/01_terrain_ground/gen_hex_tiles.glb",
+      "branch": "arena/7731914f-my-godot-game",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "lib-02_islands",
+      "name": "islands · образец",
+      "file": "https://raw.githubusercontent.com/rewg40/my-godot-game/arena/7731914f-my-godot-game/модели/02_islands/gen_atoll.glb",
+      "description": "Острова целиком с подводным основанием, берег, вода, реки, водопады",
+      "tags": [
+        "cc0",
+        "glb",
+        "library"
+      ],
+      "tab": "mechanics/assets",
+      "repo_path": "модели/02_islands/gen_atoll.glb",
+      "branch": "arena/7731914f-my-godot-game",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "lib-03_cliffs_rocks",
+      "name": "cliffs rocks · образец",
+      "file": "https://raw.githubusercontent.com/rewg40/my-godot-game/arena/7731914f-my-godot-game/модели/03_cliffs_rocks/hex_stone-hill.glb",
+      "description": "Скалы, утёсы, обрывы, валуны, входы в пещеры",
+      "tags": [
+        "cc0",
+        "glb",
+        "library"
+      ],
+      "tab": "mechanics/assets",
+      "repo_path": "модели/03_cliffs_rocks/hex_stone-hill.glb",
+      "branch": "arena/7731914f-my-godot-game",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "lib-04_vegetation",
+      "name": "vegetation · образец",
+      "file": "https://raw.githubusercontent.com/rewg40/my-godot-game/arena/7731914f-my-godot-game/модели/04_vegetation/hex_unit-tree.glb",
+      "description": "Деревья, пальмы, трава, цветы, пни, посевы",
+      "tags": [
+        "cc0",
+        "glb",
+        "library"
+      ],
+      "tab": "mechanics/assets",
+      "repo_path": "модели/04_vegetation/hex_unit-tree.glb",
+      "branch": "arena/7731914f-my-godot-game",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "lib-05_buildings_structures",
+      "name": "buildings structures · образец",
+      "file": "https://raw.githubusercontent.com/rewg40/my-godot-game/arena/7731914f-my-godot-game/модели/05_buildings_structures/hex_bridge.glb",
+      "description": "Дома, башни, стены, заборы, ворота, доки, мосты, маяки, статуи",
+      "tags": [
+        "cc0",
+        "glb",
+        "library"
+      ],
+      "tab": "mechanics/assets",
+      "repo_path": "модели/05_buildings_structures/hex_bridge.glb",
+      "branch": "arena/7731914f-my-godot-game",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "lib-06_props_decor",
+      "name": "props decor · образец",
+      "file": "https://raw.githubusercontent.com/rewg40/my-godot-game/arena/7731914f-my-godot-game/модели/06_props_decor/hex_unit-ship-large.glb",
+      "description": "Бочки, ящики, сундуки, корабли, пушки, оружие, облака",
+      "tags": [
+        "cc0",
+        "glb",
+        "library"
+      ],
+      "tab": "mechanics/assets",
+      "repo_path": "модели/06_props_decor/hex_unit-ship-large.glb",
+      "branch": "arena/7731914f-my-godot-game",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "example",
+      "name": "Здесь будет GLB из `персонаж 1.7z`",
+      "file": "models/README.md",
+      "description": "Загрузи GLB через вкладку «＋ 3D-модель» или положи файл в репозиторий и добавь запись сюда.",
+      "tags": [
+        "todo"
+      ],
+      "tab": "assets",
+      "size_mb": null,
+      "tris": null,
+      "date": "2026-10-30"
+    }
+  ],
+  "note": "Поле `file` — путь к .glb: либо относительный от content/, либо полный URL (raw.githubusercontent.com) на файл в репозитории. Образцы ниже берутся из папки `модели/` в ветке PR #1; после мержа замени branch в URL на main."
+}

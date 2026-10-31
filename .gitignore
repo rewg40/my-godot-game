@@ -36,3 +36,10 @@ desktop.ini
 *.exe
 *.pck
 *.zip
+
+# Site tooling / generated preview
+/game-docs/node_modules/
+/game-docs/src/_site/
+
+# кэш байткода применителя бандла
+patches/__pycache__/

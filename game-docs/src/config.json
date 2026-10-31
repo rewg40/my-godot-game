@@ -1,0 +1,39 @@
+{
+  "title": "ZOMBI · библия проекта",
+  "repo": "rewg40/my-godot-game",
+  "contentPath": "game-docs/src/content",
+  "imagesPath": "game-docs/src/content/images",
+  "modelsPath": "game-docs/src/content/models",
+  "inboxPath": "game-docs/src/content/agent-inbox",
+  "origin": {
+    "owner": "rewg40",
+    "repo": "my-godot-game",
+    "branch": "arena/087e4771-my-godot-game",
+    "pages": "https://rewg40.github.io/my-godot-game/"
+  },
+  "gate": {
+    "enabled": true,
+    "hint": "Для просмотра: «Поделиться» → скопировать гостевую ссылку; GitHub-токен не нужен. Изменение кодов доступа требует токен владельца с Contents: Read and write. Браузерный замок не защищает публичный репозиторий.",
+    "ownerCode": "db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e",
+    "allowed": []
+  },
+  "updated": "2026-10-31T17:25:00Z",
+  "site": {
+    "url": "https://rewg40.github.io/my-godot-game/",
+    "quickLogin": "https://rewg40.github.io/my-godot-game/#code=…",
+    "readOnlyBypass": "https://rewg40.github.io/my-godot-game/?open=1",
+    "note": "Агенту адрес сайта для правки не нужен: сайт читает JSON из этого репозитория. Протокол — README.md в корне и game-docs/src/docs/AGENT-GUIDE.md",
+    "storage": "game-docs/src/content/",
+    "deploy": "push в origin.branch → GitHub Actions → Pages, 10–60 с",
+    "check": "node game-docs/tools/check-site.js",
+    "viewLink": "https://rewg40.github.io/my-godot-game/?open=1#mechanics/assets"
+  },
+  "routes": {
+    "scenario": "game-docs/src/content/scenario.json",
+    "mechanics.<character|craft|research|weather|npc|quests|locations|destruction|physics|zombies|combat|inventory|assets|production|multiplayer>": "game-docs/src/content/mech_<id>.json",
+    "preview": "game-docs/src/content/preview.json",
+    "images": "game-docs/src/content/images.json + game-docs/src/content/images/",
+    "models3d": "game-docs/src/content/models.json + game-docs/src/content/models/",
+    "agent-inbox": "game-docs/src/content/agent-inbox/NNNN-slug.md → после выполнения agent-inbox/done/"
+  }
+}
