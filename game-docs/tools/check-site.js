@@ -68,6 +68,9 @@ const owner = crypto.createHash("sha256").update("ZOMBI-2026", "utf8").digest("h
 ok(cfg.gate.ownerCode === owner, "config: ownerCode == sha256(ZOMBI-2026)");
 ok(app.includes('FALLBACK_OWNER_HASH') && /h === FALLBACK_OWNER_HASH/.test(app), "вход не зависит от config.json (есть синхронная сверка)");
 ok(/nc=/.test(html) && /gate-fallback/.test(html), "index.html: анти-кэш загрузчик на месте");
+ok(/INLINE-GATE:START/.test(html) && /OWNER_HASH/.test(html) && /function sha256Pure/.test(html), "index.html: встроенный замок собран (свой sha256Pure + ownerCode)");
+ok(/<!-- INLINE-GATE:START -->[\s\S]*OWNER_HASH = "([0-9a-f]{64})"/.test(html) && RegExp.$1 === owner, "index.html: ownerCode встроенного замка == sha256(ZOMBI-2026)");
+ok(html.lastIndexOf("INLINE-GATE:START") < html.lastIndexOf("INLINE-GATE:END"), "index.html: разметка inline-замка не размножилась");
 
 console.log(fail ? "\nПРОВАЛ: " + fail + " проверок" : "\nвсе проверки пройдены");
 process.exit(fail ? 1 : 0);
