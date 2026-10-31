@@ -9,7 +9,7 @@
 
 /* ----------------------------- константы ---------------------------------- */
 const API = "https://api.github.com";
-const REPO_DEFAULT = { owner: "rewg40", repo: "my-godot-game", branch: "arena/d4678daa-my-godot-game" };
+const REPO_DEFAULT = { owner: "rewg40", repo: "my-godot-game", branch: "arena/087e4771-my-godot-game" };
 /* Запас, если config.json не читается (CORS/прокси/офлайн-кэш): вход обязан остаться возможным. */
 const FALLBACK_HASHES = ["db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e"];  // запасной список
 const FALLBACK_OWNER_HASH = FALLBACK_HASHES[0];        // владелец: синхронная сверка, сеть не нужна
