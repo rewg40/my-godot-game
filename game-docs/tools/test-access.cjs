@@ -101,6 +101,10 @@ async function makePage(t, options = {}) {
           if (options.contentPutStatus) return reply({ message: "Mock content write failure" }, options.contentPutStatus);
           return reply({ commit: { sha: "mock-content-commit" }, content: { sha: "mock-content-new-sha" } });
         }
+        if (options.remoteContent) {
+          return reply({ sha: "mock-content-sha", encoding: "base64",
+            content: Buffer.from(options.remoteContent, "utf8").toString("base64") });
+        }
         return reply({ sha: "mock-content-sha" });
       }
       return reply({ full_name: "rewg40/my-godot-game", permissions: { push: true, pull: true } });
@@ -512,5 +516,64 @@ test("inline open question can be added and sent to AI processing", async (t) =>
   assert.match(md, /открытый вопрос/);
   assert.match(md, /Как потеря цели связана/);
   assert.ok(draftOf(p, "mech_zombies.json").blocks.some((b) => (b.items || []).some((i) => String(i.text || "").includes("Как потеря цели"))));
+  assert.equal(p.errors.length, 0);
+});
+
+/* ------------------ устаревшая копия вкладки: сверка перед публикацией ------ */
+const STALE_MARK = "Серверная правка: раздел пересобран агентом";
+function staleCopy(file) {
+  const doc = JSON.parse(fs.readFileSync(path.join(SRC, "content", file), "utf8"));
+  doc.title = doc.title + " · серверная копия";
+  doc.updated = "2026-10-30T09:00:00Z";
+  doc.blocks = doc.blocks.slice(0, Math.max(2, doc.blocks.length - 2));
+  doc.blocks.splice(1, 0, { type: "p", text: [STALE_MARK] });   // отличие ближе к началу: попадает в видимую часть diff
+  return JSON.stringify(doc);
+}
+
+test("stale tab is not published silently: server copy changed, author sees the diff", async (t) => {
+  const remote = staleCopy("mech_zombies.json");
+  const p = await makePage(t, { url: BASE + "#mechanics/zombies", remoteContent: remote });
+  await until(() => !p.doc.querySelector("#btn-save").disabled, "owner ready");
+  p.click("#btn-save");
+  await until(() => (p.doc.querySelector("#modal-root .modal h3") || {}).textContent?.includes("изменилась"),
+    () => "stale modal: " + JSON.stringify({ modal: p.doc.querySelector("#modal-root").textContent.slice(0, 160), pill: p.doc.querySelector("#sync-pill").textContent, errors: p.errors }));
+  assert.equal(p.writes, 0, "ни одной записи до решения автора");
+  const modalText = p.doc.querySelector("#modal-root").textContent;
+  assert.ok(modalText.includes("Перечитать с сервера"));
+  assert.ok(modalText.includes("Всё равно опубликовать"));
+  assert.ok(modalText.includes(STALE_MARK), "в модалке видна серверная правка");
+  p.click("#stl-reload");
+  await until(() => p.doc.querySelector("#doc h1").textContent.includes("серверная копия"),
+    () => "reloaded from server: " + p.doc.querySelector("#doc h1").textContent);
+  await until(() => p.doc.querySelector("#sync-pill").textContent.includes("из репозитория"), "pill: из репозитория");
+  assert.equal(p.writes, 0, "перечитывание ничего не пишет в репозиторий");
+  assert.equal(p.errors.length, 0);
+});
+
+test("author can still publish a stale tab on purpose", async (t) => {
+  const remote = staleCopy("mech_zombies.json");
+  const p = await makePage(t, { url: BASE + "#mechanics/zombies", remoteContent: remote });
+  await until(() => !p.doc.querySelector("#btn-save").disabled, "owner ready");
+  addInlineQuestion(p, "Принудительная публикация");
+  await until(() => p.doc.querySelector("#doc").textContent.includes("Принудительная публикация"), "local question");
+  p.click("#btn-save");
+  await until(() => (p.doc.querySelector("#modal-root .modal h3") || {}).textContent?.includes("изменилась"), "stale modal");
+  p.click("#stl-publish");
+  await until(() => p.writes === 1, () => "forced PUT: " + JSON.stringify({ writes: p.writes, pill: p.doc.querySelector("#sync-pill").textContent, errors: p.errors }));
+  const put = p.calls.find((c) => c.method === "PUT");
+  assert.ok(put.href.includes("/contents/game-docs/src/content/mech_zombies.json"));
+  const committed = Buffer.from(JSON.parse(put.body).content, "base64").toString("utf8");
+  assert.ok(committed.includes("Принудительная публикация"), "публикуется именно версия автора");
+  assert.equal(p.errors.length, 0);
+});
+
+test("compare button reports an up-to-date tab", async (t) => {
+  const same = fs.readFileSync(path.join(SRC, "content", "mech_zombies.json"), "utf8");
+  const p = await makePage(t, { url: BASE + "#mechanics/zombies", remoteContent: same });
+  await until(() => !p.doc.querySelector("#btn-compare").hidden, "кнопка сверки видна владельцу с токеном");
+  p.click("#btn-compare");
+  await until(() => (p.doc.querySelector("#modal-root .modal h3") || {}).textContent?.includes("совпадает"),
+    () => "compare result: " + p.doc.querySelector("#modal-root").textContent.slice(0, 200));
+  assert.equal(p.writes, 0);
   assert.equal(p.errors.length, 0);
 });

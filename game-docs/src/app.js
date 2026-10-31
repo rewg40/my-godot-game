@@ -93,7 +93,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.13 · отправка правок ИИ";
+const SITE_BUILD = "2026-10-31.14 · сверка с сервером перед публикацией";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -180,6 +180,7 @@ const S = {
   mainTab: "scenario", mechIndex: MECH.map((m) => m.id), sub: "character",
   content: null, contentFile: null, contentSha: null, contentName: "",
   images: null, models: null, dirty: new Set(), draftErrors: new Set(), publishing: false, revision: 0,
+  baseBlocks: {},   // file -> нормализованные blocks на момент загрузки: ловим публикацию устаревшей копии
 };
 const draftKey = (file) => LS.draft + file;
 const hasDraft = (file) => { try { return !!localStorage.getItem(draftKey(file)); } catch (e) { return false; } };
@@ -851,6 +852,7 @@ async function loadCurrent(showLoader = true) {
       d._banner = "Локальная правка сохранена в этом браузере. Чтобы её увидели все, нажми «Опубликовать вкладку».";
     }
     S.content = d; S.contentFile = file; S.docReady = true;
+    if (!fromDraft) S.baseBlocks[file] = normBlocks(d);   // база для сверки перед публикацией
     if (MECH.some((m) => m.file === file)) { statusCache[file] = d.status; renderSubtabs(); }
     renderDoc(d);
     setPill(fromDraft ? "warn" : "ok", fromDraft ? "черновик в браузере" : "из репозитория");
@@ -877,6 +879,7 @@ function updateFoot() {
   $("#btn-save").disabled = S.publishing || (!writable && !localOnly);
   $("#btn-save").textContent = S.publishing ? "Публикация…" : localOnly ? "⤒ Подключить GitHub" : "⤒ Опубликовать вкладку";
   $("#btn-edit-tab").hidden = S.viewOnly;
+  if ($("#btn-compare")) $("#btn-compare").hidden = S.viewOnly || !S.token;
   $("#btn-edit-tab").disabled = !S.docReady || S.publishing;
   $("#lnk-inbox").hidden = S.viewOnly;
   const dirty = !S.viewOnly && S.dirty.size > 0;
@@ -975,7 +978,7 @@ function readHash() {
 }
 
 /* ----------------------------- депозит: правки в GitHub -------------------- */
-async function pushCurrent(silent) {
+async function pushCurrent(silent, opts) {
   if (S.publishing) return false;
   if (!canWrite()) {
     toast(writeBlockReason(), "warn", 6500);
@@ -984,6 +987,19 @@ async function pushCurrent(silent) {
   }
   const file = S.contentFile, d = S.content, revision = S.revision;
   if (!file || !d) return false;
+  // Сверка с веткой: если вкладку уже изменили (агент, другой автор, другое окно) —
+  // не перезаписываем молча, а показываем отличия и даём выбор.
+  if (!(opts && opts.force) && S.baseBlocks[file]) {
+    const remoteText = await remotePublishedText(file);
+    if (remoteText) {
+      let remote = null;
+      try { remote = JSON.parse(remoteText); } catch (e) { remote = null; }
+      if (remote && Array.isArray(remote.blocks) && normBlocks(remote) !== S.baseBlocks[file]) {
+        openStaleModal(file, remoteText);
+        return false;
+      }
+    }
+  }
   S.publishing = true; updateFoot();
   setPill("", "публикация…");
   try {
@@ -991,6 +1007,7 @@ async function pushCurrent(silent) {
     published.updated = nowIso();
     const path = `${S.config.contentPath}/${file}`;
     await ghPutText(path, JSON.stringify(published, null, 2) + "\n", `docs(${file.replace(/\.json$/, "")}): правка через сайт`);
+    S.baseBlocks[file] = normBlocks(published);
     // Do not erase a newer edit made while the network request was in flight.
     if (S.contentFile !== file || S.revision === revision) {
       try { localStorage.removeItem(draftKey(file)); } catch (e) { /* remote save succeeded */ }
@@ -1009,6 +1026,92 @@ async function pushCurrent(silent) {
     return false;
   } finally { S.publishing = false; updateFoot(); }
 }
+/* ------------------ защита: не публиковать устаревшую копию вкладки -------- */
+/* normBlocks: сравниваем только blocks, чтобы метка updated не давала ложных срабатываний. */
+function normBlocks(d) {
+  try { return JSON.stringify((d && d.blocks) || []); } catch (e) { return ""; }
+}
+/* Текст вкладки из ветки (а не из кэша Pages): то, что реально затрёт публикация. */
+async function remotePublishedText(file) {
+  if (!S.origin.owner || S.viewOnly) return null;
+  try {
+    const r = await ghGetFile(`${S.config.contentPath}/${file}`);
+    return typeof r.text === "string" && r.text ? r.text : null;
+  } catch (e) { return null; }
+}
+function textDiff(a, b, cap) {
+  const A = String(a == null ? "" : a).split("\n"), B = String(b == null ? "" : b).split("\n");
+  let i = 0;
+  while (i < A.length && i < B.length && A[i] === B[i]) i++;
+  let j = 0;
+  while (j < A.length - i && j < B.length - i && A[A.length - 1 - j] === B[B.length - 1 - j]) j++;
+  const rem = A.slice(i, A.length - j), add = B.slice(i, B.length - j);
+  const limit = cap || 24, out = [];
+  rem.slice(0, limit).forEach((l) => out.push("- " + l));
+  if (rem.length > limit) out.push("... и ещё " + (rem.length - limit) + " строк удалено");
+  add.slice(0, limit).forEach((l) => out.push("+ " + l));
+  if (add.length > limit) out.push("... и ещё " + (add.length - limit) + " строк добавлено");
+  return out.length ? out.join("\n") : "отличий нет";
+}
+function applyRemoteDoc(file, remote) {
+  S.content = remote; S.contentFile = file; S.docReady = true;
+  S.baseBlocks[file] = normBlocks(remote);
+  try { localStorage.removeItem(draftKey(file)); } catch (e) { /* черновик мог не сохраниться */ }
+  S.dirty.delete(file);
+  const bar = $("#dirty-bar"); if (bar) bar.hidden = !S.dirty.size;
+  renderDoc(S.content);
+  setPill("ok", "из репозитория");
+  updateFoot();
+}
+function staleModalHtml(file, remote, diff) {
+  return `
+    <p>Пока вкладка была открыта, <code>${esc(file)}</code> изменили в ветке <code>${esc(S.origin.branch)}</code>.</p>
+    <p>В репозитории: <b>${esc(remote.updated || "без метки")}</b> · у вас на экране: <b>${esc((S.content && S.content.updated) || "без метки")}</b>.
+    Публикация сейчас затрёт ту, чужую правку.</p>
+    <pre class="code">${esc(diff)}</pre>
+    <p class="hint">«−» — чего нет в вашей копии (уже есть в репозитории); «+» — что вы опубликуете поверх.</p>`;
+}
+function openStaleModal(file, remoteText) {
+  let remote = null;
+  try { remote = JSON.parse(remoteText); } catch (e) { toast("Версия из репозитория не читается как JSON — публикация отменена.", "warn", 6000); return; }
+  const diff = textDiff(JSON.stringify(remote, null, 2), JSON.stringify(S.content, null, 2), 24);
+  const modal = openModal("Вкладка в репозитории изменилась", staleModalHtml(file, remote, diff) + `
+    <div class="foot-row">
+      <button class="primary" id="stl-reload">Перечитать с сервера</button>
+      <button class="ghost" id="stl-publish">Всё равно опубликовать</button>
+      <button class="ghost" id="stl-cancel">Отмена</button>
+    </div>`);
+  $("#stl-cancel", modal).onclick = closeModal;
+  $("#stl-publish", modal).onclick = () => { closeModal(); S.baseBlocks[file] = normBlocks(remote); pushCurrent(false, { force: true }); };
+  $("#stl-reload", modal).onclick = () => {
+    closeModal();
+    applyRemoteDoc(file, remote);
+    toast("Загружена версия из репозитория. Свою правку придётся внести заново.", "ok", 7000);
+  };
+}
+async function compareWithServer() {
+  const file = S.contentFile;
+  if (!file) return;
+  if (!canWrite()) { toast(writeBlockReason(), "warn", 6500); if (!S.token && !S.viewOnly && !S.readonlyGate) openSettings("github"); return; }
+  const text = await remotePublishedText(file);
+  if (text == null) { toast("Не удалось прочитать вкладку из репозитория: нужен токен с Contents: Read and write и доступ к ветке " + S.origin.branch + ".", "warn", 7000); return; }
+  let remote = null;
+  try { remote = JSON.parse(text); } catch (e) { toast("Файл в репозитории не читается как JSON.", "warn"); return; }
+  const same = normBlocks(remote) === normBlocks(S.content);
+  const diff = same ? "" : textDiff(JSON.stringify(remote, null, 2), JSON.stringify(S.content, null, 2), 30);
+  const modal = openModal(same ? "Вкладка совпадает с репозиторием" : "Есть отличия от репозитория", same
+    ? `<p>Ваша копия <code>${esc(file)}</code> совпадает с веткой <code>${esc(S.origin.branch)}</code> — публиковать безопасно.</p>
+       <div class="foot-row"><button class="primary" id="cmp-close">Закрыть</button></div>`
+    : staleModalHtml(file, remote, diff) + `
+       <div class="foot-row">
+         <button class="primary" id="cmp-reload">Перечитать с сервера</button>
+         <button class="ghost" id="cmp-close">Оставить свою версию</button>
+       </div>`);
+  const close = $("#cmp-close", modal); if (close) close.onclick = closeModal;
+  const rel = $("#cmp-reload", modal);
+  if (rel) rel.onclick = () => { closeModal(); applyRemoteDoc(file, remote); toast("Загружена версия из репозитория.", "ok", 6000); };
+}
+
 async function pullCurrent() {
   if (S.publishing) return;
   if (!confirm("Отменить локальные правки этой вкладки и загрузить опубликованную версию?")) return;
@@ -1868,6 +1971,7 @@ let chromeWired = false;
 function wireChrome() {
   if (chromeWired) return; chromeWired = true;
   $("#btn-refresh").onclick = () => refreshAll(); // refresh must never silently discard a local draft
+  if ($("#btn-compare")) $("#btn-compare").onclick = () => compareWithServer();
   $("#btn-share").onclick = () => openSettings("access");
   $("#btn-save").onclick = () => pushCurrent();
   $("#btn-edit-tab").onclick = () => openTabComposer();
