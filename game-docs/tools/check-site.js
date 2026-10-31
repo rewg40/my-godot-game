@@ -105,5 +105,41 @@ if (css) {
      hiddenWins ? "конфликты " + risky.size + " шт. закрыты правилом [hidden]{…!important}" : [...risky].slice(0, 6).join(", "));
 } else { console.log("  skip  app.css не найден (SITE_DIR без стилей)"); }
 
+/* 7. самодостаточные блоки в index.html: замок в <head> и сторож кликов перед </body>.
+      Они обязаны пережить старый/незагруженный app.js — иначе «вкладки не реагируют»
+      и человек не получает никакого объяснения. */
+{
+  const vm = require("vm");
+  const block = (startMark, endMark) => {
+    const a = html.indexOf(startMark), b = html.indexOf(endMark, a);
+    if (a < 0 || b < 0) return null;
+    const s0 = html.indexOf("<script>", a), e1 = s0 > 0 ? html.indexOf("</script>", s0) : -1;
+    if (s0 < 0 || e1 < 0 || e1 > b) return "";
+    return html.slice(s0 + 8, e1);
+  };
+  const N = (x) => (html.match(new RegExp(x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
+  ok(N("<!-- INLINE-GATE:START -->") === 1 && N("<!-- INLINE-GATE:END -->") === 1, "index.html: замок встроен ровно один раз");
+  ok(N("<!-- ZOMBI-WATCHDOG:START -->") === 1 && N("<!-- ZOMBI-WATCHDOG:END -->") === 1, "index.html: сторож встроен ровно один раз");
+  const gateCode = block("<!-- INLINE-GATE:START -->", "<!-- INLINE-GATE:END -->");
+  const wdCode = block("<!-- ZOMBI-WATCHDOG:START -->", "<!-- ZOMBI-WATCHDOG:END -->");
+  for (const [name, code, must] of [
+    ["замок", gateCode, /OWNER_HASH = "[0-9a-f]{64}"/],
+    ["сторож", wdCode, /__ZOMBI_CLICKS__|__ZOMBI_DIAG__/],
+  ]) {
+    if (code === null) { ok(false, name + ": между маркерами нет <script>", "сгенерируй: node game-docs/tools/build-inline-gate.js"); continue; }
+    ok(code !== "", name + ": <script> цел (не обрезан блок-комментарием)");
+    let parsed = false, err = "";
+    try { new vm.Script(code, { filename: name }); parsed = true; } catch (e) { err = e.message; }
+    ok(parsed, name + ": синтаксис чистый", err || (code.length + " B"));
+    ok(must.test(code), name + ": нужная логика на месте", must.source.slice(0, 28));
+  }
+  const wPos = html.indexOf("<!-- ZOMBI-WATCHDOG:START -->");
+  ok(wPos > html.indexOf('id="main-tabs"') && wPos < html.indexOf("</body>"), "сторож стоит после разметки и перед </body>");
+  const boot = app.slice(app.indexOf("function boot()"));
+  const wireAt = boot.search(/wireChrome\(\);\s*buildMainTabs\(\)/);
+  const guardAt = boot.indexOf("guardStaleBuild()");
+  ok(wireAt >= 0 && (guardAt < 0 || wireAt < guardAt), "app.js: вкладки wire-ятся ДО стража кэша", guardAt < 0 ? "стража нет" : "wire=" + wireAt + " guard=" + guardAt);
+}
+
 console.log(fail ? "\nПРОВАЛ: " + fail + " проверок" : "\nвсе проверки пройдены");
 process.exit(fail ? 1 : 0);
