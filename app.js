@@ -82,7 +82,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.11 · stale guard for all";
+const SITE_BUILD = "2026-11-01.2 · watchdog + guards in index.html";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -595,7 +595,7 @@ async function loadCurrent(showLoader = true) {
   } catch (e) {
     S.docReady = false; S.lastErr = e.message;
     $("#doc").innerHTML = `<div class="end-card">Не удалось загрузить <code>content/${esc(file)}</code>: ${esc(e.message)}<br>
-      Проверь <b>⚙ Настройки</b> (репозиторий/ветка/токен). Если файлы в порядке — браузер держит старый <code>app.js</code> или Pages не пересобрался.
+      Проверь <b>⚙ Настройки</b> (репозиторий/ветка/токен). Если в репозитории файл есть — это кэш браузера или блокировка: нажми «Перезагрузить начисто».
       <div class="end-actions">
         <button class="tiny" id="ec-fresh">Перезагрузить начисто</button>
         <button class="tiny ghost" id="ec-copy">Скопировать диагностику</button>
@@ -1364,6 +1364,10 @@ function wireChrome() {
 }
 async function boot() {
   window.__ZOMBI_BOOTED__ = 1;
+  // обработчики вешаем СОВСЕМ первыми: даже если дальше мы уйдём на перезагрузку
+  // (страж кэша) или загрузка конфига зависнет, клики по вкладкам уже живые
+  window.__ZOMBI_STAMP__ = SITE_BUILD;
+  wireChrome(); buildMainTabs(); wireDoc();
   // страж кэша работает ВСЕГДА, в т.ч. для уже вошедших: иначе «залетевший» старый
   // app.js не обновлялся бы никогда (а встроенный в HTML замок пишет штамп "inline").
   if (guardStaleBuild()) return;           // устаревший кэш — перезагружаемся (один раз, ?fresh=1)
@@ -1373,16 +1377,12 @@ async function boot() {
     const o = JSON.parse(localStorage.getItem(LS.origin) || "null"); if (o) S.origin = { ...S.origin, ...o };
     S.token = localStorage.getItem(LS.token) || "";
   } catch (e) { /* ignore */ }
+  readHash(); buildMainTabs(); updateFoot();   // хеш/активная вкладка — уже после замка-решения
   wireGate();                        // замок сразу: проверка кода не зависит от сети
   const cfgP = loadConfig().catch(() => {});
   const cfg = S.config.origin;
   if (cfg && cfg.repo && !localStorage.getItem(LS.origin)) S.origin = { ...S.origin, owner: cfg.owner || S.origin.owner, repo: cfg.repo, branch: cfg.branch || S.origin.branch };
   if (S.config.token || S.config.githubToken) { delete S.config.token; delete S.config.githubToken; }  // на всякий случай: токены в репо не хранятся
-  wireChrome();
-  readHash();
-  buildMainTabs();
-  wireDoc();
-  updateFoot();
   primeStatuses();
   if (ig && ig.unlockedBy) { openSite(); boot2(); return; }   // не держим замок, который уже открыт
   const open = !!S.inside;                  // решение замка, а не состояние DOM

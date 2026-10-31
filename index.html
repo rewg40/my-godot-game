@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" data-build="2026-10-31.11 · stale guard for all">
+<html lang="ru" data-build="2026-11-01.2 · watchdog + guards in index.html">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,60 +18,63 @@
 </script>
     <!-- INLINE-GATE:START -->
 <script>
-/* === INLINE-GATE (автосборка: game-docs/tools/build-inline-gate.js) — не править вручную === */
+// Содержимое встроенного замка. Генератор build-inline-gate.js подставляет db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e и вставляет
+// этот файл внутрь index.html между маркерами INLINE-GATE. Здесь только ES5, без внешних зависимостей.
+// ВАЖНО: не начинать файл с /* … */ — открывающий блок-комментарий ломает инлайн-<script>.
+// === INLINE-GATE (автосборка: node game-docs/tools/build-inline-gate.js) — не править вручную ===
 (function () {
   var OWNER_HASH = "db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e";
-  function sha256Pure(text) {
-  const isP = (n) => { for (let i = 2; i * i <= n; i++) if (!(n % i)) return false; return n > 1; };
-  const K = (() => { const o = []; for (let i = 2, c = 0; c < 64; i++) if (isP(i)) { o.push(((Math.pow(i, 1 / 3) % 1) * 4294967296) | 0); c++; } return o; })();
-  const H0 = (() => { const o = []; for (let i = 2, c = 0; c < 8; i++) if (isP(i)) { o.push(((Math.pow(i, 1 / 2) % 1) * 4294967296) | 0); c++; } return o; })();
-  const H = H0.slice();
-  const rotr = (x, n) => (x >>> n) | (x << (32 - n));
-  const bytes = [];
-  for (let i = 0; i < text.length; i++) {
-    let c = text.charCodeAt(i);
-    if (c < 0x80) bytes.push(c);
-    else if (c < 0x800) bytes.push(0xc0 | (c >> 6), 0x80 | (c & 0x3f));
-    else if (c >= 0xd800 && c < 0xdc00 && i + 1 < text.length) {
-      const cp = 0x10000 + (((c & 0x3ff) << 10) | (text.charCodeAt(i + 1) & 0x3ff));
-      bytes.push(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3f), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f));
-      i++;
-    } else bytes.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+    function sha256Pure(text) {
+    const isP = (n) => { for (let i = 2; i * i <= n; i++) if (!(n % i)) return false; return n > 1; };
+    const K = (() => { const o = []; for (let i = 2, c = 0; c < 64; i++) if (isP(i)) { o.push(((Math.pow(i, 1 / 3) % 1) * 4294967296) | 0); c++; } return o; })();
+    const H0 = (() => { const o = []; for (let i = 2, c = 0; c < 8; i++) if (isP(i)) { o.push(((Math.pow(i, 1 / 2) % 1) * 4294967296) | 0); c++; } return o; })();
+    const H = H0.slice();
+    const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+    const bytes = [];
+    for (let i = 0; i < text.length; i++) {
+      let c = text.charCodeAt(i);
+      if (c < 0x80) bytes.push(c);
+      else if (c < 0x800) bytes.push(0xc0 | (c >> 6), 0x80 | (c & 0x3f));
+      else if (c >= 0xd800 && c < 0xdc00 && i + 1 < text.length) {
+        const cp = 0x10000 + (((c & 0x3ff) << 10) | (text.charCodeAt(i + 1) & 0x3ff));
+        bytes.push(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3f), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f));
+        i++;
+      } else bytes.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+    }
+    const bitLen = bytes.length * 8;
+    bytes.push(0x80);
+    const target = (Math.floor((bytes.length - 1) / 64) + 1) * 64 - 8;
+    while (bytes.length < target) bytes.push(0);
+    const hi = Math.floor(bitLen / 4294967296), lo = bitLen >>> 0;
+    bytes.push((hi >>> 24) & 255, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255,
+               (lo >>> 24) & 255, (lo >>> 16) & 255, (lo >>> 8) & 255, lo & 255);
+    const w = new Int32Array(64);
+    for (let off = 0; off < bytes.length; off += 64) {
+      for (let i = 0; i < 16; i++) {
+        const j = off + i * 4;
+        w[i] = ((bytes[j] << 24) | (bytes[j + 1] << 16) | (bytes[j + 2] << 8) | bytes[j + 3]) | 0;
+      }
+      for (let i = 16; i < 64; i++) {
+        const x = w[i - 15], y = w[i - 2];
+        const s0 = (rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3)) | 0;
+        const s1 = (rotr(y, 17) ^ rotr(y, 19) ^ (y >>> 10)) | 0;
+        w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+      }
+      let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+      for (let i = 0; i < 64; i++) {
+        const S1 = (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) | 0;
+        const ch = ((e & f) ^ (~e & g)) | 0;
+        const t1 = (h + S1 + ch + K[i] + w[i]) | 0;
+        const S0 = (rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) | 0;
+        const mj = ((a & b) ^ (a & c) ^ (b & c)) | 0;
+        const t2 = (S0 + mj) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+      H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+    }
+    return H.map((x) => (x >>> 0).toString(16).padStart(8, "0")).join("");
   }
-  const bitLen = bytes.length * 8;
-  bytes.push(0x80);
-  const target = (Math.floor((bytes.length - 1) / 64) + 1) * 64 - 8;
-  while (bytes.length < target) bytes.push(0);
-  const hi = Math.floor(bitLen / 4294967296), lo = bitLen >>> 0;
-  bytes.push((hi >>> 24) & 255, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255,
-             (lo >>> 24) & 255, (lo >>> 16) & 255, (lo >>> 8) & 255, lo & 255);
-  const w = new Int32Array(64);
-  for (let off = 0; off < bytes.length; off += 64) {
-    for (let i = 0; i < 16; i++) {
-      const j = off + i * 4;
-      w[i] = ((bytes[j] << 24) | (bytes[j + 1] << 16) | (bytes[j + 2] << 8) | bytes[j + 3]) | 0;
-    }
-    for (let i = 16; i < 64; i++) {
-      const x = w[i - 15], y = w[i - 2];
-      const s0 = (rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3)) | 0;
-      const s1 = (rotr(y, 17) ^ rotr(y, 19) ^ (y >>> 10)) | 0;
-      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
-    }
-    let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
-    for (let i = 0; i < 64; i++) {
-      const S1 = (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) | 0;
-      const ch = ((e & f) ^ (~e & g)) | 0;
-      const t1 = (h + S1 + ch + K[i] + w[i]) | 0;
-      const S0 = (rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) | 0;
-      const mj = ((a & b) ^ (a & c) ^ (b & c)) | 0;
-      const t2 = (S0 + mj) | 0;
-      h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
-    }
-    H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
-    H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
-  }
-  return H.map((x) => (x >>> 0).toString(16).padStart(8, "0")).join("");
-}
   window.__ZOMBI_INLINE_GATE__ = 1;   // app.js: обработчик встроенного замка важнее
   var LS = { tk: "zombi-docs:unlocked", ad: "zombi-docs:admin", ro: "zombi-docs:readonly-gate", stamp: "zombi-docs:build" };
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -84,8 +87,8 @@
     if (a) { a.hidden = false; a.style.display = "flex"; }
     var ld = document.getElementById("gate-loader");
     if (ld) ld.textContent = "замок пройден (" + unlockedBy + ")" + (readonly ? " · только чтение: сеть до репозитория недоступна" : " · жду app.js…");
-    /* app.js подхватит window.__ZOMBI_GATE__ и сам отрисует содержимое; здесь важнее
-       не плодить переходы по таймеру (они и давали «затемнённый, но неактивный» экран). */
+    // app.js подхватит window.__ZOMBI_GATE__ и сам отрисует содержимое;
+    // здесь важнее не плодить переходы по таймеру (они и давали «затемнённый, но неактивный» экран).
     return true;
   }
   function stampLine(text, warn) {
@@ -166,8 +169,11 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, false);
   else boot();
 })();
-/* === /INLINE-GATE === */
+// === /INLINE-GATE ===
 </script>
+
+
+
     <!-- INLINE-GATE:END -->
 </head>
 <body>
@@ -273,5 +279,107 @@
   bust();
 })();
 </script>
+  <!-- ZOMBI-WATCHDOG:START --><script>
+//Сторожевой скрипт, встраивается в <head> index.html генератором build-inline-gate.js.
+//Живёт ВНЕ app.js: если тот устарел (кэш), не загрузился или упал — человек всё равно
+//видит причину и кнопку лечения, вместо «нажимаю, ничего не происходит».
+//Здесь только ES5: никакого async/await, стрелок и шаблонных литералов.
+(function () {
+  window.__ZOMBI_CLICKS__ = 0;
+  window.__ZOMBI_ERRS__ = [];
+
+  function showErr(msg) {
+    var box = document.getElementById("zombi-err");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "zombi-err";
+      box.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:9999;max-width:min(600px,92vw);" +
+        "background:#2a1416;border:1px solid #7c3a3a;color:#ffd9d9;padding:10px 12px;border-radius:10px;" +
+        "font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;box-shadow:0 10px 30px rgba(0,0,0,.5)";
+      (document.body || document.documentElement).appendChild(box);
+    }
+    if (box.getAttribute("data-seen") === msg) return;
+    box.setAttribute("data-seen", msg);
+    box.textContent = "";
+    var b = document.createElement("b");
+    b.textContent = "Сторож сайта: вот что не так";
+    box.appendChild(b);
+    box.appendChild(document.createTextNode(String.fromCharCode(10) + msg));
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:8px;margin-top:8px;flex-wrap:wrap";
+    function btn(label, fn) {
+      var el = document.createElement("button");
+      el.textContent = label;
+      el.style.cssText = "font:12px sans-serif;cursor:pointer;padding:4px 9px;border-radius:7px;border:1px solid #7c3a3a;background:#1b0f11;color:#ffd9d9";
+      el.onclick = fn;
+      row.appendChild(el);
+    }
+    btn("Перезагрузить начисто", function () {
+      try { localStorage.removeItem("zombi-docs:build"); localStorage.removeItem("zombi-docs:loader"); } catch (e) {}
+      var u = location.href.split("?")[0].split("#")[0];
+      location.href = u + "?fresh=1" + (location.hash || "");
+    });
+    btn("Скопировать", function () {
+      var ta = document.createElement("textarea");
+      ta.value = diagText();
+      ta.style.cssText = "position:fixed;left:-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      ta.remove();
+    });
+    btn("Скрыть", function () { box.parentNode && box.parentNode.removeChild(box); });
+    box.appendChild(row);
+  }
+
+  function diagText() {
+    var doc = document.getElementById("doc");
+    var st = [];
+    st.push("href: " + location.href);
+    st.push("userAgent: " + navigator.userAgent);
+    st.push("app.js штамп: " + (window.__ZOMBI_STAMP__ || "не прочитан (app.js не загрузился)"));
+    st.push("HTML штамп: " + (document.documentElement.getAttribute("data-build") || "нет"));
+    st.push("кликов по вкладкам: " + window.__ZOMBI_CLICKS__ + (window.__ZOMBI_LASTTAB__ ? " (последний: " + window.__ZOMBI_LASTTAB__ + ")" : ""));
+    st.push("ошибок: " + (window.__ZOMBI_ERRS__.join(" | ") || "нет"));
+    st.push("состояние #doc: " + ((doc && doc.textContent) || "пусто").replace(/\s+/g, " ").slice(0, 220));
+    return st.join("\n");
+  }
+  window.__ZOMBI_DIAG__ = diagText;
+
+  document.addEventListener("click", function (e) {
+    var t = e.target && e.target.closest ? e.target.closest("#main-tabs [data-tab], #subtabs .subtab") : null;
+    if (!t) return;
+    window.__ZOMBI_CLICKS__++;
+    window.__ZOMBI_LASTTAB__ = (t.getAttribute("data-tab") || t.textContent || "").replace(/\s+/g, " ").trim().slice(0, 24);
+    var ld = document.getElementById("gate-loader");
+    if (ld) ld.textContent = "клик #" + window.__ZOMBI_CLICKS__ + " · " + window.__ZOMBI_LASTTAB__;
+  }, true);
+
+  window.addEventListener("error", function (e) {
+    var src = e && e.filename ? String(e.filename).split("/").pop().split("?")[0] : "?";
+    var line = (e && e.message ? e.message : "скрипт упал") + "  (" + src + ":" + (e && e.lineno) + ":" + (e && e.colno) + ")";
+    window.__ZOMBI_ERRS__.push(line);
+    showErr(line + "\napp.js: " + (window.__ZOMBI_STAMP__ || "штамп не прочитан"));
+  }, true);
+
+  window.addEventListener("unhandledrejection", function (e) {
+    var r = e && e.reason;
+    var line = "Promise: " + ((r && (r.message || r.stack)) || r || "без причины");
+    window.__ZOMBI_ERRS__.push(line);
+    showErr(line);
+  });
+
+  // если документ так и не загрузился — объясняем вместо вечной «Загрузки…»
+  setTimeout(function () {
+    var doc = document.getElementById("doc");
+    var t = doc ? String(doc.textContent || "") : "";
+    if (!/Загрузка|Не удалось загрузить|ошибк/i.test(t)) return;
+    showErr(["Документ не загружен: content/*.json недоступен (кэш браузера, блокировка github.io или Pages ещё не пересобрался).", t.replace(/\s+/g, " ").slice(0, 180), "app.js: " + (window.__ZOMBI_STAMP__ || "штамп не прочитан")].join(String.fromCharCode(10)));
+  }, 7000);
+})();
+</script>
+
+
+<!-- ZOMBI-WATCHDOG:END -->
 </body>
 </html>
