@@ -54,6 +54,7 @@ async function makePage(t, options = {}) {
   const copied = [];
   let writes = 0;
   let pending = 0;
+  let contentGet = 0;
   const owner = options.owner !== false;
   window.localStorage.setItem("zombi-docs:token", options.token === undefined ? TOKEN : options.token);
   if (owner) {
@@ -82,7 +83,7 @@ async function makePage(t, options = {}) {
     const parsed = new URL(href);
     const method = (init.method || "GET").toUpperCase();
     const headers = init.headers || {};
-    calls.push({ href, method, headers, body: init.body });
+    calls.push({ href, method, headers, body: init.body, cache: init.cache });
     if (method !== "GET") writes++;
     if (parsed.hostname === "api.github.com") {
       if (options.api401 && (method === "PUT" || options.api401 === "all")) return reply({ message: "Requires authentication" }, 401);
@@ -98,8 +99,19 @@ async function makePage(t, options = {}) {
       }
       if (/\/contents\/game-docs\/src\/content\/.+\.json$/.test(parsed.pathname)) {
         if (method === "PUT") {
+          const sent = JSON.parse(init.body || "{}");
+          // Так GitHub отвечает на запись по устаревшему sha (кэш браузера или чужая правка).
+          if (options.staleShaCount && sent.sha === "mock-stale-sha") {
+            return reply({ message: "Mock content conflict: does not match mock-stale-sha" }, 409);
+          }
           if (options.contentPutStatus) return reply({ message: "Mock content write failure" }, options.contentPutStatus);
           return reply({ commit: { sha: "mock-content-commit" }, content: { sha: "mock-content-new-sha" } });
+        }
+        // Первые staleShaCount чтений отдаём «закэшированный» ответ: старый sha и старое содержимое.
+        if (options.staleShaCount && contentGet < options.staleShaCount) {
+          contentGet++;
+          return reply({ sha: "mock-stale-sha", encoding: "base64",
+            content: Buffer.from(options.staleRemoteContent || "", "utf8").toString("base64") });
         }
         if (options.remoteContent) {
           return reply({ sha: "mock-content-sha", encoding: "base64",
@@ -564,6 +576,51 @@ test("author can still publish a stale tab on purpose", async (t) => {
   assert.ok(put.href.includes("/contents/game-docs/src/content/mech_zombies.json"));
   const committed = Buffer.from(JSON.parse(put.body).content, "base64").toString("utf8");
   assert.ok(committed.includes("Принудительная публикация"), "публикуется именно версия автора");
+  assert.equal(p.errors.length, 0);
+});
+
+test("GitHub 409 on publish opens the difference window, force retries with a fresh sha", async (t) => {
+  const file = "mech_zombies.json";
+  const local = fs.readFileSync(path.join(SRC, "content", file), "utf8");
+  const remote = staleCopy(file);
+  const p = await makePage(t, { url: BASE + "#mechanics/zombies",
+    staleShaCount: 2, staleRemoteContent: local, remoteContent: remote });
+  await until(() => !p.doc.querySelector("#btn-save").disabled, "owner ready");
+  addInlineQuestion(p, "Правка поверх чужой");
+  await until(() => p.doc.querySelector("#doc").textContent.includes("Правка поверх чужой"), "local question");
+
+  p.click("#btn-save");
+  // пре-чек видит «закэшированную» копию и пропускает, GitHub отклоняет запись 409 ->
+  // автор всё равно получает окно отличий, а не тупик с текстом ошибки
+  await until(() => (p.doc.querySelector("#modal-root .modal h3") || {}).textContent?.includes("изменилась"),
+    () => "409 modal: " + JSON.stringify({ modal: p.doc.querySelector("#modal-root").textContent.slice(0, 160),
+      pill: p.doc.querySelector("#sync-pill").textContent, errors: p.errors }));
+  const modalText = p.doc.querySelector("#modal-root").textContent;
+  assert.ok(modalText.includes("GitHub отклонил запись"), "причина 409 объяснена автором-человеком");
+  assert.ok(!modalText.includes("does not match"), "сырой текст GitHub не показываем");
+  assert.ok(modalText.includes("Перечитать с сервера") && modalText.includes("Всё равно опубликовать"));
+  const firstPuts = p.calls.filter((c) => c.method === "PUT");
+  assert.ok(firstPuts.some((c) => JSON.parse(c.body).sha === "mock-stale-sha"), "первая попытка ушла с устаревшим sha");
+
+  p.click("#stl-publish");
+  await until(() => p.writes === 2,
+    () => "retry PUT: " + JSON.stringify({ writes: p.writes, pill: p.doc.querySelector("#sync-pill").textContent, errors: p.errors }));
+  const committed = Buffer.from(JSON.parse(p.calls.filter((c) => c.method === "PUT").pop().body).content, "base64").toString("utf8");
+  assert.ok(committed.includes("Правка поверх чужой"), "опубликована именно версия автора");
+  assert.ok(p.doc.querySelector("#sync-pill").textContent.includes("опубликовано"), "пилль: опубликовано");
+  assert.equal(p.errors.length, 0);
+});
+
+test("GitHub API requests bypass the browser cache", async (t) => {
+  const same = fs.readFileSync(path.join(SRC, "content", "mech_zombies.json"), "utf8");
+  const p = await makePage(t, { url: BASE + "#mechanics/zombies", remoteContent: same });
+  await until(() => !p.doc.querySelector("#btn-compare").hidden, "owner ready");
+  p.click("#btn-compare");
+  await until(() => (p.doc.querySelector("#modal-root .modal h3") || {}).textContent?.includes("совпадает"),
+    () => "compare result: " + p.doc.querySelector("#modal-root").textContent.slice(0, 200));
+  const api = p.calls.filter((c) => new URL(c.href).hostname === "api.github.com");
+  assert.ok(api.length > 0, "запросы к API были");
+  for (const c of api) assert.equal(c.cache, "no-store", "запрос без кэша браузера: " + c.href);
   assert.equal(p.errors.length, 0);
 });
 
