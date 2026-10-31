@@ -17,6 +17,11 @@ const MIRRORS = [                                  // где ещё искать
   (o) => `https://rewg40.github.io/my-godot-game/${o}`,
   (o) => `https://cdn.jsdelivr.net/gh/rewg40/my-godot-game@gh-pages/${o}`,
 ];
+function userMirror() {                  // адрес, который автор задал через ?mirror=… (см. index.html)
+  try { const m = localStorage.getItem("zombi-docs:mirror"); return m ? (m.replace(/\/$/, "") + "/") : ""; } catch (e) { return ""; }
+}
+const MIRRORS_USER = [userMirror()].filter(Boolean).map((b) => (o) => b + o);
+const ALL_MIRRORS = [...MIRRORS_USER, ...MIRRORS];   // пользовательское зеркало пробуем первым
 const SRC_PREFIX = "game-docs/src";
 const MAX_IMG = 1_400_000;      // байт после сжатия
 const MAX_MODEL = 24_000_000;  // байт (GitHub limit ~25 МБ на файл)
@@ -82,7 +87,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-11-01.3 · self-test in footer";
+const SITE_BUILD = "2026-11-01.6 · mirrors, boot fix, quiet watchdog";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -165,7 +170,7 @@ const utf8 = {
 const S = {
   config: { gate: { enabled: true, ownerCode: "", allowed: [] }, contentPath: SRC_PREFIX + "/content", imagesPath: SRC_PREFIX + "/content/images", modelsPath: SRC_PREFIX + "/content/models", inboxPath: SRC_PREFIX + "/content/agent-inbox", origin: { ...REPO_DEFAULT } },
   origin: { ...REPO_DEFAULT },
-  token: "", admin: false, cfgLoaded: false, cfgOk: false, cfgFailed: false, inside: false, mirror: null, readonlyGate: false, docReady: false, lastErr: "",
+  token: "", admin: false, cfgLoaded: false, cfgOk: false, cfgFailed: false, inside: false, mirror: null, base: "", readonlyGate: false, docReady: false, lastErr: "",
   mainTab: "scenario", mechIndex: MECH.map((m) => m.id), sub: "character",
   content: null, contentFile: null, contentSha: null, contentName: "",
   images: null, models: null, dirty: new Set(),
@@ -237,15 +242,20 @@ async function fetchText(url, mode, ms) {
 /* Ищем файл: рядом с сайтом → Pages → jsDelivr → GitHub API (с токеном).
    Первый successful источник запоминается, чтобы не дёргать все подряд на каждый раздел. */
 async function loadText(sitePath) {
+  // загрузчик в index.html уже нашёл рабочий адрес (github.io может быть недоступен)
+  if (S.base) {
+    try { return await fetchText(S.base + encodeURI(sitePath) + "?v=" + Date.now(), "cors", 4000); } catch (e) { /* пробуем дальше */ }
+  }
   if (location.protocol === "http:" || location.protocol === "https:") {
     try { return await fetchText(encodeURI(sitePath) + "?v=" + Date.now(), "same-origin", 4000); } catch (e) { /* следующее зеркало */ }
   }
-  if (S.mirror != null && MIRRORS[S.mirror]) {
-    try { return await fetchText(MIRRORS[S.mirror](sitePath), "cors", 3500); } catch (e) { /* следующее */ }
+  const list = ALL_MIRRORS;
+  if (S.mirror != null && list[S.mirror]) {
+    try { return await fetchText(list[S.mirror](sitePath), "cors", 3500); } catch (e) { /* следующее */ }
   }
-  for (let i = 0; i < MIRRORS.length; i++) {
+  for (let i = 0; i < list.length; i++) {
     if (i === S.mirror) continue;
-    try { const t = await fetchText(MIRRORS[i](sitePath), "cors", 3500); S.mirror = i; return t; } catch (e) { /* следующее */ }
+    try { const t = await fetchText(list[i](sitePath), "cors", 3500); S.mirror = i; return t; } catch (e) { /* следующее */ }
   }
   if (S.origin.owner) return (await ghGetFile(`${SRC_PREFIX}/${sitePath}`)).text;
   throw new Error("файл недоступен ни локально, ни через репозиторий");
@@ -899,6 +909,11 @@ function openSite() {
 window.zombiOpenSite = openSite;   // встроенный в index.html замок пользуется этим, чтобы не пло логику
 /* Если браузер притащил app.js другой версии (кэш провайдера / Pages max-age=600) —
    один раз принудительно перезагружаемся с ?fresh=1, чтобы вытащить свежий файл. */
+function dismissWatchdog() {
+  // приложение поднялось и работает: убираем «преждевременную» карточку сторожа
+  try { if (typeof window.__ZOMBI_DISMISS__ === "function") window.__ZOMBI_DISMISS__(); } catch (e) { /* не критично */ }
+}
+
 function guardStaleBuild() {
   const LS_BUILD = "zombi-docs:build";
   let prev = null;
@@ -1377,10 +1392,12 @@ function wireChrome() {
 }
 async function boot() {
   window.__ZOMBI_BOOTED__ = 1;
+  window.__ZOMBI_APP__ = SITE_BUILD;   // флаг для сторожа из index.html: скрипт жив
   // обработчики вешаем СОВСЕМ первыми: даже если дальше мы уйдём на перезагрузку
   // (страж кэша) или загрузка конфига зависнет, клики по вкладкам уже живые
   window.__ZOMBI_STAMP__ = SITE_BUILD;
-  window.__ZOMBI_APP__ = SITE_BUILD;   // сторож из index.html по этому флагу видит, что скрипт жив
+  window.__ZOMBI_APP__ = SITE_BUILD;
+  S.base = window.__ZOMBI_BASE__ || "";   // app.js приехал с зеркала — контент берём оттуда же
   wireChrome(); buildMainTabs(); wireDoc();
   // страж кэша работает ВСЕГДА, в т.ч. для уже вошедших: иначе «залетевший» старый
   // app.js не обновлялся бы никогда (а встроенный в HTML замок пишет штамп "inline").
@@ -1392,6 +1409,8 @@ async function boot() {
     S.token = localStorage.getItem(LS.token) || "";
   } catch (e) { /* ignore */ }
   readHash(); buildMainTabs(); updateFoot();   // хеш/активная вкладка — уже после замка-решения
+  if (S.base) setTimeout(() => toast("Файлы сайта читаются с зеркала: " + S.base + " (github.io недоступен)", "warn", 9000), 400);
+  dismissWatchdog();
   wireGate();                        // замок сразу: проверка кода не зависит от сети
   const cfgP = loadConfig().catch(() => {});
   const cfg = S.config.origin;
@@ -1435,5 +1454,7 @@ async function boot2() {
     setInterval(() => { if (!S.dirty.size) loadCurrent(false).catch(() => {}); }, 90000);
   }
 }
-document.addEventListener("DOMContentLoaded", boot);
+// скрипт могут подгрузить ПОСЛЕ готовности документа (загрузчик в index.html, зеркало, отложенная вставка) — тогда DOMContentLoaded уже не случится и boot() не запустился бы никогда: именно так выглядели «вкладки не реагируют» при загрузке app.js из зеркала.
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
 })();

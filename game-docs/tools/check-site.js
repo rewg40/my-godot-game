@@ -141,5 +141,19 @@ if (css) {
   ok(wireAt >= 0 && (guardAt < 0 || wireAt < guardAt), "app.js: вкладки wire-ятся ДО стража кэша", guardAt < 0 ? "стража нет" : "wire=" + wireAt + " guard=" + guardAt);
 }
 
+/* 8. загрузчик в index.html: без app.js страница обязана остаться объясняющей,
+      а с app.js из зеркала — обязана запускаться (DOMContentLoaded мог уже пройти). */
+{
+  const a = html.indexOf("// === SITE-LOADER");
+  ok(a > 0, "index.html: блок SITE-LOADER на месте");
+  const ldr = a > 0 ? html.slice(a, html.indexOf("</script>", a)) : "";
+  ok(/__ZOMBI_SOURCES__/.test(ldr) && /MIRRORS\.length/.test(ldr), "загрузчик перебирает зеркала (app.js/app.css не только с github.io)");
+  ok(/__ZOMBI_BASE__/.test(ldr), "загрузчик сообщает сайту, откуда приехали файлы (window.__ZOMBI_BASE__)");
+  ok(/mirror=/.test(ldr), "загрузчик понимает ?mirror=<адрес>/ для ручного зеркала");
+  ok(/data-zombi-ok/.test(ldr), "загрузчик помечает удачно загруженный скрипт (сторож не паникует зря)");
+  ok(/else boot\(\);/.test(app), "app.js: запуск не привязан к DOMContentLoaded (else boot())");
+  ok(/S\.base = window\.__ZOMBI_BASE__/.test(app), "app.js: читает контент с того же зеркала, что и скрипт");
+}
+
 console.log(fail ? "\nПРОВАЛ: " + fail + " проверок" : "\nвсе проверки пройдены");
 process.exit(fail ? 1 : 0);
