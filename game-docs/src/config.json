@@ -1,6 +1,11 @@
 {
-  "title": "ZOMBI · библия проекта",
-  "repo": "rewg40/my-godot-game",
+  "gate": {
+    "enabled": true,
+    "ownerCode": "db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e",
+    "allowed": [
+      "3df29798f9240aebc77f782e0b6ec2370215dc7844cb64d9c10d11d44ca7dddb"
+    ]
+  },
   "contentPath": "game-docs/src/content",
   "imagesPath": "game-docs/src/content/images",
   "modelsPath": "game-docs/src/content/models",
@@ -11,12 +16,8 @@
     "branch": "arena/73c7370f-my-godot-game",
     "pages": "https://rewg40.github.io/my-godot-game/"
   },
-  "gate": {
-    "enabled": true,
-    "hint": "Коды доступа хранятся как SHA-256. Владелец: код «ZOMBI-2026». Гостю выдай свой код: Настройки сайта → Доступ → «Сгенерировать» → отправить config.json.",
-    "ownerCode": "db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e",
-    "allowed": []
-  },
+  "title": "ZOMBI · библия проекта",
+  "repo": "rewg40/my-godot-game",
   "updated": "2026-10-31T12:59:02Z",
   "site": {
     "url": "https://rewg40.github.io/my-godot-game/",
