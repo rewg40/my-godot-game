@@ -1,0 +1,102 @@
+diff --git a/game-docs/src/app.js b/game-docs/src/app.js
+index 442fe8d..6b67f7b 100644
+--- a/game-docs/src/app.js
++++ b/game-docs/src/app.js
+@@ -93,7 +93,7 @@ function toast(msg, kind = "", ms = 3800) {
+   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
+   return t;
+ }
+-const SITE_BUILD = "2026-10-31.14 · сверка с сервером перед публикацией";
++const SITE_BUILD = "2026-10-31.15 · свежий sha и окно отличий при 409";
+ /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
+    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
+ function sha256Pure(text) {
+@@ -240,7 +240,9 @@ function api(path) { return S.origin.owner && S.origin.repo ? `${API}/repos/${S.
+ async function ghFetch(path, opts = {}) {
+   const url = api(path);
+   if (!url) throw new Error("Не задан репозиторий");
+-  const res = await fetch(url, { ...opts, headers: { ...ghHeaders(!!opts.body), ...(opts.headers || {}) } });
++  // cache: "no-store" — браузер не должен отдавать старый ответ API: иначе GET /contents
++  // вернёт sha шестичасовой давности и PUT закончится 409 «does not match <старый sha>».
++  const res = await fetch(url, { cache: "no-store", ...opts, headers: { ...ghHeaders(!!opts.body), ...(opts.headers || {}) } });
+   if (!res.ok) {
+     let detail = "";
+     try { detail = (await res.json()).message || ""; } catch (e) { /* ignore */ }
+@@ -262,13 +264,24 @@ async function ghGetSha(path) {
+   try { const d = await ghFetch(`/contents/${encodeURI(path)}?ref=${encodeURIComponent(S.origin.branch)}`); return d.sha; }
+   catch (e) { if (e.status === 404) return null; throw e; }
+ }
+-async function ghPutText(path, text, message) {
++async function ghPutOnce(path, text, message) {
+   assertWriteAccess();
+   const sha = await ghGetSha(path);
+   const body = { message, content: b64FromBytes(utf8.enc(text)), branch: S.origin.branch };
+   if (sha) body.sha = sha;
+   return ghFetch(`/contents/${encodeURI(path)}`, { method: "PUT", body: JSON.stringify(body) });
+ }
++/* retryOnConflict=true только когда автор уже видел окно отличий и нажал «всё равно опубликовать»:
++   тогда 409 лечится одной повторной попыткой со свежим sha. В обычном режиме 409 уходит наружу,
++   чтобы показать отличия, а не затереть чужую правку молча. */
++async function ghPutText(path, text, message, retryOnConflict) {
++  try {
++    return await ghPutOnce(path, text, message);
++  } catch (e) {
++    if (e.status !== 409 || !retryOnConflict) throw e;
++    return await ghPutOnce(path, text, message);
++  }
++}
+ async function ghPutBytes(path, bytes, message) {
+   assertWriteAccess();
+   const sha = await ghGetSha(path);
+@@ -1006,7 +1019,8 @@ async function pushCurrent(silent, opts) {
+     const published = cleanDoc(d);
+     published.updated = nowIso();
+     const path = `${S.config.contentPath}/${file}`;
+-    await ghPutText(path, JSON.stringify(published, null, 2) + "\n", `docs(${file.replace(/\.json$/, "")}): правка через сайт`);
++    await ghPutText(path, JSON.stringify(published, null, 2) + "\n",
++      `docs(${file.replace(/\.json$/, "")}): правка через сайт`, !!(opts && opts.force));
+     S.baseBlocks[file] = normBlocks(published);
+     // Do not erase a newer edit made while the network request was in flight.
+     if (S.contentFile !== file || S.revision === revision) {
+@@ -1022,6 +1036,17 @@ async function pushCurrent(silent, opts) {
+     setPill("bad", S.draftErrors.has(file) ? "не опубликовано · скачай JSON" : "не опубликовано · черновик сохранён");
+     toast("Публикация не выполнена: " + esc(e.hint || e.message) + (S.draftErrors.has(file) ? " Скачай JSON: браузер не смог сохранить черновик." : " Локальная правка остаётся во вкладке."), "bad", 9000);
+     if (e.status === 401 && !S.viewOnly) openSettings("github");
++    if (e.status === 409) {
++      // Копия на сервере уехала вперёд (кэш, чужое окно, агент). Не оставляем автора с ошибкой:
++      // показываем те же отличия и те же три действия.
++      const remoteText = await remotePublishedText(file);
++      if (remoteText) {
++        setPill("warn", "вкладку изменили · нужны действия");
++        openStaleModal(file, remoteText, "GitHub отклонил запись: пока вы правили, файл в ветке изменился.");
++      } else {
++        toast("Вкладку уже изменили в ветке " + esc(S.origin.branch) + ": обновите страницу и внесите правку заново. Локальная правка остаётся во вкладке.", "warn", 9000);
++      }
++    }
+     updateFoot();
+     return false;
+   } finally { S.publishing = false; updateFoot(); }
+@@ -1063,19 +1088,20 @@ function applyRemoteDoc(file, remote) {
+   setPill("ok", "из репозитория");
+   updateFoot();
+ }
+-function staleModalHtml(file, remote, diff) {
++function staleModalHtml(file, remote, diff, note) {
+   return `
+     <p>Пока вкладка была открыта, <code>${esc(file)}</code> изменили в ветке <code>${esc(S.origin.branch)}</code>.</p>
++    ${note ? `<p class="hint">${esc(note)}</p>` : ""}
+     <p>В репозитории: <b>${esc(remote.updated || "без метки")}</b> · у вас на экране: <b>${esc((S.content && S.content.updated) || "без метки")}</b>.
+     Публикация сейчас затрёт ту, чужую правку.</p>
+     <pre class="code">${esc(diff)}</pre>
+     <p class="hint">«−» — чего нет в вашей копии (уже есть в репозитории); «+» — что вы опубликуете поверх.</p>`;
+ }
+-function openStaleModal(file, remoteText) {
++function openStaleModal(file, remoteText, note) {
+   let remote = null;
+   try { remote = JSON.parse(remoteText); } catch (e) { toast("Версия из репозитория не читается как JSON — публикация отменена.", "warn", 6000); return; }
+   const diff = textDiff(JSON.stringify(remote, null, 2), JSON.stringify(S.content, null, 2), 24);
+-  const modal = openModal("Вкладка в репозитории изменилась", staleModalHtml(file, remote, diff) + `
++  const modal = openModal("Вкладка в репозитории изменилась", staleModalHtml(file, remote, diff, note) + `
+     <div class="foot-row">
+       <button class="primary" id="stl-reload">Перечитать с сервера</button>
+       <button class="ghost" id="stl-publish">Всё равно опубликовать</button>
