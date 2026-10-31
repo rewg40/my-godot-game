@@ -5,6 +5,7 @@
   "tabs": [
     "character",
     "craft",
+    "research",
     "weather",
     "npc",
     "quests",
@@ -15,8 +16,9 @@
     "combat",
     "inventory",
     "assets",
-    "production"
+    "production",
+    "multiplayer"
   ],
   "note": "порядок подвкладок = порядок в tabs; подписи задаёт app.js (MECH)",
-  "updated": "2026-10-30T21:50:51Z"
+  "updated": "2026-10-31T11:56:19Z"
 }

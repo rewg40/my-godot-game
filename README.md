@@ -1,8 +1,15 @@
 # ZOMBI · библия проекта
 
 Игры ещё нет — есть **сайт-библия**, где живёт сценарий, механика и превью. Всё хранится только
-в этом репозитории, отдельной папкой [`game-docs/`](game-docs/README.md). Архивы `*.7z.*` в корне —
-исходники острова/персонажа, их не правим.
+в этом репозитории, отдельная папка [`game-docs/`](game-docs/README.md).
+
+Игра: **«Пепел и Звёзды»** (рабочее название, 31.10.2026) — survival/craft/research на Земле 3610 года:
+планету эвакуировали и сожгли галактический совет в 3071-м, колония вернулась, вирус выпущен снова,
+ты просыпаешься на материке. Полный канон — `game-docs/src/content/scenario.json`; он важнее любой
+механики: если вкладка «Механика» противоречит сценарию, правят вкладку. Прежняя история про остров
+снята с игры и лежит вне сайта: `game-docs/archive/scenario.2026-10-30.json`.
+
+Архивы `*.7z.*` в корне — исходники острова/персонажа из старой версии, их не правим.
 
 - **Сайт:** https://rewg40.github.io/my-godot-game/
 - **Вход:** код `ZOMBI-2026` (или сразу `https://rewg40.github.io/my-godot-game/#code=ZOMBI-2026`)
@@ -22,7 +29,7 @@
 | Что просит автор | Куда писать |
 | --- | --- |
 | «допиши в Сценарий / в акты / в диалоги» | `game-docs/src/content/scenario.json` |
-| «добавь в Погоду / Бой / Инвентарь / Физику …» | `game-docs/src/content/mech_<раздел>.json` (13 файлов, соответствие — ниже) |
+| «добавь в Погоду / Бой / Инвентарь / Физику / Исследование / Сеть …» | `game-docs/src/content/mech_<раздел>.json` (15 файлов, соответствие — ниже) |
 | «картинку в превью», «3D-модель» | `game-docs/src/content/preview.json` + реестры `images.json` / `models.json` + сами файлы в `content/images/`, `content/models/` |
 | заявка не из чата, а с сайта | `game-docs/src/content/agent-inbox/NNNN-slug.md` → после выполнения в `agent-inbox/done/` |
 | доступ гостю | `game-docs/src/config.json` → `gate.allowed` (только SHA-256 хеш кода, никогда сам код) |
@@ -32,7 +39,8 @@
 
 ### Вкладки «Механика» → файлы
 
-`character`→`mech_character.json` · `craft`→`mech_craft.json` · `weather`→`mech_weather.json` ·
+`character`→`mech_character.json` · `craft`→`mech_craft.json` · `research`→`mech_research.json` ·
+`multiplayer`→`mech_multiplayer.json` · `weather`→`mech_weather.json` ·
 `npc`→`mech_npc.json` · `quests`→`mech_quests.json` · `locations`→`mech_locations.json` ·
 `destruction`→`mech_destruction.json` · `physics`→`mech_physics.json` · `zombies`→`mech_zombies.json` ·
 `combat`→`mech_combat.json` · `inventory`→`mech_inventory.json` · `assets`→`mech_assets.json` ·
@@ -43,6 +51,9 @@
 ```bash
 git pull --rebase                                                              # всегда свежее состояние
 # ... правка content/*.json: блоки append, пустые не удалять, текст не переводить ...
+# сценарий и новые механики не латай наивными заменами — перегенери:
+#   python3 game-docs/tools/author_scenario.py      # -> content/scenario.json
+#   python3 game-docs/tools/author_mech_new.py      # -> mech_research.json + mech_multiplayer.json
 node game-docs/tools/build-inline-gate.js                                     # если трогал app.js/config.json/inline-*.js
 node game-docs/tools/check-site.js                                             # валидация JSON, схем, доступа, инлайн-блоков
 git add -A && git commit -m "docs(<раздел>): <что добавлено>" && git push

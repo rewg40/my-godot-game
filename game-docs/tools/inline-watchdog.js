@@ -65,9 +65,9 @@
     });
   }
   // Список = content/*.json в репозитории; чего нет — то просто пропустится.
-  var FILES = ["scenario.json", "mech_character.json", "mech_craft.json", "mech_weather.json", "mech_npc.json",
+  var FILES = ["scenario.json", "mech_character.json", "mech_craft.json", "mech_research.json", "mech_weather.json", "mech_npc.json",
     "mech_quests.json", "mech_locations.json", "mech_destruction.json", "mech_physics.json", "mech_zombies.json",
-    "mech_combat.json", "mech_inventory.json", "mech_assets.json", "mech_production.json", "images.json",
+    "mech_combat.json", "mech_inventory.json", "mech_assets.json", "mech_production.json", "mech_multiplayer.json", "images.json",
     "models.json", "config.json"];
   function downloadOffline(btn) {
     var srcs = srcList(), out = [], done = 0, label0 = btn && btn.textContent;

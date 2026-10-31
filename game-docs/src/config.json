@@ -17,7 +17,7 @@
     "ownerCode": "db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e",
     "allowed": []
   },
-  "updated": "2026-10-31T07:30:00Z",
+  "updated": "2026-10-31T11:56:19Z",
   "site": {
     "url": "https://rewg40.github.io/my-godot-game/",
     "quickLogin": "https://rewg40.github.io/my-godot-game/#code=…",
@@ -29,7 +29,7 @@
   },
   "routes": {
     "scenario": "game-docs/src/content/scenario.json",
-    "mechanics.<character|craft|weather|npc|quests|locations|destruction|physics|zombies|combat|inventory|assets|production>": "game-docs/src/content/mech_<id>.json",
+    "mechanics.<character|craft|research|weather|npc|quests|locations|destruction|physics|zombies|combat|inventory|assets|production|multiplayer>": "game-docs/src/content/mech_<id>.json",
     "preview": "game-docs/src/content/preview.json",
     "images": "game-docs/src/content/images.json + game-docs/src/content/images/",
     "models3d": "game-docs/src/content/models.json + game-docs/src/content/models/",
