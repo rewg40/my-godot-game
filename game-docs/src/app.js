@@ -13,8 +13,9 @@ const REPO_DEFAULT = { owner: "rewg40", repo: "my-godot-game", branch: "arena/73
 /* Запас, если config.json не читается (CORS/прокси/офлайн-кэш): вход обязан остаться возможным. */
 const FALLBACK_HASHES = ["db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e"];  // запасной список
 const FALLBACK_OWNER_HASH = FALLBACK_HASHES[0];        // владелец: синхронная сверка, сеть не нужна
-const MIRRORS = [                                  // где ещё искать config/content
+const MIRRORS = [
   (o) => `https://rewg40.github.io/my-godot-game/${o}`,
+  (o) => `https://github.com/rewg40/my-godot-game/raw/gh-pages/${SRC_PREFIX}/${o}`,   // когда github.io вырезан
   (o) => `https://cdn.jsdelivr.net/gh/rewg40/my-godot-game@gh-pages/${o}`,
 ];
 function userMirror() {                  // адрес, который автор задал через ?mirror=… (см. index.html)
@@ -90,7 +91,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-11-01.7 · mirror-aware loadText";
+const SITE_BUILD = "2026-11-01.9 · mirrors, early boot, offline copy";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -1396,18 +1397,22 @@ function wireChrome() {
   });
   addEventListener("hashchange", () => { readHash(); buildMainTabs(); buildSubtabs(); goTab(); });
 }
-async function boot() {
+// earlyBoot() выполняется СРАЗУ при вычислении скрипта (он может приехать с зеркала уже после
+// готовности документа), поэтому здесь только флаги и обработчики вкладок — они не требуют,
+// чтобы тело страницы было построено целиком. Полностью boot() докрутится на DOMContentLoaded.
+function earlyBoot() {
   window.__ZOMBI_BOOTED__ = 1;
   window.__ZOMBI_APP__ = SITE_BUILD;   // флаг для сторожа из index.html: скрипт жив
-  // обработчики вешаем СОВСЕМ первыми: даже если дальше мы уйдём на перезагрузку
-  // (страж кэша) или загрузка конфига зависнет, клики по вкладкам уже живые
   window.__ZOMBI_STAMP__ = SITE_BUILD;
-  window.__ZOMBI_APP__ = SITE_BUILD;
-  S.base = USER_BASE;   // адрес зеркала читается ещё до boot()
-  wireChrome(); buildMainTabs(); wireDoc();
-  // страж кэша работает ВСЕГДА, в т.ч. для уже вошедших: иначе «залетевший» старый
-  // app.js не обновлялся бы никогда (а встроенный в HTML замок пишет штамп "inline").
-  if (guardStaleBuild()) return;           // устаревший кэш — перезагружаемся (один раз, ?fresh=1)
+  S.base = USER_BASE;                  // адрес зеркала известен ещё до boot()
+  // обработчики — ДО стража кэша: даже на переходе «перезагрузиться начисто» клик не должен молчать
+  try { wireChrome(); buildMainTabs(); wireDoc(); } catch (e) { /* разметка ещё не готова — повторим в boot() */ }
+  if (guardStaleBuild()) return;       // устаревший кэш — уходим на перезагрузку (один раз, ?fresh=1)
+}
+async function boot() {
+  earlyBoot();
+  try { wireChrome(); buildMainTabs(); wireDoc(); } catch (e) { /* уже сделано */ }
+  // страж кэша уже сработал в earlyBoot() (до навески обработчиков)
   const ig = window.__ZOMBI_GATE__;        // замок уже прошёл встроенный скрипт в index.html
   if (ig && ig.unlockedBy) { S.admin = !!ig.admin; S.readonlyGate = !!ig.readonly; }
   try {
@@ -1461,6 +1466,7 @@ async function boot2() {
   }
 }
 // скрипт могут подгрузить ПОСЛЕ готовности документа (загрузчик в index.html, зеркало, отложенная вставка) — тогда DOMContentLoaded уже не случится и boot() не запустился бы никогда: именно так выглядели «вкладки не реагируют» при загрузке app.js из зеркала.
+earlyBoot();   // флаги и клики — немедленно: скрипт мог подключиться после DOMContentLoaded
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
 else boot();
 })();

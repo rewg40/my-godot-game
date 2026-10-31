@@ -135,10 +135,11 @@ if (css) {
   }
   const wPos = html.indexOf("<!-- ZOMBI-WATCHDOG:START -->");
   ok(wPos > html.indexOf('id="main-tabs"') && wPos < html.indexOf("</body>"), "сторож стоит после разметки и перед </body>");
-  const boot = app.slice(app.indexOf("function boot()"));
+  const boot = app.slice(app.indexOf("function earlyBoot()"));
   const wireAt = boot.search(/wireChrome\(\);\s*buildMainTabs\(\)/);
   const guardAt = boot.indexOf("guardStaleBuild()");
-  ok(wireAt >= 0 && (guardAt < 0 || wireAt < guardAt), "app.js: вкладки wire-ятся ДО стража кэша", guardAt < 0 ? "стража нет" : "wire=" + wireAt + " guard=" + guardAt);
+  ok(wireAt >= 0 && (guardAt < 0 || wireAt < guardAt), "app.js: вкладки wire-ятся ДО стража кэша (в earlyBoot)", guardAt < 0 ? "стража нет" : "wire=" + wireAt + " guard=" + guardAt);
+  ok(/document\.readyState === "loading"/.test(app) && /else boot\(\);/.test(app), "app.js: запуск и при loading, и при готовом документе");
 }
 
 /* 8. загрузчик в index.html: без app.js страница обязана остаться объясняющей,
@@ -150,6 +151,9 @@ if (css) {
   ok(/__ZOMBI_SOURCES__/.test(ldr) && /MIRRORS\.length/.test(ldr), "загрузчик перебирает зеркала (app.js/app.css не только с github.io)");
   ok(/__ZOMBI_BASE__/.test(ldr), "загрузчик сообщает сайту, откуда приехали файлы (window.__ZOMBI_BASE__)");
   ok(/mirror=/.test(ldr), "загрузчик понимает ?mirror=<адрес>/ для ручного зеркала");
+  ok(ldr.indexOf("/raw/") > 0 && ldr.indexOf("github.com/") > 0,
+     "загрузчик пробует github.com/raw (живёт, когда github.io вырезан)");
+  ok(/zombi-docs:src/.test(ldr), "загрузчик умеет ?src=<путь-в-репозитории>/ (для github.com/raw)");
   ok(/data-zombi-ok/.test(ldr), "загрузчик помечает удачно загруженный скрипт (сторож не паникует зря)");
   ok(/else boot\(\);/.test(app), "app.js: запуск не привязан к DOMContentLoaded (else boot())");
   ok(/window\.__ZOMBI_BASE__/.test(app), "app.js: знает адрес зеркала (window.__ZOMBI_BASE__)");

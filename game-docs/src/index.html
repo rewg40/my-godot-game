@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" data-build="2026-11-01.7 · mirror-aware loadText">
+<html lang="ru" data-build="2026-11-01.9 · mirrors, early boot, offline copy">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -193,6 +193,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     <!-- INLINE-GATE:END -->
 </head>
 <body>
@@ -294,8 +306,26 @@
     if (m) { try { m = decodeURIComponent(m); } catch (e) {} out.push(/\/$/.test(m) ? m : m + "/"); }
     return out;
   }
+  var SRC = "game-docs/src/";   // в репозитории сайт лежит тут (на Pages — корень)
+  try {
+    var sv = JSON.parse(localStorage.getItem("zombi-docs:src") || "");
+    if (sv && sv.prefix) SRC = sv.prefix;
+    var q = location.search;
+    if (q.indexOf("src=0") >= 0) { SRC = ""; localStorage.removeItem("zombi-docs:src"); }
+    var at = q.indexOf("src=");
+    if (at >= 0) {
+      var raw = q.slice(at + 4).split("&")[0];
+      if (raw && raw !== "0") {
+        SRC = decodeURIComponent(raw).split("/").filter(function (x) { return x !== "" }).join("/");
+        if (SRC) SRC = SRC + "/";
+        localStorage.setItem("zombi-docs:src", JSON.stringify({ prefix: SRC }));
+      }
+    }
+  } catch (e) {}
+  window.__ZOMBI_SRC_PREFIX__ = SRC;
   var MIRRORS = [
     "",                                                              // рядом со страницей (Pages/локальный сервер)
+    "https://github.com/" + OWNER + "/" + REPO + "/raw/" + BR + "/" + SRC,   // github.com живёт, когда режут github.io
     "https://cdn.jsdelivr.net/gh/" + OWNER + "/" + REPO + "@" + BR + "/",
     "https://rawcdn.githack.com/" + OWNER + "/" + REPO + "/" + BR + "/",
     "https://" + OWNER + ".github.io/" + REPO + "/"
@@ -574,6 +604,18 @@ st.push("зеркала: " + srcList().join(" ; "));
   })(0);
 })();
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

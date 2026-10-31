@@ -143,7 +143,8 @@ for f in game-docs/src/content/*.json; do python3 -c "import json,sys; json.load
 - app.js обязан запускаться и при поздней загрузке: `if (document.readyState === "loading") … else boot();`.
   Классическая причина «вкладки молчат» при рабочем `index.html`: скрипт грузят с зеркала/отложенно,
   `DOMContentLoaded` уже прошёл, и `boot()` не вызывается никогда. Не меняй это на «чистый» listener.
-- Загрузчик в `index.html` (`// === SITE-LOADER ===`) перебирает зеркала и умеет `?mirror=<url>/`;
+- Загрузчик в `index.html` (`// === SITE-LOADER ===`) перебирает зеркала: origin → `github.com/<owner>/<repo>/raw/gh-pages/<src>/` → jsDelivr → githack; умеет `?mirror=<url>/` (своё зеркало) и `?src=<папка>/` (путь внутри репозитория); оба значения пишутся в localStorage;
+  ранний запуск `earlyBoot()` обязан остаться до `guardStaleBuild()` и не требовать готового DOM (обёрнут в try).
   `loadText()` в app.js сначала бьёт в найденное зеркало (`S.base`), потом в остальные. Кнопка
   «Офлайн-копия» у сторожа собирает все `content/*.json` в один txt — это единственный путь,
   когда у пользователя вырезано всё, кроме одного дня кэша.
