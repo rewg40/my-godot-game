@@ -15,6 +15,8 @@ if (i < 0 || j < 0) { console.error("не нашёл sha256Pure в app.js"); pro
 const shaFn = app.slice(i, j).trim();
 
 const OWNER = (cfg.gate.ownerCode || "").toLowerCase();
+const escAttr = (t) => String(t).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+const SITE_BUILD = (app.match(/const SITE_BUILD = "([^"]*)"/) || [, "?"])[1];
 if (!/^[0-9a-f]{64}$/.test(OWNER)) { console.error("ownerCode в config.json не 64-символьный hex"); process.exit(1); }
 
 const START = "/* === INLINE-GATE (автосборка: game-docs/tools/build-inline-gate.js) — не править вручную === */";
@@ -131,5 +133,8 @@ if (a >= 0 && b > a) {
   if (html.indexOf(anchor) < 0) { console.error('нет якоря </script>\\n</head> в index.html'); process.exit(1); }
   html = html.replace(anchor, "</script>\n    <!-- INLINE-GATE:START -->\n" + block + "\n    <!-- INLINE-GATE:END -->\n</head>", 1);
 }
+/* штамп в <html data-build> — app.js по нему видит, что HTML свежий, а JS из кэша (или наоборот) */
+html = html.replace(/<html\b[^>]*>/, (m) => m.replace(/\s*data-build="[^"]*"/, "")
+  .replace(/>$/, ` data-build="${escAttr(SITE_BUILD)}">`));
 fs.writeFileSync(p, html);
 console.log("inline-gate встроен (" + block.length + " байт, owner " + OWNER.slice(0, 10) + "…)");

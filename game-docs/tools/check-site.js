@@ -71,6 +71,10 @@ ok(/nc=/.test(html) && /gate-fallback/.test(html), "index.html: анти-кэш 
 ok(/INLINE-GATE:START/.test(html) && /OWNER_HASH/.test(html) && /function sha256Pure/.test(html), "index.html: встроенный замок собран (свой sha256Pure + ownerCode)");
 ok(/<!-- INLINE-GATE:START -->[\s\S]*OWNER_HASH = "([0-9a-f]{64})"/.test(html) && RegExp.$1 === owner, "index.html: ownerCode встроенного замка == sha256(ZOMBI-2026)");
 ok(html.lastIndexOf("INLINE-GATE:START") < html.lastIndexOf("INLINE-GATE:END"), "index.html: разметка inline-замка не размножилась");
+const mBuild = html.match(/<html[^>]*data-build="([^"]*)"/);
+const mJs = app.match(/const SITE_BUILD = "([^"]*)"/);
+ok(!!mBuild && !!mJs && mBuild[1].replace(/&quot;/g, '"') === mJs[1], "index.html: штамп data-build == SITE_BUILD в app.js",
+   (mBuild ? mBuild[1] : "нет data-build") + " vs " + (mJs ? mJs[1] : "нет SITE_BUILD"));
 
 /* 6. [hidden] должен побеждать display из классов: без этого .gate/.modal-root оставались
    полупрозрачным слоем поверх страницы — «экран затемнён, вход есть, но не активен». */
