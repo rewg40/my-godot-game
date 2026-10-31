@@ -10,7 +10,7 @@ const { JSDOM, VirtualConsole } = require("jsdom");
 
 const SRC = path.join(__dirname, "..", "src");
 const BASE = "https://rewg40.github.io/my-godot-game/";
-const BRANCH = "arena/d4678daa-my-godot-game";
+const BRANCH = "arena/087e4771-my-godot-game";
 const TOKEN = "test-only-NOT-A-REAL-TOKEN";
 const config = JSON.parse(fs.readFileSync(path.join(SRC, "config.json"), "utf8"));
 const html = fs.readFileSync(path.join(SRC, "index.html"), "utf8");

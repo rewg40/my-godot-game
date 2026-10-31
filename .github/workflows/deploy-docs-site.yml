@@ -8,6 +8,7 @@ on:
     branches:
       - main
       - arena/d4678daa-my-godot-game
+      - arena/087e4771-my-godot-game
     paths:
       - 'game-docs/**'
       - '.github/workflows/deploy-docs-site.yml'

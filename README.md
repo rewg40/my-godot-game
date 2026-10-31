@@ -5,7 +5,7 @@
 - Сайт: https://rewg40.github.io/my-godot-game/
 - Редактирование «ИИ монстров»: https://rewg40.github.io/my-godot-game/?edit=1#mechanics/zombies
 - Гостевой просмотр ассетов: https://rewg40.github.io/my-godot-game/?open=1#mechanics/assets
-- Исходники сайта: `game-docs/src/` на ветке `arena/d4678daa-my-godot-game`.
+- Исходники сайта: `game-docs/src/` на ветке `arena/087e4771-my-godot-game`.
 - Редактор вкладок, открытые вопросы, публикация и GitHub 401: [`game-docs/src/docs/USAGE.md`](game-docs/src/docs/USAGE.md).
 - Проверки: `npm ci --prefix game-docs && npm test --prefix game-docs`.
 
