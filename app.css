@@ -13,9 +13,27 @@ a{color:var(--acc2)}
 button{font:inherit;cursor:pointer}
 code,kbd{font-family:var(--mono);font-size:.92em;background:#0b1017;border:1px solid var(--line);border-radius:5px;padding:.08em .35em}
 
-/* ---------- hidden ---------- */
-/* Атомарное правило: любой display в классе (grid/flex) перебивает атрибут hidden. */
+/* ---------- gate ---------- */
+/* Атомарное правило: любой display в классе (grid/flex) перебивает атрибут hidden, из-за чего .gate и .modal-root оставались поверх страницы полупрозрачным слоем, съедавшим клики («экран затемнён, вход есть, но не активен»). */
 [hidden]{display:none !important}
+
+.gate{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(1200px 600px at 50% -10%,#16222e,#0b0f14 60%);z-index:60;padding:20px}
+.gate-box{width:min(460px,100%);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 26px 20px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.gate-emoji{font-size:34px}
+.gate-box h1{font-size:19px;margin:8px 0 6px}
+.gate-box p{color:var(--tx2);margin:0 0 16px;font-size:14px}
+#gate-form{display:flex;gap:8px}
+#gate-form input{flex:1;background:#0b1017;border:1px solid var(--line2);color:var(--tx);border-radius:9px;padding:10px 12px;font-size:15px}
+#gate-form input:focus{outline:none;border-color:var(--acc2)}
+#gate-form button{background:var(--acc2);border:0;color:#04101f;border-radius:9px;padding:10px 16px;font-weight:600}
+.gate-msg{margin-top:12px;font-size:13px;color:var(--bad)}
+.gate-hint{font-size:12px;color:var(--tx3);margin-top:14px;line-height:1.55;text-align:left}
+.gate-msg{text-align:left;line-height:1.5}
+.gate-build{font-size:11px;color:#3f5063;margin-top:12px;font-family:var(--mono)}
+.gate-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+#gate-demo,#gate-retry{font-size:12.5px}
+#gate-form{align-items:stretch}
+#gate-form #gate-eye{padding:0 10px;border-radius:9px;font-size:15px}
 
 /* ---------- topbar ---------- */
 .app{display:flex;flex-direction:column;min-height:100vh}
@@ -172,7 +190,9 @@ table.editable td:focus{outline:1px solid var(--acc2);background:#0f1a24}
 }
 @media print{.topbar,.subtabs,.sect-tools,.foot,.dirty-bar,.readonly-bar{display:none!important}body{background:#fff;color:#000}.sect{border:0;padding:0 0 8px}}
 
-.muted{color:var(--tx3);font-size:12.5px;line-height:1.5}
+.gate-box .muted,.muted{color:var(--tx3);font-size:12.5px;line-height:1.5}
+#gate-msg{cursor:pointer}
+#gate-build:hover{color:var(--tx2)}
 
 .end-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}
 .end-actions a{text-decoration:none}
@@ -226,5 +246,3 @@ table.editable td:focus{outline:1px solid var(--acc2);background:#0f1a24}
   .question-add .foot-row{align-items:flex-start;flex-direction:column}
 }
 @media print{.question-add,.question-actions,#btn-edit-tab{display:none!important}}
-
-.site-loader{display:block;margin-top:4px;color:var(--tx3);font-size:11px;font-family:var(--mono)}
