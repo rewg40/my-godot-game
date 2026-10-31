@@ -100,3 +100,93 @@ test("four origins are consistent across tabs", () => {
     assert.ok(quests.includes(code), `стартовый квест: ${code}`);
   }
 });
+
+test("apex technique can be looted from a node infected", () => {
+  const z = read("mech_zombies.json");
+  const char = read("mech_character.json");
+  const research = read("mech_research.json");
+  const quests = read("mech_quests.json");
+  const mp = textOf(read("mech_multiplayer.json"));
+
+  const headings = z.blocks.filter((b) => b.type === "h").map((b) => b.text);
+  assert.ok(headings.includes("Узловые: трофеи и вершинные приёмы"));
+  const nodes = z.blocks.find((b) => b.type === "kv" && b.head[0] === "Узловой");
+  assert.equal(nodes.rows.length, 3);
+  for (const name of ["Тень", "Бронированный", "Стужа"]) {
+    assert.ok(nodes.rows.some((r) => r[0].includes(name)), name);
+  }
+  const zt = textOf(z);
+  assert.ok(zt.includes("живой образец") && zt.includes("12 игровых часов"));
+  assert.ok(zt.includes("огонь и взрыв сжигают образец"), "добыча — доставка, а не убийство");
+
+  // персонаж: четвёртый путь получения вершинного приёма
+  const ct = textOf(char);
+  assert.ok(ct.includes("Четыре пути получить"));
+  const todo = char.blocks.find((b) => b.type === "todo").items;
+  const apex = todo.find((i) => i.text.startsWith("Можно ли выучить вершинный приём специализации"));
+  assert.ok(apex && apex.done && apex.answer, "вопрос про вершинный приём закрыт ответом");
+  assert.ok(apex.answer.includes("Тени") && apex.answer.includes("образец"));
+  // восемь навыков и фиксированный стартовый набор — решения автора зафиксированы
+  for (const prefix of ["Оставлять восемь навыков", "Стартовый набор: фиксированный"]) {
+    const it = todo.find((i) => i.text.startsWith(prefix));
+    assert.ok(it && it.done && it.answer, `закрыт вопрос: ${prefix}`);
+  }
+  assert.ok(todo.filter((i) => i.done && i.answer).length >= 7, "ответов не меньше семи");
+
+  // исследование: живой образец как источник и «грязный» эксперимент
+  const rt = textOf(research);
+  assert.ok(rt.includes("Живой образец (нулевой узел)"));
+  assert.ok(rt.includes("Порог") && rt.includes("+6 ч"), "расшифровка двигает Порог");
+  // квест на добычу Тени
+  assert.ok(textOf(quests).includes("q2_shadow"));
+  // серверное событие: образец достаётся тому, кто донёс
+  assert.ok(mp.includes("Тень"));
+});
+
+test("craft is gated by colony tech level (UT)", () => {
+  const craft = read("mech_craft.json");
+  const research = read("mech_research.json");
+  const scenario = textOf(read("scenario.json"));
+  const combat = textOf(read("mech_combat.json"));
+  const loc = textOf(read("mech_locations.json"));
+  const inv = textOf(read("mech_inventory.json"));
+  const prod = textOf(read("mech_production.json"));
+  const char = textOf(read("mech_character.json"));
+
+  const headings = craft.blocks.filter((b) => b.type === "h").map((b) => b.text);
+  assert.ok(headings.includes("Уровень технологий (УТ)"));
+  const levels = craft.blocks.find((b) => b.type === "kv" && b.head[0] === "УТ");
+  assert.equal(levels.rows.length, 4);
+  for (const id of ["УТ0", "УТ1", "УТ2", "УТ3"]) {
+    assert.ok(levels.rows.some((r) => r[0] === id), id);
+  }
+  const total = levels.rows.reduce((s, r) => s + Number(r[4]), 0);
+  assert.equal(total, 140, "рецепты на v1 распределены по уровням");
+
+  // рецепты требуют УТ, а не только станцию
+  const recipes = craft.blocks.find((b) => b.type === "kv" && b.head[0] === "Предмет");
+  assert.ok(recipes.head.includes("УТ"), "у таблицы рецептов есть колонка УТ");
+  assert.ok(recipes.rows.every((r) => /^УТ[0-3]$/.test(r[4])));
+  const ct = textOf(craft);
+  assert.ok(ct.includes("двумя ключами") && ct.includes("min_tech"));
+  assert.ok(ct.includes("46 рецептов"), "MVP: 46 рецептов на УТ0–УТ1");
+  assert.ok(ct.includes("tech-пуле"), "УТ растёт из узлов Исследования");
+  const ctodo = craft.blocks.find((b) => b.type === "todo").items;
+  assert.ok(ctodo.some((i) => i.done && i.answer && i.text.startsWith("Сколько всего рецептов на v1")));
+  assert.ok(ctodo.filter((i) => !i.done).length >= 3, "остались новые точные вопросы");
+
+  // стык с Исследованием
+  const rh = research.blocks.filter((b) => b.type === "h").map((b) => b.text);
+  assert.ok(rh.includes("Уровень технологий (стык с Крафтом)"));
+  const rlevels = research.blocks.find((b) => b.type === "kv" && b.head[0] === "УТ");
+  assert.equal(rlevels.rows.length, 4);
+
+  // сценарий: T0–T3 актов — это УТ
+  assert.ok(scenario.includes("уровень технологий колонии (УТ"));
+  // оружие, станции, лут, UI и персонаж ссылаются на тот же уровень
+  assert.ok(combat.includes("УТ2") && combat.includes("уровню технологий колонии"));
+  assert.ok(loc.includes("уровень технологий"));
+  assert.ok(inv.includes("Лут от УТ не зависит"));
+  assert.ok(prod.includes("плашка УТ"));
+  assert.ok(char.includes("уровень технологий колонии"));
+});
