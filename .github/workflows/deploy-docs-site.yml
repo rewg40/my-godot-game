@@ -24,7 +24,9 @@ permissions:
   pages: write      # если Pages уже включён — шаг не нужен; если нет — включи один раз в Settings
 
 concurrency:
-  group: deploy-docs-site
+  # группа — по ветке: три рабочие ветки публикуют сайт параллельно и не должны
+  # отменять деплой друг друга (общий gh-pages переживает гонку пушей, а отмену — нет)
+  group: deploy-docs-site-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
