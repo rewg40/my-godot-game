@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "updated": "2026-10-30T21:42:09Z",
+  "items": [
+    {
+      "id": "moodboard-v1",
+      "name": "Мудборд v0.1 · 8 кадров первого превью",
+      "file": "images/moodboard-v1.svg",
+      "caption": "Схема кадров по плейлисту из вкладки «Картинки / превью»: обложка, быт, опасность, тихий ужас, финал, UI, герой, карта. Заменяется на концепты/рендеры по мере появления.",
+      "tags": [
+        "moodboard",
+        "preview",
+        "v0.1"
+      ],
+      "tab": "preview",
+      "author": "agent",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "placeholder-island",
+      "name": "Заглушка: остров в тумане",
+      "file": "images/placeholder-island.svg",
+      "caption": "Плейсхолдер — замени на концепт №1 из плейлиста.",
+      "tags": [
+        "concept",
+        "cover"
+      ],
+      "link": "",
+      "tab": "scenario",
+      "author": "agent",
+      "date": "2026-10-30"
+    }
+  ]
+}

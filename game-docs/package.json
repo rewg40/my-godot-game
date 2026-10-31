@@ -1,0 +1,15 @@
+{
+  "name": "zombi-docs-site",
+  "private": true,
+  "scripts": {
+    "build": "node tools/build-inline-gate.js",
+    "check": "node tools/check-site.js",
+    "test": "node tools/check-site.js && node --test tools/test-*.cjs"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

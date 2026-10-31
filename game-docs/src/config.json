@@ -1,0 +1,31 @@
+{
+  "title": "ZOMBI · библия проекта",
+  "repo": "rewg40/my-godot-game",
+  "contentPath": "game-docs/src/content",
+  "imagesPath": "game-docs/src/content/images",
+  "modelsPath": "game-docs/src/content/models",
+  "inboxPath": "game-docs/src/content/agent-inbox",
+  "origin": {
+    "owner": "rewg40",
+    "repo": "my-godot-game",
+    "branch": "arena/d4678daa-my-godot-game",
+    "pages": "https://rewg40.github.io/my-godot-game/"
+  },
+  "updated": "2026-10-31T19:45:01Z",
+  "site": {
+    "url": "https://rewg40.github.io/my-godot-game/",
+    "note": "Рабочая ссылка сразу открывает редактор без кода доступа. Локальные правки сохраняются в браузере; общая публикация требует GitHub-токен владельца. Агенту адрес сайта для правки не нужен.",
+    "storage": "game-docs/src/content/",
+    "deploy": "push в origin.branch → GitHub Actions → Pages, 10–60 с",
+    "check": "node game-docs/tools/check-site.js",
+    "editorLink": "https://rewg40.github.io/my-godot-game/?edit=1#mechanics/character"
+  },
+  "routes": {
+    "scenario": "game-docs/src/content/scenario.json",
+    "mechanics.<character|craft|research|weather|npc|quests|locations|destruction|physics|zombies|combat|inventory|assets|production|multiplayer>": "game-docs/src/content/mech_<id>.json",
+    "preview": "game-docs/src/content/preview.json",
+    "images": "game-docs/src/content/images.json + game-docs/src/content/images/",
+    "models3d": "game-docs/src/content/models.json + game-docs/src/content/models/",
+    "agent-inbox": "game-docs/src/content/agent-inbox/<id>-slug.md → после выполнения agent-inbox/done/"
+  }
+}
