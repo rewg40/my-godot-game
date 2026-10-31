@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" data-build="2026-11-01.3 · self-test in footer">
+<html lang="ru" data-build="2026-11-01.6 · mirrors, boot fix, quiet watchdog">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -178,6 +178,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     <!-- INLINE-GATE:END -->
 </head>
 <body>
@@ -262,30 +274,94 @@
 <div id="toast-root" class="toast-root"></div>
 
 <script>
-/* Анти-кэш загрузчик: браузер может держать старый app.js/app.css (кэш провайдера или
-   GitHub Pages max-age=600). Поэтому файлы всегда грузятся с уникальным параметром, а
-   если версия не совпала с прошлым заходом — один раз принудительно перезагружаем страницу. */
+// === SITE-LOADER (править здесь; автотесты: node game-docs/tools/check-site.js) ===
+// Две задачи:
+//  1) анти-кэш: browser/провайдер может держать старый app.js — грузим с уникальным параметром
+//     и сверяем штамп (app.js по window.__ZOMBI_STALE__ решает, нужен ли принудительный reload);
+//  2) ЗАПАСНЫЕ ИСТОЧНИКИ: github.io в РФ блокируют, а index.html при этом обычно живёт в кэше.
+//     Если app.js/app.css/content не отдаёт ни реальный origin, ни зеркала — страница обязана
+//     открыться с любого доступного адреса, иначе человек видит просто «вкладки не работают».
 (function () {
   var P = "zombi-docs:loader";
-  function bust() {
-    var v = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-    var l = document.createElement("link");
-    l.rel = "stylesheet"; l.href = "app.css?nc=" + v; document.head.appendChild(l);
-    var st = document.createElement("script");
-    st.src = "app.js?nc=" + v;
-    st.onerror = function () {
-      var s2 = document.createElement("script"); s2.src = "app.js"; document.body.appendChild(s2);
-    };
-    document.body.appendChild(st);
+  var OWNER = "rewg40", REPO = "my-godot-game", BR = "gh-pages";   // BR — ветка Pages
+  function extra() {                      // пользовательский источник: ?mirror=… или сохранённый
+    var out = [];
+    var m = (location.search.match(/[?&]mirror=([^&]+)/) || [])[1];
+    if (!m) { try { m = localStorage.getItem("zombi-docs:mirror"); } catch (e) {} }
+    if (m) { try { m = decodeURIComponent(m); } catch (e) {} out.push(/\/$/.test(m) ? m : m + "/"); }
+    return out;
   }
-  var seen = null;
-  try { seen = localStorage.getItem(P); } catch (e) {}
-  var stamp = location.search.indexOf("nostamp=1") >= 0 ? "" : (seen || "");
-  window.__ZOMBI_STALE__ = stamp;                       // app.js сверится с ним
+  var MIRRORS = [
+    "",                                                              // рядом со страницей (Pages/локальный сервер)
+    "https://cdn.jsdelivr.net/gh/" + OWNER + "/" + REPO + "@" + BR + "/",
+    "https://rawcdn.githack.com/" + OWNER + "/" + REPO + "/" + BR + "/",
+    "https://" + OWNER + ".github.io/" + REPO + "/"
+  ];
+  function say(t) { var e = document.getElementById("gate-loader"); if (e) e.textContent = t; }
+  function seenStamp() { try { return localStorage.getItem(P) || ""; } catch (e) { return ""; } }
+  window.__ZOMBI_STALE__ = location.search.indexOf("nostamp=1") >= 0 ? "" : seenStamp();
   try { localStorage.setItem(P, "z"); } catch (e) {}
-  bust();
+  function bust() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function urlAt(i, file, nocache) {
+    var base = MIRRORS[i];
+    if (base === "") { var u = encodeURI(file); return nocache ? u + "?nc=" + nocache : u; }
+    return base + encodeURI(file) + (nocache ? "?x=" + nocache : "");
+  }
+  MIRRORS = MIRRORS.concat(extra());   // свой зеркальный адрес можно задать без пересборки сайта
+  window.__ZOMBI_SOURCES__ = MIRRORS;
+  try { var mm = (location.search.match(/[?&]mirror=([^&]+)/) || [])[1]; if (mm) localStorage.setItem("zombi-docs:mirror", decodeURIComponent(mm)); if (location.search.indexOf("mirror=0") >= 0) localStorage.removeItem("zombi-docs:mirror"); } catch (e) {}
+  var tried = [];
+  function probe(file, onok, onfail, isCss) {
+    var i = 0;
+    function attempt(nocache) {
+      if (i >= MIRRORS.length) { onfail(tried); return; }
+      var u = urlAt(i, file, nocache);
+      tried.push(u.slice(0, 74));
+      var done = false;
+      function next() { if (done) return; done = true; i++; attempt(false); }
+      if (isCss) {
+        var l = document.createElement("link");
+        l.rel = "stylesheet"; l.href = u;
+        l.onload = function () { if (done) return; done = true; onok(i, u); };
+        l.onerror = next;
+        document.head.appendChild(l);
+        setTimeout(next, 3500);
+      } else {
+        var st = document.createElement("script");
+        st.src = u;
+        st.onload = function () { if (done) return; done = true; try { st.setAttribute("data-zombi-ok", "1"); } catch (err) {} onok(i, u); };
+        st.onerror = next;
+        document.body.appendChild(st);
+        setTimeout(next, 5000);
+      }
+    }
+    attempt(bust());
+  }
+  // стили: тот же порядок, но падение не блокирует запуск
+  probe("app.css", function (i, u) { if (i > 0) window.__ZOMBI_CSS_BASE__ = u.replace(/[^/]*$/, ""); }, function () {}, true);
+  probe("app.js",
+    function (i, u) {
+      window.__ZOMBI_BASE__ = i > 0 ? u.replace(/[^/]*$/, "") : "";
+      window.__ZOMBI_SRC__ = i === 0 ? "origin" : MIRRORS[i];
+      setTimeout(function () {
+        if (window.__ZOMBI_APP__) return;
+        var w = window.__ZOMBI_SHOWERR__;
+        if (w) w("app.js загрузился, но не запустился: скрипт не дошёл до своей первой строки." + String.fromCharCode(10) + "Причина обычно в том, что вместо JS пришёл HTML (прокси-заглушка, «страница блокировки», кэш). Открой ?fresh=1 или возьми «Офлайн-копия».");
+      }, 2500);
+      say(i === 0 ? "app.js подтверждён" : "сайт работает с зеркала: " + MIRRORS[i]);
+    },
+    function () {
+      say("не удалось получить app.js — сайт открывается в режиме чтения из зеркала или офлайн-копии");
+      // офлайн-копия: выкачиваем весь контент напрямую (без app.js) и показываем как текст
+      try { localStorage.setItem("zombi-docs:dead-sources", JSON.stringify(tried)); } catch (e) {}
+      window.__ZOMBI_OFFLINE_FAIL__ = tried;
+      var w = window.__ZOMBI_SHOWERR__;
+      if (w) w("Скрипт интерфейса (app.js) не загрузился ни с одного адреса. Попробуй «Офлайн-копия» —" +
+               String.fromCharCode(10) + "перепробовано: " + tried.join(String.fromCharCode(10)));
+    }, false);
 })();
 </script>
+
   <!-- ZOMBI-WATCHDOG:START --><script>
 //Сторожевой скрипт, встраивается в <head> index.html генератором build-inline-gate.js.
 //Живёт ВНЕ app.js: если тот устарел (кэш), не загрузился или упал — человек всё равно
@@ -328,6 +404,7 @@
       var u = location.href.split("?")[0].split("#")[0];
       location.href = u + "?fresh=1" + (location.hash || "");
     });
+    btn("Офлайн-копия", function () { downloadOffline(this); });
     btn("Скопировать", function () {
       var ta = document.createElement("textarea");
       ta.value = diagText();
@@ -341,6 +418,54 @@
     box.appendChild(row);
   }
 
+  function srcList() {
+    var arr = (window.__ZOMBI_SOURCES__ || [""]).slice();
+    for (var i = 0; i < arr.length; i++) if (arr[i] === "") arr[i] = location.href.split("/").slice(0, 3).join("/") + "/";
+    return arr;
+  }
+  function getTxt(u) {
+    return fetch(u, { cache: "no-store", mode: "cors" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.text();
+    });
+  }
+  // Список = content/*.json в репозитории; чего нет — то просто пропустится.
+  var FILES = ["scenario.json", "mech_character.json", "mech_craft.json", "mech_weather.json", "mech_npc.json",
+    "mech_quests.json", "mech_locations.json", "mech_destruction.json", "mech_physics.json", "mech_zombies.json",
+    "mech_combat.json", "mech_inventory.json", "mech_assets.json", "mech_production.json", "images.json",
+    "models.json", "config.json"];
+  function downloadOffline(btn) {
+    var srcs = srcList(), out = [], done = 0, label0 = btn && btn.textContent;
+    if (btn) { btn.disabled = true; btn.textContent = "Скачиваю из зеркала..."; }
+    function finish() {
+      if (btn) { btn.disabled = false; btn.textContent = label0 || "Офлайн-копия"; }
+      if (!out.length) { showErr("Ни одно зеркало не отдало файлы. Открой сайт через VPN или попроси агента выложить копию архивом."); return; }
+      var head = "ZOMBI - офлайн-копия библии - собрано " + new Date().toISOString() + String.fromCharCode(10) +
+        "источник: " + srcs.join(", ") + String.fromCharCode(10) + String.fromCharCode(10);
+      var blob = new Blob([head + out.join(String.fromCharCode(10) + String.fromCharCode(10))], { type: "text/plain;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "zombi-bible.txt";
+      document.body.appendChild(a); a.click(); a.remove();
+      showErr("Офлайн-копия собрана: " + out.length + " из " + FILES.length + " файлов. Файл zombi-bible.txt сохранён в загрузки.");
+    }
+    function step() {
+      if (done >= FILES.length) { finish(); return; }
+      var f = FILES[done++], k = 0;
+      (function tryOne() {
+        if (k >= srcs.length) { step(); return; }
+        getTxt(srcs[k] + "content/" + f).then(function (t) {
+          out.push("=== " + f + " ===" + String.fromCharCode(10) + t);
+          step();
+        })["catch"](function () { k++; tryOne(); });
+      })();
+    }
+    step();
+  }
+  window.__ZOMBI_DOWNLOAD__ = downloadOffline;
+
+  window.__ZOMBI_SHOWERR__ = showErr;
+
   function diagText() {
     var doc = document.getElementById("doc");
     var st = [];
@@ -350,6 +475,9 @@
     st.push("HTML штамп: " + (document.documentElement.getAttribute("data-build") || "нет"));
     st.push("кликов по вкладкам: " + window.__ZOMBI_CLICKS__ + (window.__ZOMBI_LASTTAB__ ? " (последний: " + window.__ZOMBI_LASTTAB__ + ")" : ""));
     st.push("ошибок: " + (window.__ZOMBI_ERRS__.join(" | ") || "нет"));
+st.push("зеркала: " + srcList().join(" ; "));
+    try { var ds = JSON.parse(localStorage.getItem("zombi-docs:dead-sources") || "null"); if (ds) st.push("не ответили: " + ds.join(" ; ")); } catch (e) {}
+        st.push("файлов не доехало: " + (window.__ZOMBI_RES_FAIL__ || 0));
     st.push("состояние #doc: " + ((doc && doc.textContent) || "пусто").replace(/\s+/g, " ").slice(0, 220));
     return st.join("\n");
   }
@@ -386,11 +514,31 @@
     if (ld) ld.textContent = "клик #" + window.__ZOMBI_CLICKS__ + " · " + window.__ZOMBI_LASTTAB__;
   }, true);
 
+  // Разделяем два класса: «скрипт не приехал» (ресурс) и «скрипт упал» (исполнение).
+  // Картинка/шрифт/стиль не доехали — это не повод показывать красную карточку.
   window.addEventListener("error", function (e) {
+    var tgt = e && e.target;
+    var isRes = !!(tgt && tgt.tagName && /^(LINK|IMG|SCRIPT|LINK|SOURCE|VIDEO|AUDIO|IMG)$/.test(tgt.tagName) && !e.message);
+    if (isRes) {
+      window.__ZOMBI_RES_FAIL__ = (window.__ZOMBI_RES_FAIL__ || 0) + 1;
+      var tag = tgt.tagName, nm = (tgt.src || tgt.href || "").split("/").pop().split("?")[0];
+      var ld = document.getElementById("gate-loader");
+      if (ld) ld.textContent = "не доехали файлы: " + window.__ZOMBI_RES_FAIL__ + " (последний: " + tag + " " + nm + ")";
+      if (tag === "SCRIPT" && !window.__ZOMBI_APP__) {
+        setTimeout(function () {
+          if (window.__ZOMBI_APP__) return;                 // зеркало подключилось чуть позже
+          if (document.querySelector("script[src][data-zombi-ok]")) return;
+          showErr("Скрипт app.js не пришёл ни с одного адреса (блокировка github.io и зеркал или заглушка провайдера)." + String.fromCharCode(10) +
+                  "перепробовано: " + ((window.__ZOMBI_SOURCES__ || []).join(String.fromCharCode(10)) || "нет списка") + String.fromCharCode(10) +
+                  "Лечение: «Офлайн-копия» ниже или ?mirror=<рабочий адрес>/");
+        }, 1500);
+      }
+      return;
+    }
     var src = e && e.filename ? String(e.filename).split("/").pop().split("?")[0] : "?";
-    var line = (e && e.message ? e.message : "скрипт упал") + "  (" + src + ":" + (e && e.lineno) + ":" + (e && e.colno) + ")";
+    var line = (e && e.message ? e.message : "скрипт упал без сообщения") + "  (" + src + ":" + (e && e.lineno) + ":" + (e && e.colno) + ")";
     window.__ZOMBI_ERRS__.push(line);
-    showErr(line + "\napp.js: " + (window.__ZOMBI_STAMP__ || "штамп не прочитан"));
+    showErr(line + String.fromCharCode(10) + "app.js: " + (window.__ZOMBI_APP__ || "штамп не прочитан"));
   }, true);
 
   window.addEventListener("unhandledrejection", function (e) {
@@ -400,15 +548,41 @@
     showErr(line);
   });
 
-  // если документ так и не загрузился — объясняем вместо вечной «Загрузки…»
-  setTimeout(function () {
-    var doc = document.getElementById("doc");
-    var t = doc ? String(doc.textContent || "") : "";
-    if (!/Загрузка|Не удалось загрузить|ошибк/i.test(t)) return;
-    showErr(["Документ не загружен: content/*.json недоступен (кэш браузера, блокировка github.io или Pages ещё не пересобрался).", t.replace(/\s+/g, " ").slice(0, 180), "app.js: " + (window.__ZOMBI_STAMP__ || "штамп не прочитан")].join(String.fromCharCode(10)));
-  }, 7000);
+  // если документ так и не загрузился — объясняем вместо вечной «Загрузки…»;
+  // пока приложение живёт (app.js с зеркала может подключиться позже) — перепроверяем, а не кричим
+  (function watchDoc(n) {
+    setTimeout(function () {
+      var doc = document.getElementById("doc");
+      var t = doc ? String(doc.textContent || "") : "";
+      var failed = /Не удалось загрузить|не загружен/i.test(t);
+      var stuck = /Загрузка/.test(t) && !failed;
+      if (!stuck && !failed) return;                   // документ отрисован — всё хорошо
+      if (failed) {
+        showErr(["Документ не загружен (один клик по вкладке уже что-то сделал, но файлы не приходят).",
+                 t.replace(/\s+/g, " ").slice(0, 200),
+                 "app.js: " + (window.__ZOMBI_APP__ || "не загрузился"),
+                 "лечение: «Перезагрузить начисто», «Офлайн-копия» или ?mirror=<адрес>/"].join(String.fromCharCode(10)));
+        return;
+      }
+      var loaded = !!document.querySelector("script[src][data-zombi-ok]");
+      if (!window.__ZOMBI_APP__ && !loaded && n < 6) { watchDoc(n + 1); return; }   // app.js ещё может приехать с зеркала
+      showErr(["Документ не загружен: content/*.json недоступен (кэш браузера, блокировка github.io или Pages ещё не пересобрался).", t.replace(/\s+/g, " ").slice(0, 180), "app.js: " + (window.__ZOMBI_APP__ || "не загрузился ни с одного адреса")].join(String.fromCharCode(10)));
+    }, 7000);
+  })(0);
 })();
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
