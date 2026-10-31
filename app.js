@@ -66,7 +66,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.5 · anti-cache loader";
+const SITE_BUILD = "2026-10-31.7 · inline gate + guest check";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -837,8 +837,11 @@ function openSite() {
   if (g) g.hidden = true;
   if (a) a.hidden = false;
   S.inside = true;
+  const ld = document.getElementById("gate-loader");
+  if (ld) ld.textContent = "app.js живой · " + SITE_BUILD;
   return true;
 }
+window.zombiOpenSite = openSite;   // встроенный в index.html замок пользуется этим, чтобы не пло логику
 /* Если браузер притащил app.js другой версии (кэш провайдера / Pages max-age=600) —
    один раз принудительно перезагружаемся с ?fresh=1, чтобы вытащить свежий файл. */
 function guardStaleBuild() {
@@ -861,7 +864,7 @@ function wireGate() {
   // замок включаем по умолчанию только если конфиг реально не удалось прочитать;
   // «ещё не дочитался» — не повод светить контент
   const fb = document.getElementById("gate-fallback");
-  if (fb) fb.innerHTML = "сайт живой · код проверяется в браузере · сеть для входа не нужна";
+  if (fb) fb.innerHTML = "код принят · код проверяется в браузере, сеть для входа не нужна · «Сбросить кэш» перезакачает app.js/app.css";
   const gateOn = S.cfgFailed ? true : (g.enabled !== false);
   const badge = document.getElementById("gate-build");
   if (badge) { badge.textContent = "site " + SITE_BUILD + " · " + (S.cfgOk
@@ -887,6 +890,7 @@ function wireGate() {
   if (eye) eye.onclick = () => { const i = $("#gate-code"); i.type = i.type === "password" ? "text" : "password"; eye.textContent = i.type === "password" ? "👁" : "🙈"; };
   $("#gate-form").onsubmit = async (e) => {
     e.preventDefault();
+    if (window.__ZOMBI_INLINE_GATE__) return;   // пока config не прочитан, решает встроенный замок (он умеет фолбэк)
     const btn = e.target.querySelector("button[type=submit]");
     if (btn) btn.disabled = true;
     gateMsg("Проверяю…", false);
@@ -1313,7 +1317,10 @@ function wireChrome() {
   addEventListener("hashchange", () => { readHash(); buildMainTabs(); buildSubtabs(); goTab(); });
 }
 async function boot() {
-  if (guardStaleBuild()) return;      //DOM не трогаем — сейчас перезагрузка
+  window.__ZOMBI_BOOTED__ = 1;
+  const ig = window.__ZOMBI_GATE__;        // замок уже прошёл встроенный скрипт в index.html
+  if (ig && ig.unlockedBy) { S.admin = !!ig.admin; S.readonlyGate = !!ig.readonly; }
+  if (!(ig && ig.unlockedBy) && guardStaleBuild()) return;   // устаревший кэш — перезагрузимся
   try {
     const o = JSON.parse(localStorage.getItem(LS.origin) || "null"); if (o) S.origin = { ...S.origin, ...o };
     S.token = localStorage.getItem(LS.token) || "";
@@ -1329,6 +1336,7 @@ async function boot() {
   wireDoc();
   updateFoot();
   primeStatuses();
+  if (ig && ig.unlockedBy) { openSite(); boot2(); return; }   // не держим замок, который уже открыт
   const open = !!S.inside;                  // решение замка, а не состояние DOM
   cfgP.then(async () => {
     updateFoot();
