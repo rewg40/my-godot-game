@@ -152,7 +152,8 @@ if (css) {
   ok(/mirror=/.test(ldr), "загрузчик понимает ?mirror=<адрес>/ для ручного зеркала");
   ok(/data-zombi-ok/.test(ldr), "загрузчик помечает удачно загруженный скрипт (сторож не паникует зря)");
   ok(/else boot\(\);/.test(app), "app.js: запуск не привязан к DOMContentLoaded (else boot())");
-  ok(/S\.base = window\.__ZOMBI_BASE__/.test(app), "app.js: читает контент с того же зеркала, что и скрипт");
+  ok(/window\.__ZOMBI_BASE__/.test(app), "app.js: знает адрес зеркала (window.__ZOMBI_BASE__)");
+  ok(/const base = S\.base \|\| USER_BASE/.test(app), "app.js: loadText бьёт в зеркало первым запросом (до boot())");
 }
 
 console.log(fail ? "\nПРОВАЛ: " + fail + " проверок" : "\nвсе проверки пройдены");
