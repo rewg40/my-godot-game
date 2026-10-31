@@ -93,7 +93,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-11-01.10 · новый сценарий, исследование, сеть";
+const SITE_BUILD = "2026-11-01.11 · галерея «Пепел и Звёзды», заставки, видео-блоки";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -321,6 +321,19 @@ function renderBlock(b, sectIdx, blkIdx) {
       inner = `<figure class="img">${src ? `<img src="${esc(src)}" alt="${esc(b.caption || "")}" loading="lazy">` : ""}<figcaption>${inline(b.caption || "")}</figcaption></figure>`;
       break;
     }
+    case "video": {
+      // Заставки и видеоролики: файл лежит в content/video/ (или полный URL).
+      // poster обязателен по той же причине, что и зеркала: если видео не доедет
+      // (блок github.io / медленная сеть), человек видит кадр и подпись, а не чёрную дыру.
+      const vs = resolveAsset(b.src);
+      const vp = b.poster ? resolveAsset(b.poster) : "";
+      const posterAttr = vp ? ` poster="${esc(vp)}"` : "";
+      const vtag = vs ? `<video controls playsinline preload="metadata"${posterAttr} src="${esc(vs)}"></video>`
+        : `<div class="vid-missing">⚠️ в блоке нет файла видео</div>`;
+      const vlink = vs ? ` <a class="tiny" target="_blank" rel="noopener" href="${esc(vs)}">файл целиком ↗</a>` : "";
+      inner = `<figure class="vid">${vtag}<figcaption>${inline(b.caption || "")}${vlink}</figcaption></figure>`;
+      break;
+    }
     default: inner = `<p>${inline(b.text ? (Array.isArray(b.text) ? b.text.join(" ") : b.text) : "")}</p>`;
   }
   const tools = b.type === "h"
@@ -390,6 +403,7 @@ function blockToText(b) {
     case "kv": return [(b.head || []).join(" | "), (b.head || []).map(() => "---").join(" | "), ...(b.rows || []).map((r) => r.join(" | "))].join("\n");
     case "code": return "```" + (b.lang || "") + "\n" + (b.code || "") + "\n```";
     case "image": return "![" + (b.caption || "") + "](" + (b.src || "") + ")";
+    case "video": return (b.src || "") + " | " + (b.poster || "") + " | " + (b.caption || "");
     default: return JSON.stringify(b, null, 2);
   }
 }
@@ -467,13 +481,14 @@ function editSection(idx) {
   const modal = openModal(isHead ? "Раздел (заголовок)" : "Правка блока", `
     <label class="f"><span>Тип</span>
       <select id="ed-type">
-        ${["p", "note", "list", "todo", "kv", "code", "image", "h"].map((t) => `<option value="${t}" ${t === b.type ? "selected" : ""}>${{ p: "абзацы", note: "заметка/врезка", list: "список", todo: "чек-лист", kv: "таблица", code: "код", image: "картинка", h: "заголовок раздела" }[t]}</option>`).join("")}
+        ${["p", "note", "list", "todo", "kv", "code", "image", "video", "h"].map((t) => `<option value="${t}" ${t === b.type ? "selected" : ""}>${{ p: "абзацы", note: "заметка/врезка", list: "список", todo: "чек-лист", kv: "таблица", code: "код", image: "картинка", video: "видео (файл | постер | подпись)", h: "заголовок раздела" }[t]}</option>`).join("")}
       </select></label>
     <label class="f"><span>Содержимое</span>
       <textarea id="ed-text" spellcheck="false"></textarea></label>
     <div class="hint">Для заголовка — одна строка (можно вставить несколько строк: 1-я станет заголовком, остальные — блоками).
     Пустая строка = новый абзац; <code>- </code> список; <code>1. </code> нумерованный; <code>- [ ]</code> чек-лист;
-    <code>|</code> таблица (2-я строка — <code>---</code>); тройной бэкскрип — код; <code>&gt;</code> врезка; <code>![подпись](images/…)</code> картинка.</div>
+    <code>|</code> таблица (2-я строка — <code>---</code>); тройной бэкскрип — код; <code>&gt;</code> врезка; <code>![подпись](images/…)</code> картинка;
+      для видео — одна строка <code>video/файл.mp4 | images/постер.webp | подпись</code>.</div>
     <div class="foot-row">
       <button class="primary" id="ed-ok">Применить</button>
       <button class="ghost" id="ed-cancel">Отмена</button>
@@ -510,6 +525,10 @@ function editSection(idx) {
       blocks = [{ type: "p", text: raw.split(/\n{2,}/).map((x) => x.trim()).filter(Boolean) }];
     } else if (type === "note") {
       blocks = [{ type: "note", text: raw.trim() }];
+    } else if (type === "video") {
+      const parts = raw.split("|").map((x) => x.trim());
+      blocks = [{ type: "video", src: parts[0] || "", poster: parts[1] || "", caption: parts.slice(2).join(" | ").trim() }];
+      if (b.type === "video" && !parts[0]) blocks = [b];   // пусто не сохраняем: иначе блок теряет файл
     } else if (type === "code") {
       const probe = parseBlocks(raw);
       const src = probe.find((x) => x.type === "code");
@@ -1206,7 +1225,11 @@ async function loadPreview() {
   box.appendChild(g2);
 
   box.insertAdjacentHTML("beforeend", `<div class="h3row"><h2>Куда смотреть дальше</h2></div>
-    <div class="note">Архивы в корне репозитория (<code>ZOMBI.7z.*</code>, <code>остров 1.7z.*</code>, <code>персонаж 1.7z.*</code>) — это, судя по всему, исходники проекта. Скажи агенту: «распакуй и разложи превью по вкладке „Картинки / превью“» — он распакует, отрежет превьюшки, зальёт в <code>game-docs/src/content/images/</code> и обновит реестр.</div>`);
+    <div class="note">Канон витрины — <code>game-docs/src/content/preview.json</code>: там ключевые кадры,
+    заставки и плейлист того, что ещё надо нарисовать. Архивы в корне репозитория
+    (<code>ZOMBI.7z.*</code>, <code>остров 1.7z.*</code>, <code>персонаж 1.7z.*</code>) — это старый
+    островный прототип: его не распакуем и в галерею не берём. Хочешь новый кадр — скажи агенту
+    «нарисуй кадр №N из плейлиста в „Картинки / превью"», он сгенерирует, сожмёт в WebP и допишет в реестр.</div>`);
   host.appendChild(box);
   $("#p-add-img", host).onclick = () => addImageUI();
   $("#p-add-md", host).onclick = () => addModelUI();
