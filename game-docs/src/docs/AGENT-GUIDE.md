@@ -148,6 +148,12 @@ SRC_ART=/path/to/png ./game-docs/tools/make-splash.sh   # другие исхо�
 
 Модели: не класть в git больше 24 МБ на файл; для «тяжёлых» — ссылка на релиз/архив + запись с `size_mb: null` и примечанием. Если файл больше или это исходник (`.blend`, `.fbx` с текстурами) — писать путь в репозитории, а не дублировать.
 
+**Что куда попадает.** На Pages публикуется только `game-docs/src/`: workflow копирует `index.html`, `app.css`,
+`app.js`, `config.json`, `content/` и `docs/`. `game-docs/archive/`, `game-docs/tools/` и `media/splash/`
+на сайт не попадают — их можно хранить сколько угодно тяжёлыми. Отсюда два правила: (1) после правки любого
+`content/*.json` перегенерируй читалку — `python3 game-docs/tools/build_offline_reader.py`, иначе «выпуск»
+отстанет от сайта; (2) zip-выпуск (`make_handoff_archive.sh`) в git не класть, он производный и весит ~16 МБ.
+
 ### А.7. Доступ и безопасность
 
 - `config.json → gate.allowed` — массив SHA-256 кодов. Новый гость: `python3 -c "import hashlib;print(hashlib.sha256('КОД'.encode()).hexdigest())"` → добавить в `allowed` → коммит.
@@ -359,6 +365,12 @@ cd game-docs/src && python3 -m http.server 8081
 
 # добавить гостю доступ
 python3 -c "import hashlib;print(hashlib.sha256('ZOMBI-GUEST-01'.encode()).hexdigest())"   # → config.json: gate.allowed
+
+# офлайн-читалка (вся библия одним HTML) — перегенерировать после любой правки content/*.json
+python3 game-docs/tools/build_offline_reader.py      # → game-docs/archive/zombi-chitalka.html
+
+# «выпуск» в руки владельцу: читалка + документация + мастера заставок одним zip
+bash game-docs/tools/make_handoff_archive.sh         # в git этот zip не кладут — он пересобирается
 
 # вручную пересобрать Pages
 gh workflow run "Deploy docs site (ZOMBI bible)" --ref arena/73c7370f-my-godot-game

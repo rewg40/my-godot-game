@@ -11,7 +11,8 @@
 
 Архивы `*.7z.*` в корне — исходники острова/персонажа из старой версии, их не правим.
 
-- **Витрина и заставки:** 6 ключевых кадров нового мира + две видеозаставки (перед меню — 39,4 с с титрами; пробуждение героя — 12,8 с). Собираются одной командой: `./game-docs/tools/make-splash.sh`, страница — `python3 game-docs/tools/author_gallery.py`.
+- **Витрина и заставки:** 6 ключевых кадров нового мира + 4 служебных кадра заставок (постеры и петли на случай «видео не открылось») + две видеозаставки (перед меню — 39,4 с с титрами; пробуждение героя — 12,8 с). Собираются одной командой: `./game-docs/tools/make-splash.sh`, страница — `python3 game-docs/tools/author_gallery.py`.
+- **Читать без сайта:** `game-docs/archive/zombi-chitalka.html` — вся библия одним файлом, открывается двойным кликом; пересборка `python3 game-docs/tools/build_offline_reader.py`.
 - **Сайт:** https://rewg40.github.io/my-godot-game/
 - **Вход:** код `ZOMBI-2026` (или сразу `https://rewg40.github.io/my-godot-game/#code=ZOMBI-2026`)
 - **Быстрый путь:** https://rewg40.github.io/my-godot-game/?open=1 — просмотр без кода, запись недоступна
@@ -35,6 +36,8 @@
 | «заставку», «видео с титрами», «кадр пробуждения» | `game-docs/tools/make-splash.sh` (собирает `content/video/*.mp4` для сайта и `media/splash/*.ogv` для движка) + `game-docs/tools/author_gallery.py` (вся страница «Картинки / превью») |
 | заявка не из чата, а с сайта | `game-docs/src/content/agent-inbox/NNNN-slug.md` → после выполнения в `agent-inbox/done/` |
 | доступ гостю | `game-docs/src/config.json` → `gate.allowed` (только SHA-256 хеш кода, никогда сам код) |
+| «дай почитать без сайта» | `python3 game-docs/tools/build_offline_reader.py` → `game-docs/archive/zombi-chitalka.html` |
+| «скинь всё, что сделал, архивом» | `bash game-docs/tools/make_handoff_archive.sh` (читалка + документация + мастера заставок одним zip; в git не кладётся) |
 
 Полная инструкция (формат блоков, стандарт детализации, правила Godot-кода, приёмка):
 [`game-docs/src/docs/AGENT-GUIDE.md`](game-docs/src/docs/AGENT-GUIDE.md).
