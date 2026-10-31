@@ -17,7 +17,7 @@
     "ownerCode": "db258780332270ce4543227fe8cf0ac342d8659305e912ec8320a5d6b904700e",
     "allowed": []
   },
-  "updated": "2026-10-31T11:56:19Z",
+  "updated": "2026-10-31T12:59:02Z",
   "site": {
     "url": "https://rewg40.github.io/my-godot-game/",
     "quickLogin": "https://rewg40.github.io/my-godot-game/#code=…",
@@ -33,6 +33,9 @@
     "preview": "game-docs/src/content/preview.json",
     "images": "game-docs/src/content/images.json + game-docs/src/content/images/",
     "models3d": "game-docs/src/content/models.json + game-docs/src/content/models/",
-    "agent-inbox": "game-docs/src/content/agent-inbox/NNNN-slug.md → после выполнения agent-inbox/done/"
-  }
+    "agent-inbox": "game-docs/src/content/agent-inbox/NNNN-slug.md → после выполнения agent-inbox/done/",
+    "video": "game-docs/src/content/video/*.mp4 (веб-копии, играет сайт) + media/splash/*.ogv (мастера для Godot) → генератор game-docs/tools/make-splash.sh"
+  },
+  "videoPath": "game-docs/src/content/video",
+  "splashMaster": "media/splash"
 }

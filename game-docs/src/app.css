@@ -112,6 +112,11 @@ pre.code .nm{color:#ffcb6b}
 figure.img{margin:6px 0 2px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;background:#0d141c;border:1px solid var(--line);border-radius:12px;padding:10px}
 figure.img img{max-width:min(460px,100%);border-radius:8px;display:block;background:#000}
 figure.img figcaption{color:var(--tx2);font-size:13px;max-width:520px}
+figure.vid{margin:6px 0 2px;display:flex;flex-direction:column;gap:8px;background:#0d141c;border:1px solid var(--line);border-radius:12px;padding:10px}
+figure.vid video{width:100%;max-width:860px;border-radius:8px;display:block;background:#000}
+figure.vid figcaption{color:var(--tx2);font-size:13px;max-width:860px}
+figure.vid figcaption .tiny{margin-left:6px;white-space:nowrap}
+.vid-missing{color:var(--tx3);font-size:13px;padding:26px 12px;text-align:center;border:1px dashed var(--line2);border-radius:8px}
 .gloss{margin-top:26px;padding:14px 16px;background:var(--bg2);border:1px dashed var(--line2);border-radius:12px}
 .gloss h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--tx3)}
 .gloss dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0;font-size:13.5px}

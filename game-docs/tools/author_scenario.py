@@ -11,7 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "src", "content", "scenario.json")
 
 BL = chr(92)          # обратный слэш — чтобы не писать его в литералах
-NL = BL + "n"         # перевод строки ВНУТРИ собираемого текста (для code-блоков)
+NL = chr(10)         # настоящий перевод строки внутри code-блоков (json.dumps сам экранирует его в \n)
 
 def H(t):        return {"type": "h", "text": t}
 def P(*t):       return {"type": "p", "text": list(t)}

@@ -15,7 +15,7 @@ import os
 import datetime
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src", "content")
-NL = chr(92) + "n"
+NL = chr(10)  # реальный перевод строки: json.dumps сам превратит его в \n (chr(92)+"n" дублировал экранирование)
 
 
 def H(t):        return {"type": "h", "text": t}
