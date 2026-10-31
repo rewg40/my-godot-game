@@ -50,9 +50,14 @@ test("character concept is origin + practice, not a locked class", () => {
   assert.ok(specTxt.includes("вершинный приём") && specTxt.includes("наставника фракции"));
   assert.ok(specTxt.includes("MVP — 4 специализации"));
   const todos = d.blocks.find((b) => b.type === "todo").items;
-  const answered = todos.filter((i) => i.done && i.answer);
-  assert.ok(answered.length >= 4, "открытые вопросы имеют ответы");
-  assert.ok(todos.filter((i) => !i.done).length >= 3, "остались новые точные вопросы");
+  assert.ok(
+    todos.every((i) => !i.done && !i.answer),
+    "решённые вопросы удалены, ответы перенесены в правила"
+  );
+  assert.ok(todos.length >= 3, "остались новые точные вопросы");
+  // ответы автора живут в правилах, а не в поле answer
+  assert.ok(specTxt.includes("Четыре пути получить") && specTxt.includes("живой образец"));
+  assert.ok(specTxt.includes("Ремесло делает"), "восемь навыков обоснованы в правилах");
 });
 
 test("four origins are consistent across tabs", () => {
@@ -123,15 +128,15 @@ test("apex technique can be looted from a node infected", () => {
   const ct = textOf(char);
   assert.ok(ct.includes("Четыре пути получить"));
   const todo = char.blocks.find((b) => b.type === "todo").items;
-  const apex = todo.find((i) => i.text.startsWith("Можно ли выучить вершинный приём специализации"));
-  assert.ok(apex && apex.done && apex.answer, "вопрос про вершинный приём закрыт ответом");
-  assert.ok(apex.answer.includes("Тени") && apex.answer.includes("образец"));
-  // восемь навыков и фиксированный стартовый набор — решения автора зафиксированы
-  for (const prefix of ["Оставлять восемь навыков", "Стартовый набор: фиксированный"]) {
-    const it = todo.find((i) => i.text.startsWith(prefix));
-    assert.ok(it && it.done && it.answer, `закрыт вопрос: ${prefix}`);
+  // решённые вопросы удалены из списка, а их ответы превратились в правила
+  for (const prefix of [
+    "Можно ли выучить вершинный приём специализации",
+    "Оставлять восемь навыков",
+    "Стартовый набор: фиксированный",
+  ]) {
+    assert.ok(!todo.some((i) => i.text.startsWith(prefix)), `вопрос удалён: ${prefix}`);
   }
-  assert.ok(todo.filter((i) => i.done && i.answer).length >= 7, "ответов не меньше семи");
+  assert.ok(ct.includes("живой образец") && ct.includes("«Тень»"), "ответ про трофей живёт в правилах");
 
   // исследование: живой образец как источник и «грязный» эксперимент
   const rt = textOf(research);
@@ -172,7 +177,11 @@ test("craft is gated by colony tech level (UT)", () => {
   assert.ok(ct.includes("46 рецептов"), "MVP: 46 рецептов на УТ0–УТ1");
   assert.ok(ct.includes("tech-пуле"), "УТ растёт из узлов Исследования");
   const ctodo = craft.blocks.find((b) => b.type === "todo").items;
-  assert.ok(ctodo.some((i) => i.done && i.answer && i.text.startsWith("Сколько всего рецептов на v1")));
+  assert.ok(
+    !ctodo.some((i) => i.text.startsWith("Сколько всего рецептов на v1")),
+    "решённый вопрос о числе рецептов удалён"
+  );
+  assert.ok(ct.includes("140"), "распределение рецептов записано в правилах");
   assert.ok(ctodo.filter((i) => !i.done).length >= 3, "остались новые точные вопросы");
 
   // стык с Исследованием
@@ -208,8 +217,10 @@ test("infected break doors, they never open them", () => {
   assert.ok(zt.includes("6 HP за удар") && zt.includes("≈ 12 с"), "жилая дверь держит 12 с");
   assert.ok(zt.includes("BREAK_MUL"), "множители поломки в коде");
   const todo = z.blocks.find((b) => b.type === "todo").items;
-  const q = todo.find((i) => i.text.startsWith("Умеют ли зомби открывать двери"));
-  assert.ok(q && q.done && q.answer.includes("выбить"), "вопрос про двери закрыт");
+  assert.ok(
+    !todo.some((i) => i.text.startsWith("Умеют ли зомби открывать двери")),
+    "решённый вопрос про двери удалён"
+  );
   assert.ok(todo.filter((i) => !i.done).length >= 3, "остались новые точные вопросы");
 
   // стык: баррикада есть и в локациях, и в крафте
@@ -233,8 +244,10 @@ test("runners stay rare for the whole game", () => {
     assert.ok(stages.rows.some((r) => r[0].startsWith(st)), st);
   }
   const todo = z.blocks.find((b) => b.type === "todo").items;
-  const q = todo.find((i) => i.text.startsWith("Бегуны: оставить на всю игру"));
-  assert.ok(q && q.done && q.answer.startsWith("Да"), "вопрос про бегунов закрыт");
+  assert.ok(
+    !todo.some((i) => i.text.startsWith("Бегуны: оставить на всю игру")),
+    "решённый вопрос про бегунов удалён"
+  );
   assert.ok(textOf(z).includes("12 с на 7.2"), "окно рывка зафиксировано");
 });
 
@@ -258,8 +271,10 @@ test("pheromone craft diverts the horde", () => {
   assert.ok(zt.includes("дождь −70 %"), "погода важнее рецепта");
   assert.ok(zt.includes("На Тень и волну «Стужа» не действует"), "трофейную охоту не упрощает");
   const todo = z.blocks.find((b) => b.type === "todo").items;
-  const q = todo.find((i) => i.text.startsWith("Нужен ли «феромон»-крафт"));
-  assert.ok(q && q.done && q.answer.startsWith("Нужен"), "вопрос про феромон закрыт");
+  assert.ok(
+    !todo.some((i) => i.text.startsWith("Нужен ли «феромон»-крафт")),
+    "решённый вопрос про феромон удалён"
+  );
 
   // крафт: рецепты запаха
   const ch = craft.blocks.filter((b) => b.type === "h").map((b) => b.text);
@@ -274,4 +289,44 @@ test("pheromone craft diverts the horde", () => {
   assert.ok(toolsTable.rows.some((r) => r[0].includes("отвод")));
   assert.ok(inv.includes("привада") && inv.includes("0.4 кг"));
   assert.ok(mp.includes("Привада — серверный объект"));
+});
+
+test("resolved questions are deleted, answers live in the rules", () => {
+  const files = fs.readdirSync(SRC).filter((f) => f.endsWith(".json"));
+  let blocks = 0;
+  let questions = 0;
+  for (const file of files) {
+    const doc = read(file);
+    if (!Array.isArray(doc.blocks)) continue;
+    for (const b of doc.blocks) {
+      if (b.type !== "todo") continue;
+      blocks += 1;
+      questions += b.items.length;
+      assert.ok(b.items.length >= 3, `${file}: в блоке вопросов меньше трёх (${b.items.length})`);
+      for (const it of b.items) {
+        assert.ok(!it.done, `${file}: решённый вопрос не удалён: ${it.text}`);
+        assert.ok(!it.answer, `${file}: у открытого вопроса не должно быть ответа: ${it.text}`);
+        assert.ok(
+          !/проработать|реализма|будет интересно|принято\b/i.test(it.text),
+          `${file}: размытая формулировка вопроса: ${it.text}`
+        );
+      }
+    }
+  }
+  assert.ok(blocks >= 15, "блоки открытых вопросов на месте");
+  assert.ok(questions >= 45, "вопросы не исчезли вместе с удалёнными");
+
+  // ответы на удалённые вопросы живут в правилах, а не только в истории коммитов
+  assert.ok(textOf(read("mech_combat.json")).includes("награда акта I"), "«Обрез» — награда акта I, записано в правилах");
+  const assets = textOf(read("mech_assets.json"));
+  assert.ok(assets.includes("при превышении 1 ГБ"), "порог LFS записан в правилах");
+  assert.ok(assets.includes("4 варианта головы"), "решение про второй морф записано в правилах");
+  assert.ok(textOf(read("mech_zombies.json")).includes("Преграды: не открывают, а выбивают"));
+  assert.ok(textOf(read("mech_craft.json")).includes("Уровень технологий (УТ)"));
+  assert.ok(textOf(read("mech_character.json")).includes("Четыре пути получить"));
+
+  // правило зафиксировано в инструкции агента
+  const guide = fs.readFileSync(path.join(__dirname, "..", "src", "docs", "AGENT-GUIDE.md"), "utf8");
+  assert.ok(guide.includes("Ответ автора = изменение в проекте"), "правило есть в AGENT-GUIDE");
+  assert.ok(guide.includes("удаляет вопрос") && guide.includes("Поля `done: true` в файлах контента быть не должно"));
 });
