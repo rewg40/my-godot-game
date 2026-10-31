@@ -4,6 +4,8 @@
 //Здесь только ES5: никакого async/await, стрелок и шаблонных литералов.
 (function () {
   window.__ZOMBI_CLICKS__ = 0;
+  // «жив» ли настоящий app.js: он сам сообщает о себе флагом при старте
+  window.__ZOMBI_APP__ = 0;
   window.__ZOMBI_ERRS__ = [];
 
   function showErr(msg) {
@@ -64,7 +66,29 @@
   }
   window.__ZOMBI_DIAG__ = diagText;
 
+  function selftest() {
+    var htmlStamp = (document.documentElement.getAttribute("data-build") || "нет в HTML");
+    var out = document.getElementById("selftest-out");
+    var t = document.getElementById("lnk-selftest");
+    if (t) t.textContent = "Проверить клики ещё раз";
+    var msg = [
+      "Клик по этой ссылке браузер поймал (всего кликов по сайту: " + window.__ZOMBI_CLICKS__ + ").",
+      "JS в index.html выполняется. app.js: " + (window.__ZOMBI_APP__ ? "жив, версия " + window.__ZOMBI_APP__ : "НЕ загрузился или заблокирован (в HTML версия " + htmlStamp + ")"),
+      "HTML: " + htmlStamp,
+    ];
+    if (out) out.textContent = msg.join(String.fromCharCode(10));
+    if (!window.__ZOMBI_APP__) {
+      showErr("Клики браузер ловит, но app.js не работает: браузер, прокси или блокировщик не даёт скачать app.js." +
+        String.fromCharCode(10) + "Открой страницу с ?fresh=1, отключи «турбо»/блокировщик для this сайта." +
+        String.fromCharCode(10) + "HTML: " + htmlStamp);
+    }
+    return true;
+  }
+  window.__ZOMBI_SELFTEST__ = selftest;
+
   document.addEventListener("click", function (e) {
+    var st = e.target && e.target.closest ? e.target.closest("[data-selftest]") : null;
+    if (st) { e.preventDefault(); selftest(); return; }
     var t = e.target && e.target.closest ? e.target.closest("#main-tabs [data-tab], #subtabs .subtab") : null;
     if (!t) return;
     window.__ZOMBI_CLICKS__++;

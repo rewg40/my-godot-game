@@ -82,7 +82,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-11-01.2 · watchdog + guards in index.html";
+const SITE_BUILD = "2026-11-01.3 · self-test in footer";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -619,6 +619,19 @@ function updateFoot() {
 }
 
 /* ----------------------------- навигация ----------------------------------- */
+function wireSelfTest() {
+  const link = $("#lnk-selftest"), out = $("#selftest-out");
+  if (!link || !out) return;
+  link.onclick = () => {
+    setTimeout(() => {
+      const txt = out.textContent || "";
+      if (!/app.js/.test(txt)) return;              // сторож уже всё подписал
+      const add = "app.js: " + SITE_BUILD + " \u00b7 документ: " + (S.docReady ? "загружен" : "не загружен (" + (S.lastErr || "ждём сеть") + ")");
+      out.textContent = txt.replace(/app.js:.*/, add);
+    }, 60);
+  };
+}
+
 function buildMainTabs() {
   $$("#main-tabs .tab-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.tab === S.mainTab);
@@ -1367,6 +1380,7 @@ async function boot() {
   // обработчики вешаем СОВСЕМ первыми: даже если дальше мы уйдём на перезагрузку
   // (страж кэша) или загрузка конфига зависнет, клики по вкладкам уже живые
   window.__ZOMBI_STAMP__ = SITE_BUILD;
+  window.__ZOMBI_APP__ = SITE_BUILD;   // сторож из index.html по этому флагу видит, что скрипт жив
   wireChrome(); buildMainTabs(); wireDoc();
   // страж кэша работает ВСЕГДА, в т.ч. для уже вошедших: иначе «залетевший» старый
   // app.js не обновлялся бы никогда (а встроенный в HTML замок пишет штамп "inline").
