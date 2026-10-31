@@ -39,6 +39,16 @@ test("character concept is origin + practice, not a locked class", () => {
   }
   // водолаз и связист остались как перевод должности
   assert.ok(txt.includes("водолаз") && txt.includes("связист"));
+  // специализации: третий слой сборки, не класс и не девятый навык
+  const spec = d.blocks.find((b) => b.type === "kv" && b.head[0] === "Специализация");
+  assert.equal(spec.rows.length, 8);
+  for (const name of ["Хирург", "Энергетик", "Дозорный", "Фортификатор", "Следопыт", "Тихий охотник", "Носильщик", "Забойщик"]) {
+    assert.ok(spec.rows.some((r) => r[0] === name), name);
+  }
+  assert.ok(spec.rows.every((r) => /R3 \+/.test(r[1])), "требование = R3 основного + R1 вспомогательного");
+  const specTxt = textOf(d);
+  assert.ok(specTxt.includes("вершинный приём") && specTxt.includes("наставника фракции"));
+  assert.ok(specTxt.includes("MVP — 4 специализации"));
   const todos = d.blocks.find((b) => b.type === "todo").items;
   const answered = todos.filter((i) => i.done && i.answer);
   assert.ok(answered.length >= 4, "открытые вопросы имеют ответы");
@@ -79,6 +89,12 @@ test("four origins are consistent across tabs", () => {
   assert.ok(mp.includes("Четыре опоры отряда") && mp.includes("«Сборка»"));
   // локации: стройка считает навык «Строительство»
   assert.ok(loc.includes("Строительство"));
+  // наставники фракций учат специализации на репутации +50
+  for (const spec of ["Хирург", "Энергетик", "Дозорный", "Фортификатор"]) {
+    assert.ok(npc.includes(spec), `наставник: ${spec}`);
+  }
+  assert.ok(research.includes("вершинный приём специализации"));
+  assert.ok(mp.includes("листе отряда"));
   // акт I: у каждого происхождения свой стартовый контракт
   for (const code of ["q1_medic", "q1_eng", "q1_soldier", "q1_builder"]) {
     assert.ok(quests.includes(code), `стартовый квест: ${code}`);
