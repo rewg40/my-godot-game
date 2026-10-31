@@ -93,7 +93,7 @@ function toast(msg, kind = "", ms = 3800) {
   setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 320); }, ms);
   return t;
 }
-const SITE_BUILD = "2026-10-31.12 · редактор вкладок и вопросов";
+const SITE_BUILD = "2026-10-31.13 · отправка правок ИИ";
 /* Чистый JS-хеш нужен, когда crypto.subtle недоступен: http-прокси, file://,
    старые WebView. Иначе «нет доступа» не из-за кода, а потому что хеш не считается. */
 function sha256Pure(text) {
@@ -683,7 +683,7 @@ function renderQuestions(b, blockIdx) {
       <div class="question-add-title">Новый открытый вопрос <span>→ эта вкладка · Открытые вопросы</span></div>
       <label class="f"><span>Вопрос</span><textarea name="question" rows="2" required placeholder="Например: что должно происходить с зомби при потере цели?"></textarea></label>
       <label class="f"><span>Ответ / решение · необязательно</span><textarea name="answer" rows="2" placeholder="Можно заполнить сейчас или позже кнопкой «Ответить»"></textarea></label>
-      <div class="foot-row"><button class="primary" type="submit">＋ Добавить вопрос</button><span class="hint">Сохранится во вкладке в этом браузере</span></div>
+      <div class="foot-row"><button class="primary" type="submit">＋ Добавить вопрос</button><button class="ghost" type="button" data-qai="${blockIdx}">＋ Добавить и отправить ИИ</button><span class="hint">ИИ получит задачу на обработку, а не просто вопрос</span></div>
       <p class="field-status" role="status" aria-live="polite" hidden></p>
     </form>`}
   </div>`;
@@ -706,23 +706,27 @@ function openQuestionEditor(blockIndex, itemIndex, focusAnswer) {
     <label class="f"><span>Ответ / решение · необязательно</span><textarea id="q-answer" rows="4">${esc(old.answer || "")}</textarea></label>
     <label class="check-line"><input id="q-done" type="checkbox" ${old.done ? "checked" : ""}> Вопрос решён</label>
     <p class="hint">Куда: <b>${esc(doc.title || file)}</b> → Открытые вопросы</p>
-    <div class="foot-row"><button class="primary" id="q-save">Сохранить во вкладке</button><button class="ghost" id="q-publish">Сохранить и опубликовать</button><button class="ghost" id="q-cancel">Отмена</button></div>
+    <label class="f"><span>Как ИИ должен обработать</span><select id="q-scope">${aiScopeOptions(file)}</select></label>
+    <div class="foot-row"><button class="primary" id="q-ai">Сохранить и отправить ИИ</button><button class="ghost" id="q-save">Только сохранить</button><button class="ghost" id="q-publish">Сохранить и опубликовать</button><button class="ghost" id="q-cancel">Отмена</button></div>
     <p id="q-status" class="field-status" role="status" aria-live="polite" hidden></p>`, true);
-  const save = async (publish) => {
+  const save = async (mode) => {
     if (S.content !== doc || S.contentFile !== file) { toast("Вкладка изменилась — открой форму заново.", "warn"); return; }
     const text = $("#q-text", modal).value.trim();
     if (!text) { $("#q-status", modal).hidden = false; $("#q-status", modal).textContent = "Напиши текст вопроса."; return; }
     const item = { ...old, text, answer: $("#q-answer", modal).value.trim(), done: $("#q-done", modal).checked };
     if (newBlock) { bi = doc.blocks.length; doc.blocks.push({ type: "h", text: "Открытые вопросы" }, block); }
     if (isNew) block.items.push(item); else block.items[itemIndex] = item;
-    $("#q-save", modal).disabled = true; $("#q-publish", modal).disabled = true;
+    $$("#q-save,#q-publish,#q-ai", modal).forEach((b) => b.disabled = true);
     const ok = markDirty(file, doc);
-    if (!ok) { $("#q-status", modal).hidden = false; $("#q-status", modal).textContent = "Черновик не поместился в хранилище браузера. Правка остаётся в форме: скачай JSON или освободи место."; $("#q-save", modal).disabled = false; $("#q-publish", modal).disabled = false; return; }
+    if (!ok) { $("#q-status", modal).hidden = false; $("#q-status", modal).textContent = "Черновик не поместился в хранилище браузера. Правка остаётся в форме: скачай JSON или освободи место."; $$("#q-save,#q-publish,#q-ai", modal).forEach((b) => b.disabled = false); return; }
+    const task = buildAiTask({ kind: "question", text, answer: item.answer, doc, file, scope: $("#q-scope", modal).value, target: "Открытые вопросы" });
     closeModal(); renderActiveDoc(); localSavedToast(true, "Изменение вопроса");
-    if (publish) await pushCurrent();
+    if (mode === "publish") await pushCurrent();
+    if (mode === "ai") await queueAgentTask(task);
   };
-  $("#q-save", modal).onclick = () => save(false);
-  $("#q-publish", modal).onclick = () => save(true);
+  $("#q-save", modal).onclick = () => save("local");
+  $("#q-publish", modal).onclick = () => save("publish");
+  $("#q-ai", modal).onclick = () => save("ai");
   $("#q-cancel", modal).onclick = closeModal;
   $(focusAnswer ? "#q-answer" : "#q-text", modal).focus();
 }
@@ -742,7 +746,7 @@ function questionAction(button) {
     const ok = markDirty(); renderActiveDoc(); localSavedToast(ok, "Удаление вопроса");
   }
 }
-function submitQuestionForm(form) {
+function submitQuestionForm(form, sendAi) {
   if (!assertEditable() || S.publishing) return;
   const bi = +form.dataset.qform, block = S.content && S.content.blocks[bi];
   if (!block) return;
@@ -752,9 +756,11 @@ function submitQuestionForm(form) {
   block.items.push({ text, answer, done: false });
   const ok = markDirty();
   if (!ok) { block.items.pop(); status.hidden = false; status.textContent = "Браузер не сохранил черновик. Текст остаётся в форме."; return; }
+  const task = sendAi ? buildAiTask({ kind: "question", text, answer, doc: S.content, file: S.contentFile, scope: defaultAiScope(S.contentFile), target: "Открытые вопросы" }) : null;
   renderActiveDoc(); localSavedToast(true, "Вопрос");
   const next = document.querySelector(`[data-qform="${bi}"] textarea[name="question"]`);
   if (next) next.focus();
+  if (task) queueAgentTask(task);
 }
 function sectionEnd(blocks, headingIndex) {
   for (let i = headingIndex + 1; i < blocks.length; i++) if (blocks[i].type === "h") return i;
@@ -768,10 +774,11 @@ function openTabComposer() {
     <p class="hint">Пиши обычным текстом: он появится прямо в этой вкладке, не в очереди агенту. «Сохранить во вкладке» оставляет правку в этом браузере; «Опубликовать» показывает её всем посетителям после обновления GitHub Pages.</p>
     <label class="f"><span>Что добавить</span><textarea id="tc-text" placeholder="Например: при потере цели зомби возвращается к последней точке патруля. Добавь это как правило поведения и отметь открытый вопрос по поиску пути."></textarea></label>
     <label class="f"><span>Куда добавить</span><select id="tc-target"><option value="">В конец вкладки</option>${headings}</select></label>
-    <p class="hint">Можно писать абзацы, списки и подзаголовки <code>##</code>. Чтобы изменить существующий текст, нажми «Изменить» у нужного блока или «Весь текст» в шапке документа.</p>
-    <div class="foot-row"><button class="primary" id="tc-save">Сохранить во вкладке</button><button class="ghost" id="tc-publish">Сохранить и опубликовать</button><button class="ghost" id="tc-cancel">Отмена</button></div>
+    <label class="f"><span>Как ИИ должен обработать</span><select id="tc-scope">${aiScopeOptions(file)}</select></label>
+    <p class="hint">Можно писать абзацы, списки и подзаголовки <code>##</code>. «Отправить ИИ» создаёт задачу на целостную переработку: агент должен не просто вставить текст, а согласовать его с остальной библией.</p>
+    <div class="foot-row"><button class="primary" id="tc-ai">Сохранить и отправить ИИ</button><button class="ghost" id="tc-save">Только сохранить</button><button class="ghost" id="tc-publish">Сохранить и опубликовать</button><button class="ghost" id="tc-cancel">Отмена</button></div>
     <p id="tc-status" class="field-status" role="status" aria-live="polite" hidden></p>`, true);
-  const save = async (publish) => {
+  const save = async (mode) => {
     if (S.content !== doc || S.contentFile !== file) { toast("Вкладка изменилась — открой форму заново.", "warn"); return; }
     const raw = $("#tc-text", modal).value.trim();
     const status = $("#tc-status", modal);
@@ -781,16 +788,20 @@ function openTabComposer() {
     const target = $("#tc-target", modal).value;
     const at = target === "" ? doc.blocks.length : sectionEnd(doc.blocks, +target);
     doc.blocks.splice(at, 0, ...added);
-    $("#tc-save", modal).disabled = true; $("#tc-publish", modal).disabled = true;
+    $$("#tc-save,#tc-publish,#tc-ai", modal).forEach((b) => b.disabled = true);
     const ok = markDirty(file, doc);
-    if (!ok) { doc.blocks.splice(at, added.length); status.hidden = false; status.textContent = "Браузер не сохранил черновик. Текст остаётся в форме."; $("#tc-save", modal).disabled = false; $("#tc-publish", modal).disabled = false; return; }
+    if (!ok) { doc.blocks.splice(at, added.length); status.hidden = false; status.textContent = "Браузер не сохранил черновик. Текст остаётся в форме."; $$("#tc-save,#tc-publish,#tc-ai", modal).forEach((b) => b.disabled = false); return; }
+    const targetLabel = target === "" ? "В конец вкладки" : (doc.blocks[+target] && doc.blocks[+target].text) || "Раздел";
+    const task = buildAiTask({ kind: "change", text: raw, doc, file, scope: $("#tc-scope", modal).value, target: targetLabel });
     closeModal(); renderActiveDoc(); localSavedToast(true, "Изменение");
     const node = document.querySelector(`.sect[data-s="${at}"]`);
     if (node && node.scrollIntoView) node.scrollIntoView({ block: "center", behavior: "smooth" });
-    if (publish) await pushCurrent();
+    if (mode === "publish") await pushCurrent();
+    if (mode === "ai") await queueAgentTask(task);
   };
-  $("#tc-save", modal).onclick = () => save(false);
-  $("#tc-publish", modal).onclick = () => save(true);
+  $("#tc-save", modal).onclick = () => save("local");
+  $("#tc-publish", modal).onclick = () => save("publish");
+  $("#tc-ai", modal).onclick = () => save("ai");
   $("#tc-cancel", modal).onclick = closeModal;
   $("#tc-text", modal).focus();
 }
@@ -1590,6 +1601,106 @@ function modelCard(it, i) {
   return c;
 }
 
+/* ----------------------------- задача на обработку ИИ ---------------------- */
+function defaultAiScope(file) { return file === "mech_character.json" ? "character-concept" : "linked"; }
+function aiScopeOptions(file) {
+  const selected = defaultAiScope(file);
+  return [
+    ["section", "Только этот фрагмент / вопрос"],
+    ["tab", "Пересобрать всю текущую вкладку"],
+    ["linked", "Вкладку и связанные системы"],
+    ["character-concept", "Всю концепцию построения персонажа"],
+  ].map(([v, label]) => `<option value="${v}" ${v === selected ? "selected" : ""}>${label}</option>`).join("");
+}
+function docContextForAi(doc) {
+  const headings = (doc.blocks || []).filter((b) => b.type === "h").map((b) => "- " + (b.text || ""));
+  const questions = [];
+  (doc.blocks || []).forEach((b, i) => {
+    if (b.type === "todo" && isQuestionBlock(i, doc)) (b.items || []).forEach((it) => questions.push(`- [${it.done ? "x" : " "}] ${it.text}${it.answer ? " Ответ: " + it.answer : ""}`));
+  });
+  return ["Заголовок: " + (doc.title || ""), "Подзаголовок: " + (doc.subtitle || ""), "", "Подразделы:", ...(headings.length ? headings : ["- нет"]), "", "Открытые вопросы:", ...(questions.length ? questions : ["- нет"])].join("\n");
+}
+function buildAiTask({ kind, text, answer, doc, file, scope, target }) {
+  const id = Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
+  const name = `${id}-${slug(text).slice(0, 40) || "pravka"}.md`;
+  const tab = sectionHash().slice(1);
+  const scopeText = {
+    section: "Только указанный фрагмент, но проверить, что он не противоречит вкладке.",
+    tab: "Пересобрать текущую вкладку целиком вокруг изменения.",
+    linked: "Обновить текущую вкладку и все связанные системы/числа.",
+    "character-concept": "Пересмотреть всю концепцию построения персонажа: происхождение, тело, практика, специализация, снаряжение, связи с крафтом/исследованием/боем/сценарием/сетью.",
+  }[scope] || scope;
+  const body = [
+    "# Задача ИИ: " + (kind === "question" ? "открытый вопрос" : "изменение вкладки"),
+    "",
+    "- id: " + id,
+    "- created: " + nowIso(),
+    "- status: pending",
+    "- source: site-editor",
+    "- tab: " + tab,
+    "- file: game-docs/src/content/" + file,
+    "- target: " + (target || "вся вкладка"),
+    "- scope: " + scope,
+    "- local_draft_saved: yes",
+    "",
+    "## Запрос автора",
+    "",
+    text,
+    "",
+    ...(answer ? ["## Ответ / решение автора", "", answer, ""] : []),
+    "## Контекст вкладки",
+    "",
+    docContextForAi(doc),
+    "",
+    "## Что должен сделать ИИ",
+    "",
+    "1. Прочитать `game-docs/src/docs/AGENT-GUIDE.md` и `README.md` в корне репозитория.",
+    "2. Не ограничиваться вставкой текста: применить изменение так, чтобы система осталась целостной. Область: " + scopeText,
+    "3. Найти связанные вкладки в `game-docs/src/content/` и согласовать числа, термины, зависимости и открытые вопросы. Для концепции персонажа обязательно проверить `scenario.json`, `mech_craft.json`, `mech_research.json`, `mech_inventory.json`, `mech_combat.json`, `mech_zombies.json`, `mech_multiplayer.json`.",
+    "4. Сохранять канон проекта: Пелена, «Горизонт», вирус/Порог, отсутствие героических уровней и XP за убийства. Если изменение требует нового канонического решения — явно записать его и последствия.",
+    "5. Ответить на затронутые открытые вопросы через `answer` и `done`; если решение неполное — добавить новые конкретные вопросы, а не оставлять «проработать».",
+    "6. Обновить `updated` в изменённых JSON, проверить валидность JSON и выполнить `npm test --prefix game-docs`.",
+    "7. Закоммитить и запушить только рабочую ветку, дождаться GitHub Pages, затем перенести этот файл в `agent-inbox/done/` с итогом: изменённые файлы, новые числа, оставшиеся вопросы.",
+    "",
+    "## Критерии готовности",
+    "",
+    "- Изменение отражено не только в одном абзаце, но и в правилах/числах/связях.",
+    "- Нет противоречий между вкладками и сценарием.",
+    "- Есть конкретные значения, формулы или таблицы там, где они нужны.",
+    "- Открытые вопросы имеют ответы или новые точные формулировки.",
+    "- Сайт собирается, тесты проходят, Pages опубликован.",
+    "",
+    "## Как запустить обработку",
+    "",
+    "Автор пишет агенту в Arena: «разбери inbox». Агент читает этот файл, выполняет задачу и переносит его в done/."
+  ].join("\n");
+  return { id, name, body, summary: text.slice(0, 60), scope };
+}
+function openAgentTaskPreview(task, error) {
+  const modal = openModal("Задача для ИИ · " + task.name, `
+    <p class="hint">${error ? "Отправка в GitHub не выполнена: " + esc(error) + ". " : ""}Правка сохранена во вкладке. Задачу можно скопировать в чат агенту или подключить GitHub и отправить в agent-inbox.</p>
+    <label class="f"><span>Текст задачи</span><textarea id="ai-task-body" readonly style="min-height:45vh">${esc(task.body)}</textarea></label>
+    <div class="foot-row"><button class="primary" id="ai-task-copy">Скопировать задачу</button>${S.viewOnly ? "" : '<button class="ghost" id="ai-task-gh">Подключить GitHub</button>'}<button class="ghost" id="ai-task-close">Закрыть</button></div>`, false);
+  $("#ai-task-copy", modal).onclick = () => copyText(task.body);
+  $("#ai-task-close", modal).onclick = closeModal;
+  if (!S.viewOnly) $("#ai-task-gh", modal).onclick = () => openSettings("github");
+}
+async function queueAgentTask(task) {
+  if (S.viewOnly) { toast("Гостевая ссылка не отправляет задачи ИИ.", "warn"); return false; }
+  if (!canWrite()) { openAgentTaskPreview(task); return false; }
+  try {
+    setPill("", "отправка задачи ИИ…");
+    await ghPutText(`${S.config.inboxPath}/${task.name}`, task.body, `docs(inbox): ${task.summary}`);
+    setPill("ok", "задача ИИ отправлена");
+    toast("Задача отправлена в agent-inbox: " + task.name + ". Напишите агенту «разбери inbox», чтобы он обработал изменение.", "ok", 9000);
+    return true;
+  } catch (e) {
+    setPill("bad", "задача ИИ не отправлена");
+    openAgentTaskPreview(task, e.hint || e.message);
+    return false;
+  }
+}
+
 /* ----------------------------- запросы агенту ------------------------------ */
 async function openInbox() {
   if (S.viewOnly) { toast("Отправка запросов доступна владельцу, не в гостевой ссылке.", "warn"); return; }
@@ -1681,6 +1792,8 @@ function wireDoc() {
     e.preventDefault(); submitQuestionForm(form);
   });
   $("#doc").addEventListener("click", (e) => {
+    const ai = e.target.closest("[data-qai]");
+    if (ai) { const form = ai.closest("[data-qform]"); if (form) submitQuestionForm(form, true); return; }
     const q = e.target.closest("[data-qact]");
     if (q) { questionAction(q); return; }
     const b = e.target.closest("[data-act]");

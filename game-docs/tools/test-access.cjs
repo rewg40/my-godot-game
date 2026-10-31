@@ -92,6 +92,10 @@ async function makePage(t, options = {}) {
         return reply({ sha: "mock-config-sha" });
       }
       if (/\/branches\//.test(parsed.pathname)) return reply({ name: BRANCH });
+      if (/\/contents\/game-docs\/src\/content\/agent-inbox\/.+\.md$/.test(parsed.pathname)) {
+        if (method === "PUT") return reply({ commit: { sha: "mock-inbox-commit" }, content: { sha: "mock-inbox-sha" } });
+        return reply([]);
+      }
       if (/\/contents\/game-docs\/src\/content\/.+\.json$/.test(parsed.pathname)) {
         if (method === "PUT") {
           if (options.contentPutStatus) return reply({ message: "Mock content write failure" }, options.contentPutStatus);
@@ -457,4 +461,56 @@ test("editor link overrides an old guest bookmark only after owner gate; guest l
   const settingsLink = openAccess(p);
   assert.equal(settingsLink, BASE + "?open=1#mechanics/zombies");
   assert.equal(p.doc.querySelector("#st-edit-link").value, BASE + "?edit=1#mechanics/zombies");
+});
+
+test("composer can save locally and queue a structured AI task without publishing the tab", async (t) => {
+  const p = await makePage(t, { url: BASE + "#mechanics/character" });
+  await until(() => !p.doc.querySelector("#btn-save").disabled, "owner ready");
+  p.click("#btn-edit-tab");
+  p.doc.querySelector("#tc-text").value = "Пересобери концепцию персонажа вокруг происхождения и практики.";
+  p.doc.querySelector("#tc-scope").value = "character-concept";
+  p.click("#tc-ai");
+  await until(() => p.writes === 1, () => "one inbox PUT: " + JSON.stringify({ writes: p.writes, errors: p.errors, calls: p.calls.map((c) => c.method + " " + c.href) }));
+  const put = p.calls.find((c) => c.method === "PUT");
+  assert.ok(put.href.includes("/contents/game-docs/src/content/agent-inbox/"));
+  const body = JSON.parse(put.body);
+  const md = Buffer.from(body.content, "base64").toString("utf8");
+  assert.match(md, /scope: character-concept/);
+  assert.match(md, /всю концепцию построения персонажа/i);
+  assert.match(md, /разбери inbox/);
+  assert.match(md, /mech_craft\.json/);
+  assert.ok(draftOf(p, "mech_character.json").blocks.some((b) => (b.text || []).join && (b.text || []).join(" ").includes("происхождения и практики")));
+  assert.ok(p.calls.every((c) => !c.href.includes("/contents/game-docs/src/content/mech_character.json") || c.method === "GET"), "AI queue must not silently publish the tab");
+  assert.equal(p.errors.length, 0);
+});
+
+test("AI task without a token is kept as a copyable task instead of being lost", async (t) => {
+  const p = await makePage(t, { token: "", url: BASE + "#mechanics/zombies" });
+  p.click("#btn-edit-tab");
+  p.doc.querySelector("#tc-text").value = "ИИ должен согласовать поведение зомби с шумом персонажа.";
+  p.click("#tc-ai");
+  await until(() => p.doc.querySelector("#ai-task-body"), "task preview opens");
+  assert.match(p.doc.querySelector("#ai-task-body").value, /scope: linked/);
+  assert.equal(p.writes, 0);
+  p.click("#ai-task-copy");
+  await until(() => p.copied.some((x) => x.includes("Задача ИИ")), "task copied");
+  assert.ok(draftOf(p, "mech_zombies.json").blocks.some((b) => (b.text || []).join && (b.text || []).join(" ").includes("согласовать поведение зомби")));
+  p.click("#ai-task-close");
+  assert.equal(p.doc.querySelector("#modal-root").hidden, true);
+  assert.equal(p.errors.length, 0);
+});
+
+test("inline open question can be added and sent to AI processing", async (t) => {
+  const p = await makePage(t, { url: BASE + "#mechanics/zombies" });
+  await until(() => !p.doc.querySelector("#btn-save").disabled, "owner ready");
+  const form = p.doc.querySelector("[data-qform]");
+  form.elements.question.value = "Как потеря цели связана с шумом и стаминой персонажа?";
+  form.querySelector("[data-qai]").click();
+  await until(() => p.writes === 1, "inbox task created");
+  const put = p.calls.find((c) => c.method === "PUT");
+  const md = Buffer.from(JSON.parse(put.body).content, "base64").toString("utf8");
+  assert.match(md, /открытый вопрос/);
+  assert.match(md, /Как потеря цели связана/);
+  assert.ok(draftOf(p, "mech_zombies.json").blocks.some((b) => (b.items || []).some((i) => String(i.text || "").includes("Как потеря цели"))));
+  assert.equal(p.errors.length, 0);
 });
