@@ -1,0 +1,13 @@
+# Godot
+.godot/
+*.translation
+
+# Ассеты: тяжёлые модели и производные файлы живут локально
+assets/models/*.glb
+assets/models/*.import
+assets/models/*_parts.json
+
+# Служебное
+export_presets.cfg
+*.tmp
+.DS_Store

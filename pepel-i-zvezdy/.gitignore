@@ -1,0 +1,26 @@
+# Кэш импорта Godot
+.godot/
+.import/
+**/.godot/
+**/.import/
+
+# Экспортированные сборки
+/build/
+/exports/
+*.pck
+*.exe
+
+# Тяжёлые модели: кладутся локально через tools/unpack_assets.py
+assets/models/*.glb
+assets/models/*.gltf
+assets/models/*.bin
+assets/data/vegetation_points.json
+
+# Точки растительности из репозитория ассетов (10 МБ, скачиваются отдельно)
+assets/data/*.json
+
+# Системный мусор
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp

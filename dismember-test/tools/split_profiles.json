@@ -1,0 +1,24 @@
+{
+  "zombie": {
+    "source": "zombie.glb",
+    "hip_y": 0.44,
+    "shoulder_y": 0.84,
+    "arm_top": 0.05,
+    "arm_x": 0.145,
+    "center_x": -0.025,
+    "leg_offset": 0.095,
+    "arm_radius": 0.085,
+    "yaw": 180.0
+  },
+  "character": {
+    "source": "character.glb",
+    "hip_y": 0.48,
+    "shoulder_y": 0.84,
+    "arm_top": 0.05,
+    "arm_x": 0.135,
+    "center_x": 0.0,
+    "leg_offset": 0.075,
+    "arm_radius": 0.07,
+    "yaw": 180.0
+  }
+}
