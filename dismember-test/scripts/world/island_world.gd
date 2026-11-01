@@ -165,9 +165,15 @@ func _fill_holes() -> void:
 					filled = true
 		if not filled:
 			break
+	# остатки по краям сетки прижимаем к самому низкому месту острова:
+	# получается «отмель» на уровне берега, а не провал до нуля
+	var lowest := 0.0
+	for index in heights.size():
+		if heights[index] > -900.0:
+			lowest = heights[index] if lowest == 0.0 else minf(lowest, heights[index])
 	for index in heights.size():
 		if heights[index] <= -900.0:
-			heights[index] = 0.0
+			heights[index] = lowest
 
 
 func _build_collision() -> void:

@@ -343,9 +343,6 @@ def split_model(source: Path, target: Path, profile: dict) -> dict:
     slots, info = classify(points, indices, profile)
     triangles = indices.reshape(-1, 3)
 
-    base_offset = (len(binary) + 3) // 4 * 4
-    binary.extend(b"\x00" * (base_offset - len(binary)))
-
     new_primitives = []
     pivots = {}
     bounds = {}
