@@ -38,6 +38,7 @@ var _attack := -1.0
 var _attack_hit := false
 var _cooldown := 0.0
 var _prone := 0.0
+var _recoil := 0.0
 var _speed := 0.0
 var _mode := "idle"
 var _dead := false
@@ -153,6 +154,8 @@ func _update_pose(delta: float) -> void:
 	var want_prone := 1.0 if _mode == "crawl" else 0.0
 	_prone = move_toward(_prone, want_prone, delta * 2.2)
 	visual.rotation.x = -PRONE_ANGLE * _prone
+	visual.rotation.z = _recoil * 0.2
+	_recoil = maxf(0.0, _recoil - delta * 3.5)
 	visual.position.y = -0.55 * _prone
 	var wanted_height := lerpf(STAND_HEIGHT, PRONE_HEIGHT, _prone)
 	if absf(_capsule.height - wanted_height) > 0.02:
@@ -193,6 +196,7 @@ func damage_body(amount: float) -> void:
 	if _dead:
 		return
 	hp = maxf(0.0, hp - amount)
+	_recoil = 1.0
 	body_damaged.emit(self)
 	_update_label()
 	if hp <= 0.0:
