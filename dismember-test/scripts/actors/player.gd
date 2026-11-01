@@ -164,6 +164,11 @@ func _hit_stop(duration: float) -> void:
 	Engine.time_scale = 1.0
 
 
+func _exit_tree() -> void:
+	# перезапуск сцены не должен оставить замедление включённым
+	Engine.time_scale = 1.0
+
+
 func _update_camera_shake(delta: float) -> void:
 	_shake = maxf(0.0, _shake - delta * 2.2)
 	var offset := Vector3(
