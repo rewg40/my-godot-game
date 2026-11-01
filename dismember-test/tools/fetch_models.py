@@ -38,6 +38,7 @@ from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
 RAW = "https://raw.githubusercontent.com/rewg40/pepel-i-zvezdy/main"
+API = "https://api.github.com/repos/rewg40/pepel-i-zvezdy/contents"
 
 # имя файла в проеке -> (части архива по порядку, что искать внутри)
 ASSETS = {
@@ -66,8 +67,11 @@ ASSETS = {
 SPLIT = {"zombie.glb": "zombie", "character.glb": "character"}
 
 
-def download(url: str, target: Path) -> None:
-    request = urllib.request.Request(url, headers={"User-Agent": "dismember-test"})
+def download(url: str, target: Path, accept: str = "*/*") -> None:
+    request = urllib.request.Request(url, headers={
+        "User-Agent": "dismember-test",
+        "Accept": accept,
+    })
     with urllib.request.urlopen(request, timeout=120) as response, open(target, "wb") as handle:
         total = int(response.headers.get("Content-Length") or 0)
         done = 0
@@ -80,6 +84,21 @@ def download(url: str, target: Path) -> None:
             if total:
                 print(f"\r    {done / 1048576:6.1f} / {total / 1048576:.1f} МБ", end="")
     print()
+
+
+def fetch_file(relative: str, target: Path) -> None:
+    """Скачивает файл репозитория: сначала raw, потом через API.
+
+    raw.githubusercontent.com отдаёт файл напрямую, но в некоторых сетях он
+    недоступен — тогда идём через api.github.com с типом application/vnd.github.raw.
+    """
+    encoded = urllib.parse.quote(relative)
+    try:
+        download(f"{RAW}/{encoded}", target)
+        return
+    except Exception as raw_error:  # noqa: BLE001 - сеть бывает любой
+        print(f"    raw недоступен ({raw_error}), пробую API…")
+    download(f"{API}/{encoded}", target, accept="application/vnd.github.raw")
 
 
 def _open_archive(path: Path) -> zipfile.ZipFile:
@@ -124,10 +143,9 @@ def fetch_asset(name: str, parts: list[str], pattern: str | None, models_dir: Pa
                     return False
                 shutil.copyfile(source, local)
             else:
-                url = f"{RAW}/{urllib.parse.quote(relative)}"
                 print(f"[скачать] {relative}")
                 try:
-                    download(url, local)
+                    fetch_file(relative, local)
                 except Exception as error:  # noqa: BLE001 - сеть бывает любой
                     print(f"[ошибка] {relative}: {error}")
                     return False
