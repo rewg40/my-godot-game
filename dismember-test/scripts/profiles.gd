@@ -13,7 +13,7 @@ const MEDIC := {
 	"parts_model": "res://assets/models/character_parts.glb",
 	"meta": "res://assets/models/character_parts.json",
 	"scale": 1.75,
-	"arm_rest_z": 78.0,
+	"arm_rest_z": 78.0,   # запасной вариант: обычно угол приходит из JSON
 	"fallback_color": Color(0.56, 0.62, 0.55),
 	"fallback_height": 1.78,
 }
@@ -22,7 +22,7 @@ const ZOMBIE := {
 	"parts_model": "res://assets/models/zombie_parts.glb",
 	"meta": "res://assets/models/zombie_parts.json",
 	"scale": 1.75,
-	"arm_rest_z": 0.0,
+	"arm_rest_z": 0.0,    # запасной вариант: обычно угол приходит из JSON
 	"fallback_color": Color(0.38, 0.44, 0.34),
 	"fallback_height": 1.80,
 }

@@ -21,6 +21,7 @@ var rest_rotations := {}
 var built := false
 var placeholder := false
 var height := 1.0
+var arm_rest_z := 0.0
 var body_node: MeshInstance3D
 
 var _cycle := 0.0
@@ -59,6 +60,9 @@ func _build_from_parts(interactive: bool) -> bool:
 
 	var mesh := source.mesh
 	height = float(meta.get("height", 1.0))
+	# угол доворота рук посчитан при нарезке: у T-позы руки вытянуты в стороны,
+	# у A-позы уже висят вдоль тела — тогда их трогать не надо
+	arm_rest_z = float(meta.get("arm_rest_z", profile.get("arm_rest_z", 0.0)))
 	var order: Array = meta.get("order", [])
 	var pivots: Dictionary = meta.get("pivots", {})
 	var bounds: Dictionary = meta.get("bounds", {})
@@ -119,6 +123,7 @@ func _add_part(part_id: String, mesh: Mesh, pivot: Vector3, mesh_offset: Vector3
 
 
 func _build_placeholder(interactive: bool) -> void:
+	arm_rest_z = float(profile.get("arm_rest_z", 0.0))
 	var material := StandardMaterial3D.new()
 	material.albedo_color = profile.get("fallback_color", Color(0.5, 0.55, 0.5))
 	material.roughness = 0.85
@@ -146,7 +151,7 @@ func _build_placeholder(interactive: bool) -> void:
 	leg_mesh.radius = 0.075
 	leg_mesh.height = 0.5
 	for part_id in ["leg_l", "leg_r"]:
-		var side := -1.0 if part_id == "leg_l" else 1.0
+		var side: float = -1.0 if part_id == "leg_l" else 1.0
 		var pivot := Vector3(side * 0.08, 0.5, 0.0)
 		var center := Vector3(side * 0.08, 0.25, 0.0)
 		_add_primitive(part_id, leg_mesh, center, pivot,
@@ -157,7 +162,7 @@ func _build_placeholder(interactive: bool) -> void:
 	arm_mesh.radius = 0.05
 	arm_mesh.height = 0.55
 	for part_id in ["arm_l", "arm_r"]:
-		var side := -1.0 if part_id == "arm_l" else 1.0
+		var side: float = -1.0 if part_id == "arm_l" else 1.0
 		var pivot := Vector3(side * 0.19, 0.82, 0.0)
 		var center := Vector3(side * 0.19, 0.56, 0.0)
 		_add_primitive(part_id, arm_mesh, center, pivot,
@@ -195,7 +200,7 @@ func _add_primitive(part_id: String, mesh: Mesh, center: Vector3, pivot: Vector3
 
 
 func _apply_rest_pose() -> void:
-	var rest_z := float(profile.get("arm_rest_z", 0.0))
+	var rest_z := arm_rest_z
 	for part_id in parts.keys():
 		var limb: Limb = parts[part_id]
 		var offset := Vector3.ZERO
@@ -298,12 +303,15 @@ func hand_anchor(part_id: String) -> Vector3:
 	var pivot: Vector3 = parts[part_id].position
 	var best := low
 	var best_distance := -1.0
-	for corner in [
-		Vector3(low.x, low.y, low.z), Vector3(high.x, low.y, low.z),
-		Vector3(low.x, high.y, low.z), Vector3(high.x, high.y, low.z),
-		Vector3(low.x, low.y, high.z), Vector3(high.x, low.y, high.z),
-		Vector3(low.x, high.y, high.z), Vector3(high.x, high.y, high.z),
-	]:
+	var xs: Array[float] = [low.x, high.x]
+	var ys: Array[float] = [low.y, high.y]
+	var zs: Array[float] = [low.z, high.z]
+	var corners: Array[Vector3] = []
+	for x in xs:
+		for y in ys:
+			for z in zs:
+				corners.append(Vector3(x, y, z))
+	for corner in corners:
 		var distance := corner.distance_squared_to(pivot)
 		if distance > best_distance:
 			best_distance = distance

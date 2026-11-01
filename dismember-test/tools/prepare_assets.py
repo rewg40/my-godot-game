@@ -318,6 +318,30 @@ def classify(points: np.ndarray, indices: np.ndarray, profile: dict):
     return slots, info
 
 
+def t_pose_drop(points: np.ndarray, triangles: np.ndarray, slots: np.ndarray,
+                profile: dict) -> float:
+    """Нужно ли опускать руки из T-позы и на сколько градусов.
+
+    У T-позы рука вытянута по X и она заметно длиннее, чем толще; у A-позы руки
+    висят вдоль тела и выше становятся, чем шире. От этого зависит, как риг
+    ставит плечи: вытянутые руки надо довернуть вниз, висящие — не трогать.
+    """
+    drop = float(profile.get("t_pose_drop", 78.0))
+    votes = []
+    for slot in (1, 2):
+        mask = slots == slot
+        if not mask.any():
+            continue
+        used = np.unique(triangles[mask].ravel())
+        sub = points[used]
+        width = float(sub[:, 0].max() - sub[:, 0].min())
+        height = float(sub[:, 1].max() - sub[:, 1].min())
+        votes.append(width > 2.0 * height)
+    if not votes:
+        return 0.0
+    return drop if all(votes) else 0.0
+
+
 def part_bounds(points: np.ndarray, triangles: np.ndarray, slots: np.ndarray, slot: int):
     mask = slots == slot
     if not mask.any():
@@ -411,6 +435,7 @@ def split_model(source: Path, target: Path, profile: dict) -> dict:
 
     meta = {
         "source": source.name,
+        "arm_rest_z": t_pose_drop(points, triangles, slots, profile),
         "order": PART_ORDER,
         "pivots": pivots,
         "bounds": bounds,

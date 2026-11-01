@@ -56,40 +56,66 @@ func _build_from_model(path: String) -> void:
 	var instance := packed.instantiate()
 	add_child(instance)
 	await get_tree().process_frame
-	var mesh_node := SceneUtil.first_mesh(instance)
-	if mesh_node == null:
+
+	# у островов бывает несколько мешей (улучшенный — 60 штук: рельеф, скалы, постройки)
+	var meshes := _collect_meshes(instance)
+	if meshes.is_empty():
 		instance.queue_free()
 		source = "процедурная заглушка (в модели нет меша)"
 		_build_procedural()
 		return
 
-	var box := SceneUtil.world_aabb(mesh_node)
+	var box := _bounds_of(meshes)
 	var widest := maxf(box.size.x, box.size.z)
 	instance.scale = instance.scale * (MODEL_SIZE / maxf(widest, 0.001))
 	await get_tree().process_frame
 
-	box = SceneUtil.world_aabb(mesh_node)
+	box = _bounds_of(meshes)
 	instance.position += Vector3(-box.get_center().x, -box.position.y, -box.get_center().z)
 	await get_tree().process_frame
 
-	_snapshot_heights(mesh_node)
+	_snapshot_heights(meshes)
 
 
-func _snapshot_heights(mesh_node: MeshInstance3D) -> void:
-	var arrays := mesh_node.mesh.surface_get_arrays(0)
-	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-	var snapshot := mesh_node.global_transform
+func _collect_meshes(root: Node) -> Array:
+	var result := []
+	for node in root.find_children("*", "MeshInstance3D", true, false):
+		var mesh_node := node as MeshInstance3D
+		if mesh_node.mesh != null and mesh_node.mesh.get_surface_count() > 0:
+			result.append(mesh_node)
+	return result
+
+
+func _bounds_of(meshes: Array) -> AABB:
+	var low := Vector3(INF, INF, INF)
+	var high := Vector3(-INF, -INF, -INF)
+	for mesh_node in meshes:
+		var box := SceneUtil.world_aabb(mesh_node as MeshInstance3D)
+		low = low.min(box.position)
+		high = high.max(box.position + box.size)
+	return AABB(low, high - low)
+
+
+func _snapshot_heights(meshes: Array) -> void:
 	heights.resize(GRID * GRID)
 	heights.fill(-999.0)
-	for vertex in vertices:
-		var point := snapshot * vertex
-		var ix := int(round((point.x + half_size) / step))
-		var iz := int(round((point.z + half_size) / step))
-		if ix < 0 or ix >= GRID or iz < 0 or iz >= GRID:
-			continue
-		var index := iz * GRID + ix
-		if point.y > heights[index]:
-			heights[index] = point.y
+	for mesh_node in meshes:
+		var snapshot: Transform3D = (mesh_node as MeshInstance3D).global_transform
+		var mesh: Mesh = (mesh_node as MeshInstance3D).mesh
+		for surface in mesh.get_surface_count():
+			var arrays := mesh.surface_get_arrays(surface)
+			if arrays.is_empty():
+				continue
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			for vertex in vertices:
+				var point := snapshot * vertex
+				var ix := int(round((point.x + half_size) / step))
+				var iz := int(round((point.z + half_size) / step))
+				if ix < 0 or ix >= GRID or iz < 0 or iz >= GRID:
+					continue
+				var index := iz * GRID + ix
+				if point.y > heights[index]:
+					heights[index] = point.y
 
 
 func _build_procedural() -> void:
@@ -150,10 +176,11 @@ func _fill_holes() -> void:
 					continue
 				var sum := 0.0
 				var count := 0
-				for dz in [-1, 0, 1]:
-					for dx in [-1, 0, 1]:
-						var nx := x + dx
-						var nz := z + dz
+				var offsets: Array[int] = [-1, 0, 1]
+				for dz in offsets:
+					for dx in offsets:
+						var nx: int = x + dx
+						var nz: int = z + dz
 						if nx < 0 or nx >= grid_size or nz < 0 or nz >= grid_size:
 							continue
 						var value := copy[nz * grid_size + nx]

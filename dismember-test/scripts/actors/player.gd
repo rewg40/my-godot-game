@@ -18,6 +18,9 @@ const RUN_SPEED := 5.6
 const GRAVITY := 22.0
 const JUMP_SPEED := 6.0
 const MOUSE_SENSITIVITY := 0.0022
+const SWORD_MODEL := "res://assets/models/sword.glb"
+const SWORD_LENGTH := 0.62
+const SWORD_GRIP_RATIO := 0.2
 const CAMERA_BASE := Vector3(0.75, 0.5, 3.4)
 
 var max_hp := 500.0
@@ -59,8 +62,13 @@ func _ready() -> void:
 	if rig.parts.has("arm_r"):
 		var arm: Limb = rig.parts["arm_r"]
 		arm.add_child(_sword)
-		_sword.position = rig.hand_anchor("arm_r")
-		_sword.rotation_degrees = Vector3(0.0, 0.0, -90.0)
+		var anchor := rig.hand_anchor("arm_r")
+		_sword.position = anchor
+		if anchor.length_squared() > 0.0001:
+			# клинок продолжает направление от плеча к кисти: и у T-позы,
+			# и у опущенных рук меч смотрит туда же, куда рука
+			_sword.quaternion = Quaternion(Vector3.UP, anchor.normalized())
+		_fit_sword()
 
 	_yaw = Node3D.new()
 	_yaw.name = "CameraYaw"
@@ -242,7 +250,54 @@ func heal_full() -> void:
 	health_changed.emit(self)
 
 
+## Меч из репозитория ассетов, а если его нет — собранный из примитивов.
 func _build_sword() -> Node3D:
+	var model := _build_sword_model()
+	if model != null:
+		return model
+	return _build_sword_primitives()
+
+
+func _build_sword_model() -> Node3D:
+	if not ResourceLoader.exists(SWORD_MODEL):
+		return null
+	var packed := load(SWORD_MODEL) as PackedScene
+	if packed == null:
+		return null
+	var root := Node3D.new()
+	root.name = "Sword"
+	var offset := Node3D.new()
+	offset.name = "Offset"
+	root.add_child(offset)
+	offset.add_child(packed.instantiate())
+	return root
+
+
+## Подгоняет масштаб и точку хвата под размер модели: клинок лежит вдоль её
+## оси Z и смотрит в -Z, рукоять — в плюс Z. Хват ставим на 20% от торца
+## рукояти, поворот — так, чтобы клинок пошёл от кисти вперёд.
+func _fit_sword() -> void:
+	if _sword == null:
+		return
+	var offset := _sword.get_node_or_null("Offset") as Node3D
+	if offset == null:
+		return
+	var mesh_node := SceneUtil.first_mesh(offset)
+	if mesh_node == null:
+		return
+	# длина — по габаритам самого меша: они не зависят ни от поворотов руки,
+	# ни от масштаба рига, поэтому подгонка не «плывёт» при замахе
+	var box := mesh_node.get_aabb()
+	var length := maxf(box.size.x, maxf(box.size.y, box.size.z))
+	if length <= 0.001:
+		return
+	var factor := SWORD_LENGTH / length
+	offset.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+	offset.scale = Vector3.ONE * factor
+	offset.position = Vector3(0.0, SWORD_GRIP_RATIO * length * factor, 0.0)
+
+
+func _build_sword_primitives() -> Node3D:
 	var root := Node3D.new()
 	root.name = "Sword"
 
