@@ -1,0 +1,40 @@
+; Полигон «Пепел и Звёзды» — проверка меча и отрубания конечностей.
+;
+; Раскладка регистрируется кодом (scripts/controls.gd), чтобы настройки нельзя
+; было сломать правкой файла проекта.
+
+config_version=5
+
+[application]
+
+config/name="Полигон: меч и конечности"
+config/description="Тестовая площадка: остров, медик с мечом и зомби, которым можно отрубать руки и ноги."
+config/version="0.1.0"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.4", "Forward Plus")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/stretch/mode="canvas_items"
+window/vsync/vsync_mode=1
+
+[layer_names]
+
+3d_physics/layer_1="world"
+3d_physics/layer_2="player"
+3d_physics/layer_3="zombie"
+3d_physics/layer_4="limb"
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+environment/defaults/default_clear_color=Color(0.043, 0.051, 0.063, 1)
+anti_aliasing/quality/msaa_3d=2
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3

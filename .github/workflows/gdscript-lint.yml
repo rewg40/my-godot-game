@@ -1,0 +1,54 @@
+name: GDScript lint
+
+on:
+  push:
+    paths:
+      - "**/*.gd"
+      - "**/.gdlintrc"
+      - "**/tools/*.py"
+      - ".github/workflows/gdscript-lint.yml"
+  pull_request:
+    paths:
+      - "**/*.gd"
+      - "**/.gdlintrc"
+      - "**/tools/*.py"
+      - ".github/workflows/gdscript-lint.yml"
+
+jobs:
+  gdlint:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [pepel-i-zvezdy, dismember-test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Установить gdtoolkit
+        run: pip install "gdtoolkit==4.*"
+
+      - name: Проверить стиль и синтаксис GDScript
+        working-directory: ${{ matrix.project }}
+        run: gdlint scripts
+
+      - name: Проверить, что все res:// пути из project.godot и сцен существуют
+        working-directory: ${{ matrix.project }}
+        run: python tools/check_paths.py
+
+  tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Синтаксис инструментов
+        run: |
+          python -m py_compile pepel-i-zvezdy/tools/*.py
+          python -m py_compile dismember-test/tools/*.py

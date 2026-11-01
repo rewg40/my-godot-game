@@ -1,0 +1,49 @@
+; Пепел и Звёзды — конфигурация проекта Godot 4.
+;
+; Раскладка управления регистрируется кодом (scripts/autoload/input_setup.gd),
+; поэтому раздел [input] здесь намеренно пуст: так настройки нельзя сломать
+; правкой файла, и они одинаково работают на всех платформах.
+
+config_version=5
+
+[application]
+
+config/name="Пепел и Звёзды"
+config/description="3D-выживание на заражённом острове: зомби, крафт, ночь, пепел и звёзды."
+config/version="0.1.0"
+run/main_scene="res://scenes/main/Main.tscn"
+config/features=PackedStringArray("4.4", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+InputSetup="*res://scripts/autoload/input_setup.gd"
+ItemDB="*res://scripts/autoload/item_db.gd"
+GameState="*res://scripts/autoload/game_state.gd"
+SaveSystem="*res://scripts/autoload/save_system.gd"
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/size/mode=0
+window/stretch/mode="canvas_items"
+window/vsync/vsync_mode=1
+
+[layer_names]
+
+3d_physics/layer_1="world"
+3d_physics/layer_2="player"
+3d_physics/layer_3="enemies"
+3d_physics/layer_4="interactable"
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+environment/defaults/default_clear_color=Color(0.043, 0.051, 0.063, 1)
+anti_aliasing/quality/msaa_3d=2
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
